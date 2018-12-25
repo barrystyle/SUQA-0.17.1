@@ -60,7 +60,7 @@ Represents the view to a single wallet.
 
 * UI elements like BitcoinAmountField, which inherit from QWidget.
 * `bitcoinstrings.cpp`: automatically generated
-* `bitcoinunits.(h/cpp)`: BTC / mBTC / etc handling
+* `bitcoinunits.(h/cpp)`: SUQA / mSUQA / etc handling
 * `callback.h`
 * `guiconstants.h`: UI colors, app name, etc
 * `guiutil.h`: several helper functions
@@ -71,7 +71,7 @@ Represents the view to a single wallet.
 
 See [CONTRIBUTING.md](/CONTRIBUTING.md) for general guidelines. Specifically for Qt:
 
-* don't change `local/bitcoin_en.ts`; this happens [automatically](/doc/translation_process.md#writing-code-with-translations)
+* don't change `local/suqa_en.ts`; this happens [automatically](/doc/translation_process.md#writing-code-with-translations)
 
 ## Using Qt Creator as IDE
 
