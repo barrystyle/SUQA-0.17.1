@@ -33,6 +33,7 @@ const char* GetTxnOutputType(txnouttype t)
     case TX_PUBKEYHASH: return "pubkeyhash";
     case TX_SCRIPTHASH: return "scripthash";
     case TX_MULTISIG: return "multisig";
+    case TX_CHECKLOCKTIMEVERIFY: return "checklocktimeverify";
     case TX_NULL_DATA: return "nulldata";
     case TX_WITNESS_V0_KEYHASH: return "witness_v0_keyhash";
     case TX_WITNESS_V0_SCRIPTHASH: return "witness_v0_scripthash";
@@ -89,6 +90,12 @@ static bool MatchMultisig(const CScript& script, unsigned int& required, std::ve
 
 bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, std::vector<std::vector<unsigned char> >& vSolutionsRet)
 {
+    int CLTVreleaseBlock;
+    return Solver(scriptPubKey, typeRet, vSolutionsRet, CLTVreleaseBlock);
+}
+
+bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, std::vector<std::vector<unsigned char> >& vSolutionsRet, int& CLTVreleaseBlock)
+{
     vSolutionsRet.clear();
 
     // Shortcut for pay-to-script-hash, which are more constrained than the other types:
@@ -97,6 +104,15 @@ bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, std::vector<std::v
     {
         typeRet = TX_SCRIPTHASH;
         std::vector<unsigned char> hashBytes(scriptPubKey.begin()+2, scriptPubKey.begin()+22);
+        vSolutionsRet.push_back(hashBytes);
+        return true;
+    }
+
+    // Shortcut for CLTV type transactions
+    if (scriptPubKey.IsCheckLockTimeVerify())
+    {
+        typeRet = TX_CHECKLOCKTIMEVERIFY;
+        std::vector<unsigned char> hashBytes(scriptPubKey.begin()+9, scriptPubKey.begin()+29);
         vSolutionsRet.push_back(hashBytes);
         return true;
     }
@@ -183,6 +199,11 @@ bool ExtractDestination(const CScript& scriptPubKey, CTxDestination& addressRet)
         addressRet = CKeyID(uint160(vSolutions[0]));
         return true;
     }
+    else if (whichType == TX_CHECKLOCKTIMEVERIFY)
+    {
+        addressRet = CKeyID(uint160(vSolutions[0]));
+        return true;
+    }
     else if (whichType == TX_SCRIPTHASH)
     {
         addressRet = CScriptID(uint160(vSolutions[0]));
@@ -264,7 +285,7 @@ public:
     }
 
     bool operator()(const CKeyID &keyID) const {
-        script->clear();
+        //script->clear();
         *script << OP_DUP << OP_HASH160 << ToByteVector(keyID) << OP_EQUALVERIFY << OP_CHECKSIG;
         return true;
     }
@@ -301,7 +322,16 @@ public:
 CScript GetScriptForDestination(const CTxDestination& dest)
 {
     CScript script;
+    script.clear();
+    boost::apply_visitor(CScriptVisitor(&script), dest);
+    return script;
+}
 
+CScript GetTimeLockScriptForDestination(const CTxDestination& dest, const int64_t smallInt)
+{
+    CScript script;
+    script.clear();
+    script << CScriptNum(smallInt) << OP_CHECKLOCKTIMEVERIFY << OP_DROP;
     boost::apply_visitor(CScriptVisitor(&script), dest);
     return script;
 }

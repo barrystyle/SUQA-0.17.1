@@ -180,6 +180,7 @@ enum opcodetype
     OP_NOP8 = 0xb7,
     OP_NOP9 = 0xb8,
     OP_NOP10 = 0xb9,
+    OP_LOCKTIMEINTEGER = 0xfc,
 
     OP_INVALIDOPCODE = 0xff,
 };
@@ -531,8 +532,13 @@ public:
     unsigned int GetSigOpCount(const CScript& scriptSig) const;
 
     bool IsPayToScriptHash() const;
+    bool IsCheckLockTimeVerify() const;
     bool IsPayToWitnessScriptHash() const;
     bool IsWitnessProgram(int& version, std::vector<unsigned char>& program) const;
+
+    bool IsTermDeposit() const;
+    int GetTermDepositReleaseBlock() const;
+    std::string ToStringNew() const;
 
     /** Called by IsStandardTx and P2SH/BIP62 VerifyScript (which makes it consensus-critical). */
     bool IsPushOnly(const_iterator pc) const;

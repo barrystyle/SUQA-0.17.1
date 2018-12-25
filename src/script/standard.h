@@ -61,6 +61,7 @@ enum txnouttype
     TX_PUBKEYHASH,
     TX_SCRIPTHASH,
     TX_MULTISIG,
+    TX_CHECKLOCKTIMEVERIFY,
     TX_NULL_DATA, //!< unspendable OP_RETURN script that carries data
     TX_WITNESS_V0_SCRIPTHASH,
     TX_WITNESS_V0_KEYHASH,
@@ -140,6 +141,7 @@ const char* GetTxnOutputType(txnouttype t);
  * @return                     True if script matches standard template
  */
 bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, std::vector<std::vector<unsigned char> >& vSolutionsRet);
+bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, std::vector<std::vector<unsigned char> >& vSolutionsRet, int& CLTVreleaseBlock);
 
 /**
  * Parse a standard scriptPubKey for the destination address. Assigns result to
@@ -169,6 +171,7 @@ bool ExtractDestinations(const CScript& scriptPubKey, txnouttype& typeRet, std::
  * script for CNoDestination.
  */
 CScript GetScriptForDestination(const CTxDestination& dest);
+CScript GetTimeLockScriptForDestination(const CTxDestination& dest, const int64_t smallInt);
 
 /** Generate a P2PK script for the given pubkey. */
 CScript GetScriptForRawPubKey(const CPubKey& pubkey);

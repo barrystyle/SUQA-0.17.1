@@ -1297,6 +1297,37 @@ bool AppInitMain()
     scrypt_detect_sse2();
 #endif
 
+    //Ensure rate data is the same across all systems
+    std::string rateData=initRateTable();
+    const std::vector<unsigned char> data2(rateData.begin(), rateData.end());
+    int rateDataHash=MurmurHash3(1989,data2);
+    LogPrintf("Rate Data Hash=%d\n",rateDataHash);
+    assert(rateDataHash == 2140562585);
+
+    CAmount principal=100*COIN;
+    int ONEDAY=720;
+
+    std::ostringstream ss;
+
+    ss << "\n";
+    for(int i=0;i<ONEDAY*1000;i=i+ONEDAY){
+        ss << ((GetInterest(principal, i, i+(ONEDAY*1), -1)-principal)*365*100.0)/principal << ","
+        << ((GetInterest(principal, i, i+(ONEDAY*7), i+(ONEDAY*7))-principal)*52*100.0)/principal << ","
+        << ((GetInterest(principal, i, i+(ONEDAY*28), i+(ONEDAY*28))-principal)*13*100.0)/principal << ","
+        << ((GetInterest(principal, i, i+(ONEDAY*91), i+(ONEDAY*91))-principal)*4*100.0)/principal << ","
+        << ((GetInterest(principal, i, i+(ONEDAY*182), i+(ONEDAY*182))-principal)*2*100.0)/principal << ","
+        << ((GetInterest(principal, i, i+(ONEDAY*364), i+(ONEDAY*364))-principal)*100.0)/principal << ","
+        << "\n";
+    }
+
+    //Make sure the interest rate table is the same across all systems
+    std::string interestRateTable=ss.str();
+    const std::vector<unsigned char> data(interestRateTable.begin(), interestRateTable.end());
+    int rateTableHash=MurmurHash3(1989,data);
+    LogPrintf("Rate Table Hash=%d\n",rateTableHash);
+    assert(rateTableHash == -1285278043);
+    LogPrintf("Rate Table Hash=%d\n",rateTableHash);
+
     // ********************************************************* Step 5: verify wallet database integrity
     if (!g_wallet_init_interface.Verify()) return false;
 

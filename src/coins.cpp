@@ -220,16 +220,18 @@ unsigned int CCoinsViewCache::GetCacheSize() const {
     return cacheCoins.size();
 }
 
-CAmount CCoinsViewCache::GetValueIn(const CTransaction& tx) const
+CAmount CCoinsViewCache::GetValueIn(const CTransaction& tx, int valuationHeight) const
 {
     if (tx.IsCoinBase())
         return 0;
 
-    CAmount nResult = 0;
-    for (unsigned int i = 0; i < tx.vin.size(); i++)
-        nResult += AccessCoin(tx.vin[i].prevout).out.nValue;
+    CAmount nValueIn = 0;
+    for (unsigned int i = 0; i < tx.vin.size(); i++){
+        const Coin& coin = AccessCoin(tx.vin[i].prevout);
+        nValueIn += coin.out.GetValueWithInterest(coin.nHeight,valuationHeight);
+    }
 
-    return nResult;
+    return nValueIn;
 }
 
 bool CCoinsViewCache::HaveInputs(const CTransaction& tx) const

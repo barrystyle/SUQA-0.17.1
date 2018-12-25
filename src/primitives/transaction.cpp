@@ -5,9 +5,11 @@
 
 #include <primitives/transaction.h>
 
+#include <arith_uint256.h>
 #include <hash.h>
 #include <tinyformat.h>
 #include <utilstrencodings.h>
+#include <test/bignum.h>
 
 std::string COutPoint::ToString() const
 {
@@ -112,4 +114,91 @@ std::string CTransaction::ToString() const
     for (const auto& tx_out : vout)
         str += "    " + tx_out.ToString() + "\n";
     return str;
+}
+
+CAmount CTxOut::GetValueWithInterest(int outputBlockHeight, int valuationHeight) const
+{
+    return GetInterest(nValue, outputBlockHeight, valuationHeight, scriptPubKey.GetTermDepositReleaseBlock());
+}
+
+#define BLOCKSPERDAY 720
+static int THIRTYDAYS=BLOCKSPERDAY*30;
+static int ONEYEAR=BLOCKSPERDAY*365;
+static int ONEYEARPLUS1=ONEYEAR+1;
+static int TWOYEARS=ONEYEAR*2;
+static int THREEMONTHS=THIRTYDAYS*3;
+
+static uint64_t rateTable[BLOCKSPERDAY*365+1];
+static uint64_t bonusTable[BLOCKSPERDAY*365+1];
+
+CAmount getBonusForAmount(int periods, CAmount theAmount)
+{
+    CBigNum amount256(theAmount);
+    CBigNum rate256(bonusTable[periods]);
+    CBigNum rate0256(bonusTable[0]);
+    CBigNum result=(amount256*rate256)/rate0256;
+    return result.getuint64()-theAmount;
+}
+
+CAmount getRateForAmount(int periods, CAmount theAmount)
+{
+    CBigNum amount256(theAmount);
+    CBigNum rate256(rateTable[periods]);
+    CBigNum rate0256(rateTable[0]);
+    CBigNum result=(amount256*rate256)/rate0256;
+    return  result.getuint64()-theAmount;
+}
+
+std::string initRateTable()
+{
+    std::string str;
+
+    rateTable[0]  = 1;
+    rateTable[0]  = rateTable[0]  << 62;
+    bonusTable[0] = 1;
+    bonusTable[0] = bonusTable[0] << 58;
+
+    for(int i=1;i<ONEYEARPLUS1;i++){
+        rateTable[i]  = rateTable[i-1]  + (rateTable[i-1]  >> 22);
+        bonusTable[i] = bonusTable[i-1] + (bonusTable[i-1] >> 20);
+        str += strprintf("%d %x %x\n",i,rateTable[i], bonusTable[i]);
+    }
+
+    for(int i=0;i<ONEYEAR;i++)
+        str += strprintf("rate: %d %d %d\n",i,getRateForAmount(i,COIN*100),getBonusForAmount(i,COIN*100));
+
+    return str;
+}
+
+CAmount GetInterest(CAmount nValue, int outputBlockHeight, int valuationHeight, int maturationBlock)
+{
+    if(maturationBlock >= 500000000 || outputBlockHeight<0 || valuationHeight<0 || valuationHeight<outputBlockHeight)
+        return nValue;
+
+    int blocks=0;
+
+    if(maturationBlock>0){
+        blocks=std::min(THIRTYDAYS,maturationBlock-outputBlockHeight);
+        if(valuationHeight>=THEUNFORKENING){
+            blocks=std::min(blocks,maturationBlock-outputBlockHeight);
+            blocks=std::max(blocks,0);
+        }
+    }
+
+    CAmount standardInterest=getRateForAmount(blocks, nValue);
+
+    CAmount bonusAmount=0;
+    if(outputBlockHeight<THREEMONTHS)
+        bonusAmount=getBonusForAmount(blocks, nValue);
+
+    CAmount interestAmount=standardInterest+bonusAmount;
+
+    CAmount termDepositAmount=0;
+
+    if(maturationBlock>0){
+        int term=std::min(THIRTYDAYS,maturationBlock-outputBlockHeight);
+        if(term < BLOCKSPERDAY*1) interestAmount = 0;
+    }
+
+    return nValue+interestAmount+termDepositAmount;
 }

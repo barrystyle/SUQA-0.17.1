@@ -462,13 +462,17 @@ static UniValue getaddressesbyaccount(const JSONRPCRequest& request)
     return ret;
 }
 
-static CTransactionRef SendMoney(CWallet * const pwallet, const CTxDestination &address, CAmount nValue, bool fSubtractFeeFromAmount, const CCoinControl& coin_control, mapValue_t mapValue, std::string fromAccount)
+static CTransactionRef SendMoney(CWallet * const pwallet, const CTxDestination &address, CAmount nValue, bool fSubtractFeeFromAmount, const CCoinControl& coin_control, mapValue_t mapValue, std::string fromAccount, int termDepositLength)
 {
     CAmount curBalance = pwallet->GetBalance();
 
     // Check amount
     if (nValue <= 0)
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid amount");
+
+    // Check termDepositLength, 0 means no term deposit
+    if (termDepositLength < 0)
+       throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid termDepositLength");
 
     if (nValue > curBalance)
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Insufficient funds");
@@ -478,7 +482,11 @@ static CTransactionRef SendMoney(CWallet * const pwallet, const CTxDestination &
     }
 
     // Parse Bitcoin address
-    CScript scriptPubKey = GetScriptForDestination(address);
+    CScript scriptPubKey;
+    if (termDepositLength == 0)
+      scriptPubKey = GetScriptForDestination(address);
+    else
+      scriptPubKey = GetTimeLockScriptForDestination(address, chainActive.Height()+1+termDepositLength);
 
     // Create and send the transaction
     CReserveKey reservekey(pwallet);
@@ -515,7 +523,6 @@ static UniValue sendtoaddress(const JSONRPCRequest& request)
         throw std::runtime_error(
             "sendtoaddress \"address\" amount ( \"comment\" \"comment_to\" subtractfeefromamount replaceable conf_target \"estimate_mode\")\n"
             "\nSend an amount to a given address.\n"
-            + HelpRequiringPassphrase(pwallet) +
             "\nArguments:\n"
             "1. \"address\"            (string, required) The bitcoin address to send to.\n"
             "2. \"amount\"             (numeric or string, required) The amount in " + CURRENCY_UNIT + " to send. eg 0.1\n"
@@ -587,8 +594,150 @@ static UniValue sendtoaddress(const JSONRPCRequest& request)
 
     EnsureWalletIsUnlocked(pwallet);
 
-    CTransactionRef tx = SendMoney(pwallet, dest, nAmount, fSubtractFeeFromAmount, coin_control, std::move(mapValue), {} /* fromAccount */);
+    CTransactionRef tx = SendMoney(pwallet, dest, nAmount, fSubtractFeeFromAmount, coin_control, std::move(mapValue), {} /* fromAccount */, 0);
     return tx->GetHash().GetHex();
+}
+
+static UniValue deposittoaddress(const JSONRPCRequest& request)
+{
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    CWallet* const pwallet = wallet.get();
+
+    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+        return NullUniValue;
+    }
+
+    if (request.fHelp || request.params.size() < 4 || request.params.size() > 7)
+        throw std::runtime_error(
+            "deposittoaddress \"fromaccount\" \"SUQAaddress\" amount termdepositlength ( \"comment\" \"comment-to\" subtractfeefromamount )\n"
+            "\nDeposit an amount to a given address for term length (blocks). The amount is a real and is rounded to the nearest 0.00000001\n"
+            "\nBy default it will deposit coins from the default account.\n"
+            + HelpRequiringPassphrase(pwallet) + "\n"
+            "\nArguments:\n"
+            "1. \"fromaccount\"       (string, required) The name of the account to send funds from. May be the default account using \"\".\n"
+            "2. \"SUQAaddress\"  (string, required) The SUQA address to send to.\n"
+            "3. \"amount\"      (numeric, required) The amount in HOdl to send. eg 0.1\n"
+            "4. \"termdepositlength\" (numeric, required) The number of blocks to lock the coins.\n"
+            "5. \"comment\"     (string, optional) A comment used to store what the transaction is for. \n"
+            "                             This is not part of the transaction, just kept in your wallet.\n"
+            "6. \"comment-to\"  (string, optional) A comment to store the name of the person or organization \n"
+            "                             to which you're sending the transaction. This is not part of the \n"
+            "                             transaction, just kept in your wallet.\n"
+            "7. subtractfeefromamount  (boolean, optional, default=false) The fee will be deducted from the amount being sent.\n"
+            "                             The recipient will receive less SUQAs than you enter in the amount field.\n"
+            "\nResult:\n"
+            "\"transactionid\"  (string) The transaction id.\n"
+            "\nExamples:\n"
+            + HelpExampleCli("deposittoaddress", " \"\" \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1 10848")
+            + HelpExampleCli("deposittoaddress", " \"\" \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1 10848 \"donation\" \"seans outpost\"")
+            + HelpExampleCli("deposittoaddress", " \"\" \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1 264000 \"\" \"\" true")
+            + HelpExampleRpc("deposittoaddress", " \"\" \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\", 0.1, 264000 , \"donation\", \"seans outpost\"")
+        );
+
+    LOCK2(cs_main, pwallet->cs_wallet);
+
+    std::string strAccount = LabelFromValue(request.params[0]);
+    CTxDestination address = DecodeDestination(request.params[1].get_str());
+    if (!IsValidDestination(address))
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid SUQA address");
+
+    // Amount
+    CAmount nAmount = AmountFromValue(request.params[2]);
+
+    // Term Deposit
+    int termDepositLength;
+    termDepositLength = request.params[3].get_int();
+    LogPrintf("termdep: %d\n", termDepositLength);
+    if (termDepositLength < 730)
+       throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid termDeposit amount");
+
+    // Wallet comments
+    mapValue_t mapValue;
+    if (!request.params[4].isNull() && !request.params[4].get_str().empty())
+        mapValue["comment"] = request.params[4].get_str();
+    if (!request.params[5].isNull() && !request.params[5].get_str().empty())
+        mapValue["to"] = request.params[5].get_str();
+
+    EnsureWalletIsUnlocked(pwallet);
+
+    CCoinControl no_coin_control; // This is a deprecated API
+    CTransactionRef tx = SendMoney(pwallet, address, nAmount, false, no_coin_control, std::move(mapValue), std::move(strAccount), termDepositLength);
+    return tx->GetHash().GetHex();
+}
+
+static UniValue listtermdeposits(const JSONRPCRequest& request)
+{
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    CWallet* const pwallet = wallet.get();
+
+    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+        return NullUniValue;
+    }
+
+    if (IsInitialBlockDownload())
+        throw std::runtime_error(
+            "Please wait until block synchronization has completed.\n"
+        );
+
+    if (request.fHelp || request.params.size() != 1)
+        throw std::runtime_error(
+            "listtermdeposits \"fromaccount\" \n"
+            + HelpRequiringPassphrase(pwallet) + "\n"
+            "\nArguments:\n"
+            "1. \"fromaccount\"       (string, required) The name of the account to list term deposits from. May be the default account using \"\" use \"*\" for all.\n"
+            "Result:\n"
+            "\"term deposits \"  (string array)\n"
+            "\nExamples:\n"
+            + HelpExampleCli("listtermdeposits", " \"*\"")
+            + HelpExampleRpc("listtermdeposits", " \"gary\"")
+        );
+
+    LOCK2(cs_main, pwallet->cs_wallet);
+    UniValue ret(UniValue::VARR);
+    std::string strAccount = LabelFromValue(request.params[0]);
+    std::vector<COutput> termDepositInfo = pwallet->GetTermDepositInfo(strAccount);
+
+    for(int i=0; i < termDepositInfo.size(); i++)
+    {
+        COutput ctermDeposit = termDepositInfo[i];
+	CTxOut termDeposit = ctermDeposit.tx->tx->vout[ctermDeposit.i];
+        int curHeight = chainActive.Height();
+        int lockHeight = curHeight - ctermDeposit.nDepth;
+        int releaseBlock = termDeposit.scriptPubKey.GetTermDepositReleaseBlock();
+        int term = releaseBlock - lockHeight;
+        int blocksRemaining = releaseBlock - curHeight;
+	CAmount withInterest = termDeposit.GetValueWithInterest(lockHeight,(curHeight<releaseBlock?curHeight:releaseBlock));
+        CAmount matureValue = termDeposit.GetValueWithInterest(lockHeight,releaseBlock);
+        CAmount interestValue = withInterest - termDeposit.nValue;
+
+        UniValue entry(UniValue::VOBJ);
+
+        if (curHeight>=releaseBlock)
+            entry.push_back(Pair("status", "Matured"));
+	else
+            entry.push_back(Pair("status", "HOdling"));
+
+        entry.push_back(Pair("principal", ValueFromAmount(termDeposit.nValue)));
+        entry.push_back(Pair("accrued interest", ValueFromAmount(interestValue)));
+        entry.push_back(Pair("accrued value", ValueFromAmount(withInterest)));
+        entry.push_back(Pair("on maturation", ValueFromAmount(matureValue)));
+        entry.push_back(Pair("term ", term));
+        entry.push_back(Pair("deposit block", lockHeight));
+        entry.push_back(Pair("maturation block", releaseBlock));
+
+        time_t rawtime;
+        struct tm * timeinfo;
+        char buffer[80];
+        time (&rawtime);
+        rawtime+=blocksRemaining*154;
+        timeinfo = localtime(&rawtime);
+        strftime(buffer,80,"%Y/%m/%d",timeinfo);
+        std::string str(buffer);
+        entry.push_back(Pair("estimated date",buffer));
+
+        ret.push_back(entry);
+    }
+    return ret;
 }
 
 static UniValue listaddressgroupings(const JSONRPCRequest& request)
@@ -941,7 +1090,7 @@ static UniValue getbalance(const JSONRPCRequest& request)
         }
     }
 
-    return ValueFromAmount(pwallet->GetBalance(filter, min_depth));
+    return ValueFromAmount(pwallet->GetBalance());
 }
 
 static UniValue getunconfirmedbalance(const JSONRPCRequest &request)
@@ -1105,7 +1254,7 @@ static UniValue sendfrom(const JSONRPCRequest& request)
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account has insufficient funds");
 
     CCoinControl no_coin_control; // This is a deprecated API
-    CTransactionRef tx = SendMoney(pwallet, dest, nAmount, false, no_coin_control, std::move(mapValue), std::move(strAccount));
+    CTransactionRef tx = SendMoney(pwallet, dest, nAmount, false, no_coin_control, std::move(mapValue), std::move(strAccount), 0);
     return tx->GetHash().GetHex();
 }
 
@@ -1852,7 +2001,9 @@ static void ListTransactions(CWallet* const pwallet, const CWalletTx& wtx, const
                 }
                 if (IsDeprecatedRPCEnabled("accounts")) entry.pushKV("account", account);
                 MaybePushAddress(entry, r.destination);
-                if (wtx.IsCoinBase())
+                if (wtx.GetImmatureTermDepositCredit() > 0) {
+                    entry.push_back(Pair("category", "hodl"));
+                } else if (wtx.IsCoinBase())
                 {
                     if (wtx.GetDepthInMainChain() < 1)
                         entry.pushKV("category", "orphan");
@@ -2400,8 +2551,15 @@ static UniValue gettransaction(const JSONRPCRequest& request)
 
     CAmount nCredit = wtx.GetCredit(filter);
     CAmount nDebit = wtx.GetDebit(filter);
+    CAmount nDebitNoInterest = wtx.GetDebit(filter,false);
     CAmount nNet = nCredit - nDebit;
     CAmount nFee = (wtx.IsFromMe(filter) ? wtx.tx->GetValueOut() - nDebit : 0);
+    entry.push_back(Pair("credit", ValueFromAmount(nCredit)));
+    entry.push_back(Pair("debit", ValueFromAmount(nDebit)));
+    entry.push_back(Pair("fromoutputs", ValueFromAmount(nDebitNoInterest)));
+    entry.push_back(Pair("frominterest", ValueFromAmount(nDebit - nDebitNoInterest)));
+
+    entry.push_back(Pair("net", ValueFromAmount(nNet)));
 
     entry.pushKV("amount", ValueFromAmount(nNet - nFee));
     if (wtx.IsFromMe(filter))
@@ -4808,6 +4966,7 @@ static const CRPCCommand commands[] =
     { "wallet",             "listlockunspent",                  &listlockunspent,               {} },
     { "wallet",             "listreceivedbyaddress",            &listreceivedbyaddress,         {"minconf","include_empty","include_watchonly","address_filter"} },
     { "wallet",             "listsinceblock",                   &listsinceblock,                {"blockhash","target_confirmations","include_watchonly","include_removed"} },
+    { "wallet",             "listtermdeposits",                 &listtermdeposits,              {} },
     { "wallet",             "listtransactions",                 &listtransactions,              {"account|label|dummy","count","skip","include_watchonly"} },
     { "wallet",             "listunspent",                      &listunspent,                   {"minconf","maxconf","addresses","include_unsafe","query_options"} },
     { "wallet",             "listwallets",                      &listwallets,                   {} },
@@ -4815,6 +4974,7 @@ static const CRPCCommand commands[] =
     { "wallet",             "lockunspent",                      &lockunspent,                   {"unlock","transactions"} },
     { "wallet",             "sendmany",                         &sendmany,                      {"fromaccount|dummy","amounts","minconf","comment","subtractfeefrom","replaceable","conf_target","estimate_mode"} },
     { "wallet",             "sendtoaddress",                    &sendtoaddress,                 {"address","amount","comment","comment_to","subtractfeefromamount","replaceable","conf_target","estimate_mode"} },
+    { "wallet",             "deposittoaddress",                 &deposittoaddress,              {"fromaccount|dummy","address","amount","termdepositlength","comment","comment_to","subtractfeefrom"} },
     { "wallet",             "settxfee",                         &settxfee,                      {"amount"} },
     { "wallet",             "signmessage",                      &signmessage,                   {"address","message"} },
     { "wallet",             "signrawtransactionwithwallet",     &signrawtransactionwithwallet,  {"hexstring","prevtxs","sighashtype"} },

@@ -12,6 +12,7 @@
 #include <serialize.h>
 #include <uint256.h>
 
+static const unsigned int THEUNFORKENING = 99999999;
 static const int SERIALIZE_TRANSACTION_NO_WITNESS = 0x40000000;
 
 /** An outpoint - a combination of a transaction hash and an index n into its vout */
@@ -160,6 +161,10 @@ public:
         return (nValue == -1);
     }
 
+    bool IsTermDeposit() const;
+
+    CAmount GetValueWithInterest(int outputBlockHeight, int valuationHeight) const;
+
     friend bool operator==(const CTxOut& a, const CTxOut& b)
     {
         return (a.nValue       == b.nValue &&
@@ -265,7 +270,7 @@ class CTransaction
 {
 public:
     // Default transaction version.
-    static const int32_t CURRENT_VERSION=2;
+    static const int32_t CURRENT_VERSION=1;
 
     // Changing the default transaction version requires a two step process: first
     // adapting relay policy by bumping MAX_STANDARD_VERSION, and then later date
@@ -398,6 +403,10 @@ struct CMutableTransaction
         return false;
     }
 };
+
+CAmount getRateForAmount(int periods, CAmount theAmount);
+std::string initRateTable();
+CAmount GetInterest(CAmount nValue, int outputBlockHeight, int valuationHeight, int maturationBlock);
 
 typedef std::shared_ptr<const CTransaction> CTransactionRef;
 static inline CTransactionRef MakeTransactionRef() { return std::make_shared<const CTransaction>(); }

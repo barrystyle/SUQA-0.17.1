@@ -338,7 +338,7 @@ public:
         result.immature_balance = m_wallet.GetImmatureBalance();
         result.have_watch_only = m_wallet.HaveWatchOnly();
         if (result.have_watch_only) {
-            result.watch_only_balance = m_wallet.GetBalance(ISMINE_WATCH_ONLY);
+            result.watch_only_balance = m_wallet.GetBalance();
             result.unconfirmed_watch_only_balance = m_wallet.GetUnconfirmedWatchOnlyBalance();
             result.immature_watch_only_balance = m_wallet.GetImmatureWatchOnlyBalance();
         }
@@ -371,15 +371,15 @@ public:
         LOCK2(::cs_main, m_wallet.cs_wallet);
         return m_wallet.IsMine(txout);
     }
-    CAmount getDebit(const CTxIn& txin, isminefilter filter) override
+    CAmount getDebit(const CTxIn& txin, isminefilter filter, int depthInMainChain) override
     {
         LOCK2(::cs_main, m_wallet.cs_wallet);
-        return m_wallet.GetDebit(txin, filter);
+        return m_wallet.GetDebit(txin, filter, depthInMainChain);
     }
-    CAmount getCredit(const CTxOut& txout, isminefilter filter) override
+    CAmount getCredit(const CTxOut& txout, isminefilter filter, int depthInMainChain) override
     {
         LOCK2(::cs_main, m_wallet.cs_wallet);
-        return m_wallet.GetCredit(txout, filter);
+        return m_wallet.GetCredit(txout, filter, depthInMainChain);
     }
     CoinsList listCoins() override
     {

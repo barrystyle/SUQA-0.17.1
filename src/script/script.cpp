@@ -129,7 +129,7 @@ const char* GetOpName(opcodetype opcode)
 
     // expansion
     case OP_NOP1                   : return "OP_NOP1";
-    case OP_CHECKLOCKTIMEVERIFY    : return "OP_CHECKLOCKTIMEVERIFY";
+    case OP_NOP2                   : return "OP_CHECKLOCKTIMEVERIFY";
     case OP_CHECKSEQUENCEVERIFY    : return "OP_CHECKSEQUENCEVERIFY";
     case OP_NOP4                   : return "OP_NOP4";
     case OP_NOP5                   : return "OP_NOP5";
@@ -203,6 +203,14 @@ bool CScript::IsPayToScriptHash() const
             (*this)[22] == OP_EQUAL);
 }
 
+bool CScript::IsCheckLockTimeVerify() const
+{
+    // Extra-fast test for pay-to-script-hash CScripts:
+    return (this->size() == 31 &&
+            (*this)[7] == OP_HASH160 &&
+            (*this)[8] == 0x14);
+}
+
 bool CScript::IsPayToWitnessScriptHash() const
 {
     // Extra-fast test for pay-to-witness-script-hash CScripts:
@@ -244,6 +252,45 @@ bool CScript::IsPushOnly(const_iterator pc) const
             return false;
     }
     return true;
+}
+
+bool CScript::IsTermDeposit() const{
+    return GetTermDepositReleaseBlock() > -1;
+}
+
+int CScript::GetTermDepositReleaseBlock() const
+{
+    if(this->size()<29 || this->size()>32 || (*this)[0] > 4 || (*this)[0] == 0)
+        return -1;
+    int skipsize=(*this)[0];
+
+    if((*this)[skipsize+1] != OP_CHECKLOCKTIMEVERIFY ||
+       (*this)[skipsize+2] != OP_DROP ||
+       (*this)[skipsize+3] != OP_DUP ||
+       (*this)[skipsize+4] != OP_HASH160 ||
+       (*this)[skipsize+26] != OP_EQUALVERIFY ||
+       (*this)[skipsize+27] != OP_CHECKSIG){
+        return -1;
+    }
+
+    std::vector<unsigned char> vch1;
+    CScript::const_iterator pc1 = this->begin();
+    opcodetype opcode1;
+    this->GetOp(pc1, opcode1, vch1);
+    return CScriptNum(vch1, true, 5).getint();
+}
+
+std::string CScript::ToStringNew() const
+{
+
+    std::ostringstream ss;
+    ss <<"OPS:" << GetTermDepositReleaseBlock() << ":";
+    int theSize=this->size();
+    for(int i=0;i<theSize;i++){
+        //unsigned int opcode = (*this)[0]//*pc++;
+        ss << i << ":" << "0x" << std::uppercase << std::hex << (int)(*this)[i] << ",";
+    }
+    return ss.str();
 }
 
 bool CScript::IsPushOnly() const
