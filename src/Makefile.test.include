@@ -25,7 +25,7 @@ BITCOIN_TEST_SUITE = \
   test/test_suqa.h \
   test/test_suqa.cpp
 
-# test_bitcoin binary #
+# test_suqa binary #
 BITCOIN_TESTS =\
   test/arith_uint256_tests.cpp \
   test/scriptnum10.h \

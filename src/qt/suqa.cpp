@@ -3,10 +3,10 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #if defined(HAVE_CONFIG_H)
-#include <config/SUQA-config.h>
+#include <config/suqa-config.h>
 #endif
 
-#include <qt/bitcoingui.h>
+#include <qt/suqagui.h>
 
 #include <chainparams.h>
 #include <qt/clientmodel.h>
@@ -127,11 +127,11 @@ static void initTranslations(QTranslator &qtTranslatorBase, QTranslator &qtTrans
     if (qtTranslator.load("qt_" + lang_territory, QLibraryInfo::location(QLibraryInfo::TranslationsPath)))
         QApplication::installTranslator(&qtTranslator);
 
-    // Load e.g. suqa_de.qm (shortcut "de" needs to be defined in bitcoin.qrc)
+    // Load e.g. suqa_de.qm (shortcut "de" needs to be defined in suqa.qrc)
     if (translatorBase.load(lang, ":/translations/"))
         QApplication::installTranslator(&translatorBase);
 
-    // Load e.g. suqa_de_DE.qm (shortcut "de_DE" needs to be defined in bitcoin.qrc)
+    // Load e.g. suqa_de_DE.qm (shortcut "de_DE" needs to be defined in suqa.qrc)
     if (translator.load(lang_territory, ":/translations/"))
         QApplication::installTranslator(&translator);
 }
@@ -240,7 +240,7 @@ private:
     void startThread();
 };
 
-#include <qt/bitcoin.moc>
+#include <qt/suqa.moc>
 
 BitcoinCore::BitcoinCore(interfaces::Node& node) :
     QObject(), m_node(node)
@@ -561,7 +561,7 @@ int main(int argc, char *argv[])
     // Do not refer to data directory yet, this can be overridden by Intro::pickDataDirectory
 
     /// 1. Basic Qt initialization (not dependent on parameters or configuration)
-    Q_INIT_RESOURCE(bitcoin);
+    Q_INIT_RESOURCE(suqa);
     Q_INIT_RESOURCE(suqa_locale);
 
     BitcoinApplication app(*node, argc, argv);

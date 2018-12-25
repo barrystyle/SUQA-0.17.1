@@ -3,12 +3,12 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #if defined(HAVE_CONFIG_H)
-#include <config/SUQA-config.h>
+#include <config/suqa-config.h>
 #endif
 
 #include <qt/optionsmodel.h>
 
-#include <qt/bitcoinunits.h>
+#include <qt/suqaunits.h>
 #include <qt/guiutil.h>
 
 #include <interfaces/node.h>
