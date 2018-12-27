@@ -52,7 +52,7 @@
         </size>
        </property>
        <property name="pixmap">
-        <pixmap resource="../suqa.qrc">:/icons/bitcoin</pixmap>
+        <pixmap resource="../suqa.qrc">:/icons/suqa</pixmap>
        </property>
        <property name="scaledContents">
         <bool>true</bool>

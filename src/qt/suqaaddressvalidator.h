@@ -20,7 +20,7 @@ public:
     State validate(QString &input, int &pos) const;
 };
 
-/** Bitcoin address widget validator, checks for a valid bitcoin address.
+/** SUQA address widget validator, checks for a valid suqa address.
  */
 class BitcoinAddressCheckValidator : public QValidator
 {

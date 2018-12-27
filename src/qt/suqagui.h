@@ -66,7 +66,7 @@ public:
 
 #ifdef ENABLE_WALLET
     /** Set the wallet model.
-        The wallet model represents a bitcoin wallet, and offers access to the list of transactions, address book and sending
+        The wallet model represents a suqa wallet, and offers access to the list of transactions, address book and sending
         functionality.
     */
     bool addWallet(WalletModel *walletModel);
