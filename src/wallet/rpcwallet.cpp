@@ -607,6 +607,11 @@ static UniValue deposittoaddress(const JSONRPCRequest& request)
         return NullUniValue;
     }
 
+    if (IsInitialBlockDownload())
+        throw std::runtime_error(
+            "Please wait until block synchronization has completed.\n"
+    );
+
     if (request.fHelp || request.params.size() < 4 || request.params.size() > 7)
         throw std::runtime_error(
             "deposittoaddress \"fromaccount\" \"SUQAaddress\" amount termdepositlength ( \"comment\" \"comment-to\" subtractfeefromamount )\n"
@@ -677,7 +682,7 @@ static UniValue listtermdeposits(const JSONRPCRequest& request)
     if (IsInitialBlockDownload())
         throw std::runtime_error(
             "Please wait until block synchronization has completed.\n"
-        );
+    );
 
     if (request.fHelp || request.params.size() != 1)
         throw std::runtime_error(

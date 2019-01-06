@@ -723,16 +723,16 @@ void BitcoinGUI::updateNetworkState()
     switch(count)
     {
     case 0: icon = ":/icons/connect_0"; break;
-    case 1: case 2: case 3: icon = ":/icons/connect_1"; break;
-    case 4: case 5: case 6: icon = ":/icons/connect_2"; break;
-    case 7: case 8: case 9: icon = ":/icons/connect_3"; break;
+    case 1: icon = ":/icons/connect_1"; break;
+    case 2: icon = ":/icons/connect_2"; break;
+    case 3: icon = ":/icons/connect_3"; break;
     default: icon = ":/icons/connect_4"; break;
     }
 
     QString tooltip;
 
     if (m_node.getNetworkActive()) {
-        tooltip = tr("%n active connection(s) to Bitcoin network", "", count) + QString(".<br>") + tr("Click to disable network activity.");
+        tooltip = tr("%n active connection(s) to SUQA network", "", count) + QString(".<br>") + tr("Click to disable network activity.");
     } else {
         tooltip = tr("Network activity disabled.") + QString("<br>") + tr("Click to enable network activity again.");
         icon = ":/icons/network_disabled";
