@@ -133,6 +133,10 @@ static uint64_t bonusTable[BLOCKSPERDAY*365+1];
 
 CAmount getBonusForAmount(int periods, CAmount theAmount)
 {
+    // dont accept negative timespan/amounts
+    if (periods <= 0 || theAmount <= 0)
+	return 0;
+
     CBigNum amount256(theAmount);
     CBigNum rate256(bonusTable[periods]);
     CBigNum rate0256(bonusTable[0]);
