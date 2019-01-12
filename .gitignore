@@ -2,12 +2,11 @@
 
 *.exe
 src/bitcoin
-src/bitcoind
-src/bitcoin-cli
-src/bitcoin-tx
-src/test/test_bitcoin
-src/test/test_bitcoin_fuzzy
-src/qt/test/test_bitcoin-qt
+src/suqad
+src/suqa-cli
+src/suqa-tx
+src/test/test_suqa
+src/qt/test/test_suqa-qt
 
 # autoreconf
 Makefile.in
@@ -30,11 +29,14 @@ config.log
 config.status
 configure
 libtool
-src/config/bitcoin-config.h
-src/config/bitcoin-config.h.in
+src/config/suqa-config.h
+src/config/suqa-config.h.in
 src/config/stamp-h1
 share/setup.nsi
 share/qt/Info.plist
+release
+contrib/package/*.flag
+contrib/devtools/split-debug.sh
 
 src/univalue/gen
 
@@ -43,12 +45,6 @@ src/qt/moc_*.cpp
 src/qt/forms/ui_*.h
 
 src/qt/test/moc*.cpp
-
-src/qt/bitcoin-qt.config
-src/qt/bitcoin-qt.creator
-src/qt/bitcoin-qt.creator.user
-src/qt/bitcoin-qt.files
-src/qt/bitcoin-qt.includes
 
 .deps
 .dirstamp
@@ -62,6 +58,7 @@ src/qt/bitcoin-qt.includes
 *.o
 *.o-*
 *.patch
+.bitcoin
 *.a
 *.pb.cc
 *.pb.h
@@ -80,16 +77,19 @@ src/qt/bitcoin-qt.includes
 # Compilation and Qt preprocessor part
 *.qm
 Makefile
-bitcoin-qt
-Bitcoin-Qt.app
-background.tiff*
+suqa-qt
+suqa-Qt.app
 
 # Unit-tests
 Makefile.test
-bitcoin-qt_test
+SUQA-qt_test
+src/test/buildenv.py
 
 # Resources cpp
 qrc_*.cpp
+
+# Qt creator
+*.pro.user
 
 # Mac specific
 .DS_Store
@@ -97,7 +97,6 @@ build
 
 #lcov
 *.gcno
-*.gcda
 /*.info
 test_bitcoin.coverage/
 total.coverage/
@@ -107,12 +106,17 @@ coverage_percent.txt
 linux-coverage-build
 linux-build
 win32-build
-test/config.ini
-test/cache/*
+qa/pull-tester/run-bitcoind-for-test.sh
+qa/pull-tester/tests-config.sh
+qa/pull-tester/cache/*
+qa/pull-tester/test.*/*
 
 !src/leveldb*/Makefile
+!depends/Makefile
 
 /doc/doxygen/
 
-libbitcoinconsensus.pc
-contrib/devtools/split-debug.sh
+libsuqaconsensus.pc
+src/bench/bench_suqa
+src/test/test_suqa_fuzzy
+test/config.ini
