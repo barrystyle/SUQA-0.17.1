@@ -11,8 +11,6 @@
 #include <uint256.h>
 #include <util.h>
 
-#define MINERHODLINGHEIGHT 99999999
-
 unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, const Consensus::Params& params)
 {
     const CBlockIndex *BlockLastSolved = pindexLast;
@@ -27,22 +25,23 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, const Consens
 
     const arith_uint256 bnPowLimit = UintToArith256(params.powLimit);
 
-    if (BlockLastSolved == NULL || BlockLastSolved->nHeight < PastBlocksMin) {
+    if (BlockLastSolved == NULL ||
+        BlockLastSolved->nHeight < PastBlocksMin)
         return bnPowLimit.GetCompact();
-    }
 
-    //25 blocks of small diff to reset diff after fork
-    if (BlockLastSolved->nHeight+1 >= MINERHODLINGHEIGHT && BlockLastSolved->nHeight<MINERHODLINGHEIGHT+PastBlocksMin+1) {
-        return UintToArith256(uint256S("0000F00000000000000000000000000000000000000000000000000000000000")).GetCompact();
-    }
+    for (unsigned int i = 1; BlockReading && BlockReading->nHeight > 0; i++)
+    {
+        if (PastBlocksMax > 0 && i > PastBlocksMax)
+	    break;
 
-    for (unsigned int i = 1; BlockReading && BlockReading->nHeight > 0; i++) {
-        if (PastBlocksMax > 0 && i > PastBlocksMax) { break; }
         CountBlocks++;
 
-        if(CountBlocks <= PastBlocksMin) {
-            if (CountBlocks == 1) { PastDifficultyAverage.SetCompact(BlockReading->nBits); }
-            else { PastDifficultyAverage = ((PastDifficultyAveragePrev * CountBlocks) + (arith_uint256().SetCompact(BlockReading->nBits))) / (CountBlocks + 1); }
+        if(CountBlocks <= PastBlocksMin)
+        {
+            if (CountBlocks == 1)
+		PastDifficultyAverage.SetCompact(BlockReading->nBits);
+            else
+		PastDifficultyAverage = ((PastDifficultyAveragePrev * CountBlocks) + (arith_uint256().SetCompact(BlockReading->nBits))) / (CountBlocks + 1);
             PastDifficultyAveragePrev = PastDifficultyAverage;
         }
 
@@ -50,6 +49,7 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, const Consens
             int64_t Diff = (LastBlockTime - BlockReading->GetBlockTime());
             nActualTimespan += Diff;
         }
+
         LastBlockTime = BlockReading->GetBlockTime();
 
         if (BlockReading->pprev == NULL) { assert(BlockReading); break; }
@@ -69,9 +69,8 @@ unsigned int static DarkGravityWave(const CBlockIndex* pindexLast, const Consens
     bnNew *= nActualTimespan;
     bnNew /= _nTargetTimespan;
 
-    if (bnNew > bnPowLimit){
+    if (bnNew > bnPowLimit)
         bnNew = bnPowLimit;
-    }
 
     return bnNew.GetCompact();
 }
