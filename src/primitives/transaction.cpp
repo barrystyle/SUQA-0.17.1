@@ -185,13 +185,8 @@ CAmount GetInterest(CAmount nValue, int outputBlockHeight, int valuationHeight, 
 
     int blocks=0;
 
-    if(maturationBlock>0){
+    if(maturationBlock>0)
         blocks=std::min(THIRTYDAYS,maturationBlock-outputBlockHeight);
-        if(valuationHeight>=THEUNFORKENING){
-            blocks=std::min(blocks,maturationBlock-outputBlockHeight);
-            blocks=std::max(blocks,0);
-        }
-    }
 
     CAmount standardInterest=getRateForAmount(blocks, nValue);
 
