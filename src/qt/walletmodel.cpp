@@ -10,6 +10,7 @@
 #include <qt/paymentserver.h>
 #include <qt/recentrequeststablemodel.h>
 #include <qt/sendcoinsdialog.h>
+#include <qt/depositcoinsdialog.h>
 #include <qt/transactiontablemodel.h>
 
 #include <interfaces/handler.h>

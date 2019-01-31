@@ -20,6 +20,7 @@ SendCoinsEntry::SendCoinsEntry(const PlatformStyle *_platformStyle, QWidget *par
     model(0),
     platformStyle(_platformStyle)
 {
+    isTermDeposit = false;
     ui->setupUi(this);
 
     ui->addressBookButton->setIcon(platformStyle->SingleColorIcon(":/icons/address-book"));
@@ -106,8 +107,44 @@ void SendCoinsEntry::clear()
     ui->memoTextLabel_s->clear();
     ui->payAmount_s->clear();
 
+    if (!isTermDeposit) {
+        ui->locklabel->hide();
+        ui->lockperiod->hide();
+        ui->locklength->hide();
+    } else {
+        ui->payToLabel->setText("Deposit Address:");
+    }
+
     // update the display unit, to not use the default ("SUQA")
     updateDisplayUnit();
+}
+
+void SendCoinsEntry::setAsTermDeposit()
+{
+    isTermDeposit = true;
+    ui->locklabel->setVisible(true);
+    ui->lockperiod->setVisible(true);
+    ui->locklength->setVisible(true);
+}
+
+int SendCoinsEntry::getTermDepositLength()
+{
+    if(!isTermDeposit)
+        return 0;
+
+    const int thePeriod = ui->locklength->currentIndex();
+
+    QString theSt = ui->lockperiod->text();
+    int theLength = theSt.toInt();
+
+    if (thePeriod==2) {
+        return theLength;
+    }else if(thePeriod==1) {
+        return theLength*720;
+    }else if(thePeriod==0) {
+        return theLength*720*7;
+    }
+    return 0;
 }
 
 void SendCoinsEntry::checkSubtractFeeFromAmount()
