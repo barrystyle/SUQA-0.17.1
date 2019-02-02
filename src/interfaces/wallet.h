@@ -132,7 +132,7 @@ public:
     virtual void listLockedCoins(std::vector<COutPoint>& outputs) = 0;
 
     //! Create transaction.
-    virtual std::unique_ptr<PendingWalletTx> createTransaction(const std::vector<CRecipient>& recipients,
+    virtual std::unique_ptr<PendingWalletTx> createTransaction(const std::vector<CRecipient>& vecSend,
         const CCoinControl& coin_control,
         bool sign,
         int& change_pos,

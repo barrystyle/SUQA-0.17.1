@@ -259,10 +259,6 @@ void DepositCoinsDialog::on_sendButton_clicked()
         return;
     }
 
-    // prepare transaction for getting txFee earlier
-    WalletModelTransaction currentTransaction(recipients);
-    WalletModel::SendCoinsReturn prepareStatus;
-
     // Always use a CCoinControl instance, use the CoinControlDialog instance if CoinControl has been enabled
     CCoinControl ctrl;
     if (model->getOptionsModel()->getCoinControlFeatures())
@@ -270,13 +266,39 @@ void DepositCoinsDialog::on_sendButton_clicked()
 
     updateCoinControlState(ctrl);
 
-    prepareStatus = model->prepareTransaction(currentTransaction, ctrl);
+    // prepare transaction for getting txFee earlier
+    WalletModelTransaction currentTransaction(recipients);
+    WalletModel::SendCoinsReturn prepareStatus;
+    std::string termDepositConfirmQuestion = "";
+
+    prepareStatus = model->prepareTransaction(currentTransaction, termDepositConfirmQuestion, termDepositBlocks);
 
     // process prepareStatus and on error generate message shown to user
     processSendCoinsReturn(prepareStatus,
         BitcoinUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(), currentTransaction.getTransactionFee()));
 
     if(prepareStatus.status != WalletModel::OK) {
+        fNewRecipientAllowed = true;
+        return;
+    }
+
+    if(termDepositConfirmQuestion!=""){
+        QString questionString = QString::fromStdString(termDepositConfirmQuestion);
+        QMessageBox::StandardButton retval = QMessageBox::question(this, tr("Confirm Term Deposit"),
+            questionString,
+            QMessageBox::Yes | QMessageBox::Cancel,
+            QMessageBox::Cancel);
+        if(retval != QMessageBox::Yes)
+        {
+            fNewRecipientAllowed = true;
+            return;
+        }
+    }else{
+        QString questionString = QString::fromStdString("Something went wrong! No term deposit instruction was detected. Instruction will be cancelled.");
+        QMessageBox::StandardButton retval = QMessageBox::question(this, tr("No Term Deposit Detected"),
+            questionString,
+            QMessageBox::Yes | QMessageBox::Cancel,
+            QMessageBox::Cancel);
         fNewRecipientAllowed = true;
         return;
     }
@@ -497,7 +519,7 @@ void DepositCoinsDialog::setAddress(const QString &address)
     {
         entry = addEntry();
     }
-
+    entry->setAsTermDeposit();
     entry->setAddress(address);
 }
 
@@ -520,7 +542,7 @@ void DepositCoinsDialog::pasteEntry(const SendCoinsRecipient &rv)
     {
         entry = addEntry();
     }
-
+    entry->setAsTermDeposit();
     entry->setValue(rv);
     updateTabsAndLabels();
 }

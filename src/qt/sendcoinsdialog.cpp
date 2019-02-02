@@ -260,7 +260,8 @@ void SendCoinsDialog::on_sendButton_clicked()
 
     updateCoinControlState(ctrl);
 
-    prepareStatus = model->prepareTransaction(currentTransaction, ctrl);
+    std::string termDepositConfirmQuestion = "";
+    prepareStatus = model->prepareTransaction(currentTransaction, termDepositConfirmQuestion, 0);
 
     // process prepareStatus and on error generate message shown to user
     processSendCoinsReturn(prepareStatus,
