@@ -24,6 +24,7 @@
 #include <wallet/feebumper.h>
 #include <wallet/fees.h>
 #include <wallet/wallet.h>
+#include <validation.h>
 
 namespace interfaces {
 namespace {
@@ -289,6 +290,12 @@ public:
         }
         return result;
     }
+
+    std::vector<COutput> GetTermDepositInfo()
+    {
+        return m_wallet.GetTermDepositInfo();
+    }
+
     bool tryGetTxStatus(const uint256& txid,
         interfaces::WalletTxStatus& tx_status,
         int& num_blocks,

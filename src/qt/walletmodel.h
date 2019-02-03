@@ -145,6 +145,8 @@ public:
     // Check address for validity
     bool validateAddress(const QString &address);
 
+    void GetTermDepositInfo() const;
+
     // Return status record for SendCoins, contains error id + information
     struct SendCoinsReturn
     {

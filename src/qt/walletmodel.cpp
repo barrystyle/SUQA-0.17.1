@@ -29,7 +29,6 @@
 #include <QSet>
 #include <QTimer>
 
-
 WalletModel::WalletModel(std::unique_ptr<interfaces::Wallet> wallet, interfaces::Node& node, const PlatformStyle *platformStyle, OptionsModel *_optionsModel, QObject *parent) :
     QObject(parent), m_wallet(std::move(wallet)), m_node(node), optionsModel(_optionsModel), addressTableModel(0),
     transactionTableModel(0),
@@ -97,6 +96,11 @@ void WalletModel::checkBalanceChanged(const interfaces::WalletBalances& new_bala
         m_cached_balances = new_balances;
         Q_EMIT balanceChanged(new_balances);
     }
+}
+
+std::vector<COutput> GetTermDepositInfo()
+{
+   return GetTermDepositInfo();
 }
 
 void WalletModel::updateTransaction()
