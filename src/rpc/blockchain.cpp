@@ -1000,6 +1000,139 @@ static UniValue gettxoutsetinfo(const JSONRPCRequest& request)
     return ret;
 }
 
+struct CTermDepositStats
+{
+	int nAddress;
+	uint64_t nTransactions;
+	CAmount nTotalAmount;
+
+	CAmount n1day;
+	CAmount n2days;
+	CAmount n7days;
+	CAmount n14days;
+	CAmount n30days;
+	CAmount nMore30days;
+
+	CTermDepositStats() : nAddress(0), nTransactions(0), nTotalAmount(0), n1day(0), n2days(0), n7days(0), n14days(0), n30days(0), nMore30days(0) {}
+};
+
+static void ApplyTimeLockedStats(CTermDepositStats &stats, 	std::set<uint160> &addresses, const std::map<uint32_t, Coin>& outputs)
+{
+	assert(!outputs.empty());
+
+	CAmount nNumberTxAmount = 0;
+	CAmount nValueAmount = 0;
+	//std::set<uint160> addresses;
+	for (const auto& output : outputs) {
+			std::vector<std::vector<unsigned char>> vSolutions;
+			txnouttype whichType;
+			const CScript& prevScript = output.second.out.scriptPubKey;
+			Solver(prevScript, whichType, vSolutions);
+			if ( whichType == TX_CHECKLOCKTIMEVERIFY && output.second.out.scriptPubKey.GetTermDepositReleaseBlock()>chainActive.Height())
+			{
+				stats.nTransactions++;
+				nNumberTxAmount += 1;
+				nValueAmount += output.second.out.nValue;
+				addresses.insert(uint160(vSolutions[0]));
+				int nBlockMatured = output.second.out.scriptPubKey.GetTermDepositReleaseBlock() - chainActive.Height();
+				if (nBlockMatured <= 720){
+					stats.n1day += output.second.out.nValue;
+				} else if (720 < nBlockMatured && nBlockMatured <= 1440){
+					stats.n2days += output.second.out.nValue;
+				} else if (1440 < nBlockMatured && nBlockMatured <= 5040){
+					stats.n7days += output.second.out.nValue;
+				} else if (5040 < nBlockMatured && nBlockMatured <= 10080){
+					stats.n14days += output.second.out.nValue;
+				} else if (10080 < nBlockMatured && nBlockMatured <= 21600){
+					stats.n30days += output.second.out.nValue;
+				} else {
+					stats.nMore30days += output.second.out.nValue;
+				}
+			}
+	}
+	stats.nAddress = addresses.size();
+    stats.nTotalAmount += nValueAmount;
+}
+
+//! Calculate statistics about the TimeLocked transaction
+static bool GetTimeLockedStats(CCoinsView *view, CTermDepositStats &stats)
+{
+    std::unique_ptr<CCoinsViewCursor> pcursor(view->Cursor());
+    assert(pcursor);
+
+	uint256 prevkey;
+	std::map<uint32_t, Coin> outputs;
+	std::set<uint160> addresses;
+
+	while (pcursor->Valid()) {
+        boost::this_thread::interruption_point();
+        COutPoint key;
+        Coin coin;
+        if (pcursor->GetKey(key) && pcursor->GetValue(coin)) {
+			if (!outputs.empty() && key.hash != prevkey) {
+				ApplyTimeLockedStats(stats, addresses, outputs);
+                outputs.clear();
+			}
+			prevkey = key.hash;
+            outputs[key.n] = std::move(coin);
+        } else {
+            return error("%s: unable to read value", __func__);
+        }
+        pcursor->Next();
+    }
+
+    if (!outputs.empty()) {
+        ApplyTimeLockedStats(stats, addresses, outputs);
+    }
+
+    return true;
+}
+
+static UniValue gettermdepositstats (const JSONRPCRequest& request)
+{
+if (request.fHelp || request.params.size() != 0)
+        throw std::runtime_error(
+            "gettermdepositstats\n"
+            "\nReturns the stats of all term deposits\n"
+            "\nResult:\n"
+            "[\n"
+			"  \"nAddress\"  (Number) number of address\n"
+            "  \"nTimeLockedTxs\"  (Number) the total number of TimeLocked Tx\n"
+            "  \"nTotalTimeLockedValue\"  (number) the total SUQA locked on all wallets\n"
+            "]\n"
+            "\nExamples:\n"
+            + HelpExampleCli("gettermdepositstats", "")
+            + HelpExampleRpc("gettermdepositstats", "")
+        );
+
+    UniValue ret(UniValue::VOBJ);
+	UniValue distribution(UniValue::VARR);
+
+    CTermDepositStats stats;
+    FlushStateToDisk();
+	if (GetTimeLockedStats(pcoinsdbview.get(), stats)) {
+		UniValue obj(UniValue::VOBJ);
+        ret.pushKV("nAddress", (int)stats.nAddress);
+        ret.pushKV("nTimeLockedTxs", (int64_t)stats.nTransactions);
+        ret.pushKV("nTotalTimeLockedValue", ValueFromAmount(stats.nTotalAmount));
+
+		obj.pushKV("1day", ValueFromAmount(stats.n1day));
+		obj.pushKV("2days", ValueFromAmount(stats.n2days));
+		obj.pushKV("7days", ValueFromAmount(stats.n7days));
+		obj.pushKV("14days", ValueFromAmount(stats.n14days));
+		obj.pushKV("30days", ValueFromAmount(stats.n30days));
+		obj.pushKV("More30days", ValueFromAmount(stats.nMore30days));
+
+		distribution.push_back(obj);
+
+		ret.pushKV("distribution", distribution);
+
+    } else {
+        throw JSONRPCError(RPC_INTERNAL_ERROR, "Unable to read UTXO set");
+    }
+	return ret;
+}
+
 UniValue gettxout(const JSONRPCRequest& request)
 {
     if (request.fHelp || request.params.size() < 2 || request.params.size() > 3)
@@ -2213,6 +2346,8 @@ static const CRPCCommand commands[] =
     { "hidden",             "waitforblock",           &waitforblock,           {"blockhash","timeout"} },
     { "hidden",             "waitforblockheight",     &waitforblockheight,     {"height","timeout"} },
     { "hidden",             "syncwithvalidationinterfacequeue", &syncwithvalidationinterfacequeue, {} },
+	/*stats*/
+	{ "stats",              "gettermdepositstats",    &gettermdepositstats,    {} },
 };
 
 void RegisterBlockchainRPCCommands(CRPCTable &t)
