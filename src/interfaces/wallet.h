@@ -25,6 +25,7 @@ class CCoinControl;
 class CFeeRate;
 class CKey;
 class CWallet;
+class COutput;
 enum class FeeReason;
 enum class OutputType;
 struct CRecipient;
@@ -181,6 +182,9 @@ public:
         int& num_blocks,
         int64_t& adjusted_time) = 0;
 
+    //! Retrieve current term deposit stats
+    virtual std::vector<COutput> GetTermDepositInfo() = 0;
+
     //! Get transaction details.
     virtual WalletTx getWalletTxDetails(const uint256& txid,
         WalletTxStatus& tx_status,
@@ -317,6 +321,7 @@ struct WalletBalances
     CAmount watch_only_balance = 0;
     CAmount unconfirmed_watch_only_balance = 0;
     CAmount immature_watch_only_balance = 0;
+    std::vector<COutput> term_deposit_info;
 
     bool balanceChanged(const WalletBalances& prev) const
     {

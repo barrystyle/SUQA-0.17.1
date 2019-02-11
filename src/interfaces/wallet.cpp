@@ -291,7 +291,7 @@ public:
         return result;
     }
 
-    std::vector<COutput> GetTermDepositInfo()
+    std::vector<COutput> GetTermDepositInfo() override
     {
         return m_wallet.GetTermDepositInfo();
     }
@@ -344,6 +344,7 @@ public:
         result.unconfirmed_balance = m_wallet.GetUnconfirmedBalance();
         result.immature_balance = m_wallet.GetImmatureBalance();
         result.have_watch_only = m_wallet.HaveWatchOnly();
+        result.term_deposit_info = m_wallet.GetTermDepositInfo();
         if (result.have_watch_only) {
             result.watch_only_balance = m_wallet.GetBalance();
             result.unconfirmed_watch_only_balance = m_wallet.GetUnconfirmedWatchOnlyBalance();

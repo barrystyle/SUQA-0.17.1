@@ -535,13 +535,6 @@
     </layout>
    </item>
    <item>
-    <widget class="QLabel" name="label">
-     <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;HOdlings&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-    </widget>
-   </item>
-   <item>
     <widget class="QTableWidget" name="hodlTable">
      <property name="enabled">
       <bool>true</bool>
@@ -574,14 +567,6 @@
      <column>
       <property name="text">
        <string>Accrued Interest</string>
-      </property>
-      <property name="textAlignment">
-       <set>AlignLeft|AlignVCenter</set>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>APR</string>
       </property>
       <property name="textAlignment">
        <set>AlignLeft|AlignVCenter</set>

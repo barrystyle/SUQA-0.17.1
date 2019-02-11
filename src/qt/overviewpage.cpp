@@ -159,7 +159,7 @@ OverviewPage::~OverviewPage()
     delete ui;
 }
 
-void OverviewPage::setBalance(const interfaces::WalletBalances& balances, std::vector<COutput> termDepositInfo)
+void OverviewPage::setBalance(const interfaces::WalletBalances& balances)
 {
     int unit = walletModel->getOptionsModel()->getDisplayUnit();
     m_balances = balances;
@@ -182,6 +182,8 @@ void OverviewPage::setBalance(const interfaces::WalletBalances& balances, std::v
     ui->labelImmatureText->setVisible(showImmature || showWatchOnlyImmature);
     ui->labelWatchImmature->setVisible(showWatchOnlyImmature); // show watch-only immature balance
 
+    // get termDeposit data
+    std::vector<COutput> termDepositInfo = balances.term_deposit_info;
     ui->hodlTable->setRowCount(termDepositInfo.size());
 
     // actually update labels
@@ -197,23 +199,18 @@ void OverviewPage::setBalance(const interfaces::WalletBalances& balances, std::v
         int blocksRemaining=releaseBlock-curHeight;
         CAmount withInterest=termDeposit.GetValueWithInterest(lockHeight,(curHeight<releaseBlock?curHeight:releaseBlock));
         CAmount matureValue=termDeposit.GetValueWithInterest(lockHeight,releaseBlock);
-
-        double interestRatePerBlock=pow(((0.0+matureValue)/termDeposit.nValue),1.0/term);
-        double interestRate=(pow(interestRatePerBlock,365*561)-1)*100;
-        if(curHeight>=releaseBlock){
-            ui->hodlTable->setItem(i, 0, new QTableWidgetItem(QString("Matured (Unproductive)")));
-        }else{
+        ui->hodlTable->setSortingEnabled(false);
+        if(curHeight>=releaseBlock)
+            ui->hodlTable->setItem(i, 0, new QTableWidgetItem(QString("Matured (Warning: this amount is no longer earning interest of any kind)")));
+        else
             ui->hodlTable->setItem(i, 0, new QTableWidgetItem(QString("HOdled")));
-        }
         ui->hodlTable->setItem(i, 1, new QTableWidgetItem(BitcoinUnits::format(nDisplayUnit, termDeposit.nValue)));
         ui->hodlTable->setItem(i, 2, new QTableWidgetItem(BitcoinUnits::format(nDisplayUnit, withInterest-termDeposit.nValue)));
-        ui->hodlTable->setItem(i, 3, new QTableWidgetItem(QString::number(interestRate)+QString("%")));
-        ui->hodlTable->setItem(i, 4, new QTableWidgetItem(BitcoinUnits::format(nDisplayUnit, withInterest)));
-        ui->hodlTable->setItem(i, 5, new QTableWidgetItem(BitcoinUnits::format(nDisplayUnit, matureValue)));
-        ui->hodlTable->setItem(i, 6, new QTableWidgetItem(QString::number((term)/561)));
-        ui->hodlTable->setItem(i, 8, new QTableWidgetItem(QString::number(releaseBlock)));
-        ui->hodlTable->setItem(i, 7, new QTableWidgetItem(QString::number(lockHeight)));
-        //time_t releaseDate = time(0)+blocksRemaining*154;
+        ui->hodlTable->setItem(i, 3, new QTableWidgetItem(BitcoinUnits::format(nDisplayUnit, withInterest)));
+        ui->hodlTable->setItem(i, 4, new QTableWidgetItem(BitcoinUnits::format(nDisplayUnit, matureValue)));
+        ui->hodlTable->setItem(i, 5, new QTableWidgetItem(QString::number((term)/561)));
+        ui->hodlTable->setItem(i, 6, new QTableWidgetItem(QString::number(lockHeight)));
+        ui->hodlTable->setItem(i, 7, new QTableWidgetItem(QString::number(releaseBlock)));
 
         time_t rawtime;
         struct tm * timeinfo;
@@ -221,14 +218,11 @@ void OverviewPage::setBalance(const interfaces::WalletBalances& balances, std::v
         time (&rawtime);
         rawtime+=blocksRemaining*154;
         timeinfo = localtime(&rawtime);
-        strftime(buffer,80,"%d/%m/%Y",timeinfo);
+        strftime(buffer,80,"%Y/%m/%d",timeinfo);
         std::string str(buffer);
 
-        ui->hodlTable->setItem(i, 9, new QTableWidgetItem(QString(buffer)));
-
-        //ui->hodlTable->setItem(i, 9, new QTableWidgetItem(QString::number(interestRatePerBlock)+QString("%")));
-
-
+        ui->hodlTable->setItem(i, 8, new QTableWidgetItem(QString(buffer)));
+        ui->hodlTable->setSortingEnabled(true);
     }
 }
 
@@ -277,7 +271,7 @@ void OverviewPage::setWalletModel(WalletModel *model)
         // Keep up to date with wallet
         interfaces::Wallet& wallet = model->wallet();
         interfaces::WalletBalances balances = wallet.getBalances();
-        setBalance(balances, termDepositInfo);
+        setBalance(balances);
         connect(model, SIGNAL(balanceChanged(interfaces::WalletBalances)), this, SLOT(setBalance(interfaces::WalletBalances)));
 
         connect(model->getOptionsModel(), SIGNAL(displayUnitChanged(int)), this, SLOT(updateDisplayUnit()));
@@ -295,7 +289,7 @@ void OverviewPage::updateDisplayUnit()
     if(walletModel && walletModel->getOptionsModel())
     {
         if (m_balances.balance != -1) {
-            setBalance(m_balances, termDepositInfo);
+            setBalance(m_balances);
         }
 
         // Update txdelegate->unit with the current unit

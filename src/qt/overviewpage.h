@@ -41,7 +41,7 @@ public:
     std::vector<COutput> termDepositInfo;
 
 public Q_SLOTS:
-    void setBalance(const interfaces::WalletBalances& balances, std::vector<COutput> termDepositInfo);
+    void setBalance(const interfaces::WalletBalances& balances);
 
 Q_SIGNALS:
     void transactionClicked(const QModelIndex &index);

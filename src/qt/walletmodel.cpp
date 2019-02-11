@@ -98,11 +98,6 @@ void WalletModel::checkBalanceChanged(const interfaces::WalletBalances& new_bala
     }
 }
 
-std::vector<COutput> GetTermDepositInfo()
-{
-   return GetTermDepositInfo();
-}
-
 void WalletModel::updateTransaction()
 {
     // Balance and number of transactions might have changed
