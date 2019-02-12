@@ -129,6 +129,13 @@ public:
         assert(genesis.hashMerkleRoot == uint256S("c3555790e3804130514a674f3374b451dce058407dad6b9e82e191e198012680"));
 
         vSeeds.push_back("suqaexplorer.com");
+        vSeeds.push_back("139.59.139.105");
+        vSeeds.push_back("104.248.133.94");
+        vSeeds.push_back("104.248.17.3");
+        vSeeds.push_back("46.101.152.7");
+        vSeeds.push_back("46.101.227.238");
+        vSeeds.push_back("209.97.153.68");
+        vSeeds.push_back("159.89.194.138");
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,63);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,5);
@@ -207,7 +214,7 @@ public:
         nDefaultPort = 20980;
         nPruneAfterHeight = 1000;
 
-        genesis = CreateGenesisBlock(1457163389, 1989891989, 0x1f00ffff, 1, 0 * COIN);
+        genesis = CreateGenesisBlock(1457163389, 2962201989, 0x1f00ffff, 1, 0 * COIN);
         consensus.hashGenesisBlock = genesis.GetHash();
         // assert(consensus.hashGenesisBlock == uint256S("0000000000000000000000000000000000000000000000000000000000000000"));
         // assert(genesis.hashMerkleRoot == uint256S("0000000000000000000000000000000000000000000000000000000000000000"));
