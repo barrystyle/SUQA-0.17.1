@@ -1690,10 +1690,10 @@ std::vector<COutput> CWallet::GetTermDepositInfo()
             const uint256& wtxid = it->first;
             const CWalletTx* pcoin = &(*it).second;
 
-            for (unsigned int i = 0; i < pcoin->vout.size(); i++) {
+            for (unsigned int i = 0; i < pcoin->tx->vout.size(); i++) {
                 if(pcoin->isOutputTermDeposit(i)){
                     if (!IsSpent(pcoin->GetHash(),i)){
-                        isminetype mine = IsMine(pcoin->vout[i]);
+                        isminetype mine = IsMine(pcoin->tx->vout[i]);
                         if(mine != ISMINE_NO){
                             int nDepth = pcoin->GetDepthInMainChain();
                             termDeposits.push_back(COutput(pcoin, i, nDepth, (mine & ISMINE_SPENDABLE) != ISMINE_NO));

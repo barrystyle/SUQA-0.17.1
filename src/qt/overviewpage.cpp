@@ -189,23 +189,24 @@ void OverviewPage::setBalance(const interfaces::WalletBalances& balances)
     // actually update labels
     int nDisplayUnit = BitcoinUnits::SUQA;
 
-    for(int i=0;i<termDepositInfo.size();i++){
-        COutput ctermDeposit=termDepositInfo[i];
-        CTxOut termDeposit=ctermDeposit.tx->vout[ctermDeposit.i];
+	printf("Deposit %d\n", (int)termDepositInfo.size());
+	int i = 0;
+	for (const COutput& ctermDeposit : termDepositInfo) {
         int curHeight=chainActive.Height();
         int lockHeight=curHeight-ctermDeposit.nDepth;
-        int releaseBlock=termDeposit.scriptPubKey.GetTermDepositReleaseBlock();
+        int releaseBlock=ctermDeposit.tx->tx->vout[ctermDeposit.i].scriptPubKey.GetTermDepositReleaseBlock();
         int term =releaseBlock-lockHeight;
         int blocksRemaining=releaseBlock-curHeight;
-        CAmount withInterest=termDeposit.GetValueWithInterest(lockHeight,(curHeight<releaseBlock?curHeight:releaseBlock));
-        CAmount matureValue=termDeposit.GetValueWithInterest(lockHeight,releaseBlock);
+        CAmount withInterest=ctermDeposit.tx->tx->vout[ctermDeposit.i].GetValueWithInterest(lockHeight,(curHeight<releaseBlock?curHeight:releaseBlock));
+        CAmount matureValue=ctermDeposit.tx->tx->vout[ctermDeposit.i].GetValueWithInterest(lockHeight,releaseBlock);
+
         ui->hodlTable->setSortingEnabled(false);
         if(curHeight>=releaseBlock)
             ui->hodlTable->setItem(i, 0, new QTableWidgetItem(QString("Matured (Warning: this amount is no longer earning interest of any kind)")));
         else
             ui->hodlTable->setItem(i, 0, new QTableWidgetItem(QString("HOdled")));
-        ui->hodlTable->setItem(i, 1, new QTableWidgetItem(BitcoinUnits::format(nDisplayUnit, termDeposit.nValue)));
-        ui->hodlTable->setItem(i, 2, new QTableWidgetItem(BitcoinUnits::format(nDisplayUnit, withInterest-termDeposit.nValue)));
+        ui->hodlTable->setItem(i, 1, new QTableWidgetItem(BitcoinUnits::format(nDisplayUnit, ctermDeposit.tx->tx->vout[ctermDeposit.i].nValue)));
+        ui->hodlTable->setItem(i, 2, new QTableWidgetItem(BitcoinUnits::format(nDisplayUnit, withInterest-ctermDeposit.tx->tx->vout[ctermDeposit.i].nValue)));
         ui->hodlTable->setItem(i, 3, new QTableWidgetItem(BitcoinUnits::format(nDisplayUnit, withInterest)));
         ui->hodlTable->setItem(i, 4, new QTableWidgetItem(BitcoinUnits::format(nDisplayUnit, matureValue)));
         ui->hodlTable->setItem(i, 5, new QTableWidgetItem(QString::number((term)/561)));
@@ -223,6 +224,7 @@ void OverviewPage::setBalance(const interfaces::WalletBalances& balances)
 
         ui->hodlTable->setItem(i, 8, new QTableWidgetItem(QString(buffer)));
         ui->hodlTable->setSortingEnabled(true);
+		    i++;
     }
 }
 
