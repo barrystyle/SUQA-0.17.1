@@ -189,7 +189,7 @@ void OverviewPage::setBalance(const interfaces::WalletBalances& balances)
     // actually update labels
     int nDisplayUnit = BitcoinUnits::SUQA;
 
-	printf("Deposit %d\n", (int)termDepositInfo.size());
+	//printf("Deposit %d\n", (int)termDepositInfo.size());
 	int i = 0;
 	for (const COutput& ctermDeposit : termDepositInfo) {
         int curHeight=chainActive.Height();
