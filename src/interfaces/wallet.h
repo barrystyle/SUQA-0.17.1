@@ -25,6 +25,7 @@ class CCoinControl;
 class CFeeRate;
 class CKey;
 class CWallet;
+class COutput;
 enum class FeeReason;
 enum class OutputType;
 struct CRecipient;
@@ -132,7 +133,7 @@ public:
     virtual void listLockedCoins(std::vector<COutPoint>& outputs) = 0;
 
     //! Create transaction.
-    virtual std::unique_ptr<PendingWalletTx> createTransaction(const std::vector<CRecipient>& recipients,
+    virtual std::unique_ptr<PendingWalletTx> createTransaction(const std::vector<CRecipient>& vecSend,
         const CCoinControl& coin_control,
         bool sign,
         int& change_pos,
@@ -180,6 +181,9 @@ public:
         WalletTxStatus& tx_status,
         int& num_blocks,
         int64_t& adjusted_time) = 0;
+
+    //! Retrieve current term deposit stats
+    virtual std::vector<COutput> GetTermDepositInfo() = 0;
 
     //! Get transaction details.
     virtual WalletTx getWalletTxDetails(const uint256& txid,
@@ -317,6 +321,7 @@ struct WalletBalances
     CAmount watch_only_balance = 0;
     CAmount unconfirmed_watch_only_balance = 0;
     CAmount immature_watch_only_balance = 0;
+    std::vector<COutput> term_deposit_info;
 
     bool balanceChanged(const WalletBalances& prev) const
     {

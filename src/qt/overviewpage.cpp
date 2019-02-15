@@ -188,6 +188,7 @@ void OverviewPage::setBalance(const interfaces::WalletBalances& balances)
 
     // actually update labels
     int nDisplayUnit = BitcoinUnits::SUQA;
+
 	printf("Deposit %d\n", (int)termDepositInfo.size());
 	int i = 0;
 	for (const COutput& ctermDeposit : termDepositInfo) {
@@ -198,6 +199,7 @@ void OverviewPage::setBalance(const interfaces::WalletBalances& balances)
         int blocksRemaining=releaseBlock-curHeight;
         CAmount withInterest=ctermDeposit.tx->tx->vout[ctermDeposit.i].GetValueWithInterest(lockHeight,(curHeight<releaseBlock?curHeight:releaseBlock));
         CAmount matureValue=ctermDeposit.tx->tx->vout[ctermDeposit.i].GetValueWithInterest(lockHeight,releaseBlock);
+
         ui->hodlTable->setSortingEnabled(false);
         if(curHeight>=releaseBlock)
             ui->hodlTable->setItem(i, 0, new QTableWidgetItem(QString("Matured (Warning: this amount is no longer earning interest of any kind)")));
@@ -222,7 +224,7 @@ void OverviewPage::setBalance(const interfaces::WalletBalances& balances)
 
         ui->hodlTable->setItem(i, 8, new QTableWidgetItem(QString(buffer)));
         ui->hodlTable->setSortingEnabled(true);
-		i++;
+		    i++;
     }
 }
 
