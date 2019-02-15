@@ -168,6 +168,54 @@
        <widget class="SUQAAmountField" name="payAmount"/>
       </item>
       <item>
+       <widget class="QLabel" name="locklabel">
+        <property name="text">
+         <string>  For  </string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="lockperiod">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>40</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::LeftToRight</enum>
+        </property>
+        <property name="text">
+         <string>4</string>
+        </property>
+        <property name="maxLength">
+         <number>6</number>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="locklength">
+        <item>
+         <property name="text">
+          <string>Weeks</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Days</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Blocks</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item>
        <widget class="QCheckBox" name="checkboxSubtractFeeFromAmount">
         <property name="toolTip">
          <string>The fee will be deducted from the amount being sent. The recipient will receive less suqas than you enter in the amount field. If multiple recipients are selected, the fee is split equally.</string>

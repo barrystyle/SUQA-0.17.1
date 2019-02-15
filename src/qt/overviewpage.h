@@ -5,7 +5,9 @@
 #ifndef BITCOIN_QT_OVERVIEWPAGE_H
 #define BITCOIN_QT_OVERVIEWPAGE_H
 
+#include <primitives/transaction.h>
 #include <interfaces/wallet.h>
+#include <wallet/wallet.h>
 
 #include <QWidget>
 #include <memory>
@@ -36,6 +38,7 @@ public:
     void setClientModel(ClientModel *clientModel);
     void setWalletModel(WalletModel *walletModel);
     void showOutOfSyncWarning(bool fShow);
+    std::vector<COutput> termDepositInfo;
 
 public Q_SLOTS:
     void setBalance(const interfaces::WalletBalances& balances);

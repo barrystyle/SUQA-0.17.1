@@ -10,6 +10,7 @@
 #include <qt/paymentserver.h>
 #include <qt/recentrequeststablemodel.h>
 #include <qt/sendcoinsdialog.h>
+#include <qt/depositcoinsdialog.h>
 #include <qt/transactiontablemodel.h>
 
 #include <interfaces/handler.h>
@@ -19,6 +20,7 @@
 #include <util.h> // for GetBoolArg
 #include <wallet/coincontrol.h>
 #include <wallet/wallet.h>
+#include <validation.h>
 
 #include <stdint.h>
 
@@ -26,7 +28,6 @@
 #include <QMessageBox>
 #include <QSet>
 #include <QTimer>
-
 
 WalletModel::WalletModel(std::unique_ptr<interfaces::Wallet> wallet, interfaces::Node& node, const PlatformStyle *platformStyle, OptionsModel *_optionsModel, QObject *parent) :
     QObject(parent), m_wallet(std::move(wallet)), m_node(node), optionsModel(_optionsModel), addressTableModel(0),
@@ -121,12 +122,13 @@ bool WalletModel::validateAddress(const QString &address)
     return IsValidDestinationString(address.toStdString());
 }
 
-WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransaction &transaction, const CCoinControl& coinControl)
+WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransaction &transaction, std::string &termdepositquestion, int termDepositLength)
 {
     CAmount total = 0;
     bool fSubtractFeeFromAmount = false;
     QList<SendCoinsRecipient> recipients = transaction.getRecipients();
     std::vector<CRecipient> vecSend;
+    CCoinControl coinControl;
 
     if(recipients.empty())
     {
@@ -176,10 +178,33 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
             setAddress.insert(rcp.address);
             ++nAddresses;
 
-            CScript scriptPubKey = GetScriptForDestination(DecodeDestination(rcp.address.toStdString()));
+            CScript scriptPubKey;
+            if(termDepositLength>0) {
+                std::ostringstream ss;
+                if(termDepositLength < 720*1) {
+                    ss << "!!!!!WARNING: There is no interest rate advantage of using a Term Deposit for a period of less than 1 day. It is recommended that you cancel this transaction. ";
+                }
+                if(termDepositLength > 720*30){
+                    ss << "!!!!!WARNING: There is no interest rate advantage of using a Term Deposit for a period of more than 1 month. It is recommended that you cancel this transaction. ";
+                }
+                ss << "Term Deposit Instruction Detected: " << std::fixed;
+                ss.precision(8);
+                ss << "This will send the amount of " << (0.0+rcp.amount)/COIN <<" SUQA ";
+                ss << "to be locked for " << termDepositLength << " blocks. ";
+                ss.precision(2);
+                ss << "This is approximately " << (0.0+termDepositLength)/(720) << " days. ";
+                CAmount withInterest=GetInterest(rcp.amount, chainActive.Height()+1, chainActive.Height()+1+termDepositLength, chainActive.Height()+1+termDepositLength);
+                ss.precision(8);
+                ss << "Upon maturation, it will be worth " << (0.0+withInterest)/COIN << " SUQA. ";
+                termdepositquestion = ss.str();
+                CTxDestination address = DecodeDestination(rcp.address.toStdString());
+                scriptPubKey = GetTimeLockScriptForDestination(address,chainActive.Height()+1+termDepositLength);
+            }else{
+                CTxDestination address = DecodeDestination(rcp.address.toStdString());
+                scriptPubKey = GetScriptForDestination(address);
+            }
             CRecipient recipient = {scriptPubKey, rcp.amount, rcp.fSubtractFeeFromAmount};
             vecSend.push_back(recipient);
-
             total += rcp.amount;
         }
     }
@@ -187,40 +212,26 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
     {
         return DuplicateAddress;
     }
-
-    CAmount nBalance = m_wallet->getAvailableBalance(coinControl);
-
-    if(total > nBalance)
-    {
-        return AmountExceedsBalance;
-    }
-
     {
         CAmount nFeeRequired = 0;
         int nChangePosRet = -1;
         std::string strFailReason;
 
         auto& newTx = transaction.getWtx();
-        newTx = m_wallet->createTransaction(vecSend, coinControl, true /* sign */, nChangePosRet, nFeeRequired, strFailReason);
+        newTx = m_wallet->createTransaction(vecSend, coinControl, true, nChangePosRet, nFeeRequired, strFailReason);
         transaction.setTransactionFee(nFeeRequired);
-        if (fSubtractFeeFromAmount && newTx)
+        if (fSubtractFeeFromAmount)
             transaction.reassignAmounts(nChangePosRet);
 
         if(!newTx)
         {
-            if(!fSubtractFeeFromAmount && (total + nFeeRequired) > nBalance)
-            {
-                return SendCoinsReturn(AmountWithFeeExceedsBalance);
-            }
             Q_EMIT message(tr("Send Coins"), QString::fromStdString(strFailReason),
                          CClientUIInterface::MSG_ERROR);
             return TransactionCreationFailed;
         }
 
-        // reject absurdly high fee. (This can never happen because the
-        // wallet caps the fee at maxTxFee. This merely serves as a
-        // belt-and-suspenders check)
-        if (nFeeRequired > m_node.getMaxTxFee())
+        // reject absurdly high fee > 0.1 bitcoin
+        if (nFeeRequired > 10000000)
             return AbsurdFee;
     }
 
