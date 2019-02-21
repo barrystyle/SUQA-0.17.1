@@ -37,7 +37,12 @@ WalletView::WalletView(const PlatformStyle *_platformStyle, QWidget *parent):
     walletModel(0),
     platformStyle(_platformStyle)
 {
-    // Create tabs
+ QFile File(":/css/suqacss");
+ File.open(QFile::ReadOnly);
+ QString StyleSheet = QLatin1String(File.readAll());
+
+ this->setStyleSheet(StyleSheet);
+	// Create tabs
     overviewPage = new OverviewPage(platformStyle);
 
     transactionsPage = new QWidget(this);
