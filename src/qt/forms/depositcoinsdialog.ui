@@ -1152,7 +1152,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
         <string>Confirm the deposit action</string>
        </property>
        <property name="text">
-        <string>S&amp;end</string>
+        <string>EAR&amp;N</string>
        </property>
        <property name="icon">
         <iconset resource="../suqa.qrc">
