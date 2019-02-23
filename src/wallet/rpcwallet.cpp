@@ -702,7 +702,7 @@ static UniValue listtermdeposits(const JSONRPCRequest& request)
     std::string strAccount = LabelFromValue(request.params[0]);
     std::vector<COutput> termDepositInfo = pwallet->GetTermDepositInfo(strAccount);
 
-    for(int i=0; i < termDepositInfo.size(); i++)
+    for(unsigned int i=0; i < termDepositInfo.size(); i++)
     {
         COutput ctermDeposit = termDepositInfo[i];
 	CTxOut termDeposit = ctermDeposit.tx->tx->vout[ctermDeposit.i];

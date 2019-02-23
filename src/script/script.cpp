@@ -8,6 +8,18 @@
 #include <tinyformat.h>
 #include <utilstrencodings.h>
 
+namespace {
+inline std::string ValueString(const std::vector<unsigned char>& vch)
+{
+    if (vch.size() <= 4)
+        return strprintf("%d", CScriptNum(vch, false).getint());
+    else
+        return HexStr(vch);
+}
+} // anon namespace
+
+using namespace std;
+
 const char* GetOpName(opcodetype opcode)
 {
     switch (opcode)
@@ -130,7 +142,7 @@ const char* GetOpName(opcodetype opcode)
     // expansion
     case OP_NOP1                   : return "OP_NOP1";
     case OP_NOP2                   : return "OP_CHECKLOCKTIMEVERIFY";
-    case OP_CHECKSEQUENCEVERIFY    : return "OP_CHECKSEQUENCEVERIFY";
+    case OP_NOP3                   : return "OP_NOP3";
     case OP_NOP4                   : return "OP_NOP4";
     case OP_NOP5                   : return "OP_NOP5";
     case OP_NOP6                   : return "OP_NOP6";
@@ -203,12 +215,8 @@ bool CScript::IsPayToScriptHash() const
             (*this)[22] == OP_EQUAL);
 }
 
-bool CScript::IsCheckLockTimeVerify() const
-{
-    // Extra-fast test for pay-to-script-hash CScripts:
-    return (this->size() == 31 &&
-            (*this)[7] == OP_HASH160 &&
-            (*this)[8] == 0x14);
+bool CScript::IsTermDeposit() const{
+    return GetTermDepositReleaseBlock()>-1;
 }
 
 bool CScript::IsPayToWitnessScriptHash() const
@@ -254,14 +262,11 @@ bool CScript::IsPushOnly(const_iterator pc) const
     return true;
 }
 
-bool CScript::IsTermDeposit() const{
-    return GetTermDepositReleaseBlock() > -1;
-}
-
 int CScript::GetTermDepositReleaseBlock() const
 {
-    if(this->size()<29 || this->size()>32 || (*this)[0] > 4 || (*this)[0] == 0)
+    if(this->size()<29 || this->size()>32 || (*this)[0] > 4 || (*this)[0] == 0){
         return -1;
+    }
     int skipsize=(*this)[0];
 
     if((*this)[skipsize+1] != OP_CHECKLOCKTIMEVERIFY ||
@@ -273,7 +278,7 @@ int CScript::GetTermDepositReleaseBlock() const
         return -1;
     }
 
-    std::vector<unsigned char> vch1;
+    vector<unsigned char> vch1;
     CScript::const_iterator pc1 = this->begin();
     opcodetype opcode1;
     this->GetOp(pc1, opcode1, vch1);
