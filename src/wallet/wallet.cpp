@@ -1687,7 +1687,6 @@ std::vector<COutput> CWallet::GetTermDepositInfo()
         LOCK2(cs_main, cs_wallet);
         for (std::map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
         {
-            const uint256& wtxid = it->first;
             const CWalletTx* pcoin = &(*it).second;
 
             for (unsigned int i = 0; i < pcoin->tx->vout.size(); i++) {
