@@ -56,6 +56,9 @@ public:
 
     //! Return number of connections, default is in- and outbound (total)
     int getNumConnections(unsigned int flags = CONNECTIONS_ALL) const;
+    // Dash
+    QString getMasternodeCountString() const;
+    //
     int getHeaderTipHeight() const;
     int64_t getHeaderTipTime() const;
 
@@ -85,18 +88,31 @@ private:
     std::unique_ptr<interfaces::Handler> m_handler_banned_list_changed;
     std::unique_ptr<interfaces::Handler> m_handler_notify_block_tip;
     std::unique_ptr<interfaces::Handler> m_handler_notify_header_tip;
+    // Dash
+    std::unique_ptr<interfaces::Handler> m_handler_notify_additional_data_sync_progress_changed;
+    //
     OptionsModel *optionsModel;
     PeerTableModel *peerTableModel;
+    // Dash
+    QString cachedMasternodeCountString;
+    //
     BanTableModel *banTableModel;
 
     QTimer *pollTimer;
+    // Dash
+    QTimer *pollMnTimer;
+    //
 
     void subscribeToCoreSignals();
     void unsubscribeFromCoreSignals();
 
 Q_SIGNALS:
     void numConnectionsChanged(int count);
+    // Dash
+    void strMasternodesChanged(const QString &strMasternodes);
+    //
     void numBlocksChanged(int count, const QDateTime& blockDate, double nVerificationProgress, bool header);
+    void additionalDataSyncProgressChanged(double nSyncProgress);
     void mempoolSizeChanged(long count, size_t mempoolSizeInBytes);
     void networkActiveChanged(bool networkActive);
     void alertsChanged(const QString &warnings);
@@ -110,6 +126,9 @@ Q_SIGNALS:
 
 public Q_SLOTS:
     void updateTimer();
+    // Dash
+    void updateMnTimer();
+    //
     void updateNumConnections(int numConnections);
     void updateNetworkActive(bool networkActive);
     void updateAlert();

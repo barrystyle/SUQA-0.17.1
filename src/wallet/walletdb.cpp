@@ -10,10 +10,12 @@
 #include <fs.h>
 #include <key_io.h>
 #include <protocol.h>
+#include <reverse_iterator.h>
 #include <serialize.h>
 #include <sync.h>
 #include <util.h>
 #include <utiltime.h>
+#include <validation.h> // For CheckTransaction
 #include <wallet/wallet.h>
 
 #include <atomic>

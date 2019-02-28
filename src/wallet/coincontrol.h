@@ -37,6 +37,10 @@ public:
     //! Fee estimation mode to control arguments to estimateSmartFee
     FeeEstimateMode m_fee_mode;
 
+    // Dash
+    CAmount nMinimumTotalFee;
+    //
+
     CCoinControl()
     {
         SetNull();

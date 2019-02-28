@@ -64,6 +64,14 @@
 
 static fs::detail::utf8_codecvt_facet utf8;
 
+#if defined(Q_OS_MAC)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
+#include <objc/objc-runtime.h>
+#include <CoreServices/CoreServices.h>
+#endif
+
 namespace GUIUtil {
 
 QString dateTimeStr(const QDateTime &date)
@@ -357,6 +365,27 @@ bool isObscured(QWidget *w)
         && checkPoint(QPoint(w->width() / 2, w->height() / 2), w));
 }
 
+void bringToFront(QWidget* w)
+{
+#ifdef Q_OS_MAC
+    // Force application activation on macOS. With Qt 5.4 this is required when
+    // an action in the dock menu is triggered.
+    id app = objc_msgSend((id) objc_getClass("NSApplication"), sel_registerName("sharedApplication"));
+    objc_msgSend(app, sel_registerName("activateIgnoringOtherApps:"), YES);
+#endif
+
+    if (w) {
+        // activateWindow() (sometimes) helps with keyboard focus on Windows
+        if (w->isMinimized()) {
+            w->showNormal();
+        } else {
+            w->show();
+        }
+        w->activateWindow();
+        w->raise();
+    }
+}
+
 void openDebugLogfile()
 {
     fs::path pathDebug = GetDataDir() / "debug.log";
@@ -381,6 +410,25 @@ bool openBitcoinConf()
     /* Open suqa.conf with the associated application */
     return QDesktopServices::openUrl(QUrl::fromLocalFile(boostPathToQString(pathConfig)));
 }
+
+// Dash
+void openMNConfigfile()
+{
+    boost::filesystem::path pathConfig = GetConfigFile(MASTERNODE_CONF_FILENAME);
+
+    /* Create the file */
+    boost::filesystem::ofstream configFile(pathConfig, std::ios_base::app);
+
+    if (!configFile.good())
+        return;
+
+    configFile.close();
+
+    /* Open masternode.conf with the associated application */
+    if (fs::exists(pathConfig))
+        QDesktopServices::openUrl(QUrl::fromLocalFile(boostPathToQString(pathConfig)));
+}
+//
 
 ToolTipToRichTextFilter::ToolTipToRichTextFilter(int _size_threshold, QObject *parent) :
     QObject(parent),

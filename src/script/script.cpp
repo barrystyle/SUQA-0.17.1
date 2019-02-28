@@ -206,6 +206,17 @@ unsigned int CScript::GetSigOpCount(const CScript& scriptSig) const
     return subscript.GetSigOpCount(true);
 }
 
+bool CScript::IsPayToPublicKeyHash() const
+{
+    // Extra-fast test for pay-to-pubkey-hash CScripts:
+    return (this->size() == 25 &&
+            (*this)[0] == OP_DUP &&
+            (*this)[1] == OP_HASH160 &&
+            (*this)[2] == 0x14 &&
+            (*this)[23] == OP_EQUALVERIFY &&
+            (*this)[24] == OP_CHECKSIG);
+}
+
 bool CScript::IsPayToScriptHash() const
 {
     // Extra-fast test for pay-to-script-hash CScripts:
@@ -215,8 +226,12 @@ bool CScript::IsPayToScriptHash() const
             (*this)[22] == OP_EQUAL);
 }
 
-bool CScript::IsTermDeposit() const{
-    return GetTermDepositReleaseBlock()>-1;
+bool CScript::IsCheckLockTimeVerify() const
+{
+    // Extra-fast test for pay-to-script-hash CScripts:
+    return (this->size() == 31 &&
+            (*this)[7] == OP_HASH160 &&
+            (*this)[8] == 0x14);
 }
 
 bool CScript::IsPayToWitnessScriptHash() const
@@ -262,6 +277,10 @@ bool CScript::IsPushOnly(const_iterator pc) const
     return true;
 }
 
+bool CScript::IsTermDeposit() const{
+    return GetTermDepositReleaseBlock() > -1;
+}
+
 int CScript::GetTermDepositReleaseBlock() const
 {
     if(this->size()<29 || this->size()>32 || (*this)[0] > 4 || (*this)[0] == 0){
@@ -278,7 +297,7 @@ int CScript::GetTermDepositReleaseBlock() const
         return -1;
     }
 
-    vector<unsigned char> vch1;
+    std::vector<unsigned char> vch1;
     CScript::const_iterator pc1 = this->begin();
     opcodetype opcode1;
     this->GetOp(pc1, opcode1, vch1);

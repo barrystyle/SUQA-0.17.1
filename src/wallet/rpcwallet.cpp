@@ -8,6 +8,10 @@
 #include <consensus/validation.h>
 #include <core_io.h>
 #include <httpserver.h>
+// Dash
+#include <instantx.h>
+#include <keepass.h>
+//
 #include <validation.h>
 #include <key_io.h>
 #include <net.h>
@@ -91,7 +95,7 @@ void EnsureWalletIsUnlocked(CWallet * const pwallet)
 
 static void WalletTxToJSON(const CWalletTx& wtx, UniValue& entry)
 {
-    int confirms = wtx.GetDepthInMainChain();
+    int confirms = wtx.GetDepthInMainChain(false);
     entry.pushKV("confirmations", confirms);
     if (wtx.IsCoinBase())
         entry.pushKV("generated", true);
@@ -148,14 +152,14 @@ static UniValue getnewaddress(const JSONRPCRequest& request)
     if (request.fHelp || request.params.size() > 2)
         throw std::runtime_error(
             "getnewaddress ( \"label\" \"address_type\" )\n"
-            "\nReturns a new Bitcoin address for receiving payments.\n"
+            "\nReturns a new SIN address for receiving payments.\n"
             "If 'label' is specified, it is added to the address book \n"
             "so payments received with the address will be associated with 'label'.\n"
             "\nArguments:\n"
             "1. \"label\"          (string, optional) The label name for the address to be linked to. If not provided, the default label \"\" is used. It can also be set to the empty string \"\" to represent the default label. The label does not need to exist, it will be created if there is no label by the given name.\n"
             "2. \"address_type\"   (string, optional) The address type to use. Options are \"legacy\", \"p2sh-segwit\", and \"bech32\". Default is set by -addresstype.\n"
             "\nResult:\n"
-            "\"address\"    (string) The new suqa address\n"
+            "\"address\"    (string) The new sin address\n"
             "\nExamples:\n"
             + HelpExampleCli("getnewaddress", "")
             + HelpExampleRpc("getnewaddress", "")
@@ -217,9 +221,9 @@ static UniValue getaccountaddress(const JSONRPCRequest& request)
 
     if (!IsDeprecatedRPCEnabled("accounts")) {
         if (request.fHelp) {
-            throw std::runtime_error("getaccountaddress (Deprecated, will be removed in V0.18. To use this command, start suqad with -deprecatedrpc=accounts)");
+            throw std::runtime_error("getaccountaddress (Deprecated, will be removed in V0.18. To use this command, start sind with -deprecatedrpc=accounts)");
         }
-        throw JSONRPCError(RPC_METHOD_DEPRECATED, "getaccountaddress is deprecated and will be removed in V0.18. To use this command, start suqad with -deprecatedrpc=accounts.");
+        throw JSONRPCError(RPC_METHOD_DEPRECATED, "getaccountaddress is deprecated and will be removed in V0.18. To use this command, start sind with -deprecatedrpc=accounts.");
     }
 
     if (request.fHelp || request.params.size() != 1)
@@ -261,7 +265,7 @@ static UniValue getrawchangeaddress(const JSONRPCRequest& request)
     if (request.fHelp || request.params.size() > 1)
         throw std::runtime_error(
             "getrawchangeaddress ( \"address_type\" )\n"
-            "\nReturns a new Bitcoin address, for receiving change.\n"
+            "\nReturns a new SIN address, for receiving change.\n"
             "This is for use with raw transactions, NOT normal use.\n"
             "\nArguments:\n"
             "1. \"address_type\"           (string, optional) The address type to use. Options are \"legacy\", \"p2sh-segwit\", and \"bech32\". Default is set by -changetype.\n"
@@ -314,9 +318,9 @@ static UniValue setlabel(const JSONRPCRequest& request)
 
     if (!IsDeprecatedRPCEnabled("accounts") && request.strMethod == "setaccount") {
         if (request.fHelp) {
-            throw std::runtime_error("setaccount (Deprecated, will be removed in V0.18. To use this command, start suqad with -deprecatedrpc=accounts)");
+            throw std::runtime_error("setaccount (Deprecated, will be removed in V0.18. To use this command, start sind with -deprecatedrpc=accounts)");
         }
-        throw JSONRPCError(RPC_METHOD_DEPRECATED, "setaccount is deprecated and will be removed in V0.18. To use this command, start suqad with -deprecatedrpc=accounts.");
+        throw JSONRPCError(RPC_METHOD_DEPRECATED, "setaccount is deprecated and will be removed in V0.18. To use this command, start sind with -deprecatedrpc=accounts.");
     }
 
     if (request.fHelp || request.params.size() != 2)
@@ -324,7 +328,7 @@ static UniValue setlabel(const JSONRPCRequest& request)
             "setlabel \"address\" \"label\"\n"
             "\nSets the label associated with the given address.\n"
             "\nArguments:\n"
-            "1. \"address\"         (string, required) The suqa address to be associated with a label.\n"
+            "1. \"address\"         (string, required) The sin address to be associated with a label.\n"
             "2. \"label\"           (string, required) The label to assign to the address.\n"
             "\nExamples:\n"
             + HelpExampleCli("setlabel", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\" \"tabby\"")
@@ -380,9 +384,9 @@ static UniValue getaccount(const JSONRPCRequest& request)
 
     if (!IsDeprecatedRPCEnabled("accounts")) {
         if (request.fHelp) {
-            throw std::runtime_error("getaccount (Deprecated, will be removed in V0.18. To use this command, start suqad with -deprecatedrpc=accounts)");
+            throw std::runtime_error("getaccount (Deprecated, will be removed in V0.18. To use this command, start sind with -deprecatedrpc=accounts)");
         }
-        throw JSONRPCError(RPC_METHOD_DEPRECATED, "getaccount is deprecated and will be removed in V0.18. To use this command, start suqad with -deprecatedrpc=accounts.");
+        throw JSONRPCError(RPC_METHOD_DEPRECATED, "getaccount is deprecated and will be removed in V0.18. To use this command, start sind with -deprecatedrpc=accounts.");
     }
 
     if (request.fHelp || request.params.size() != 1)
@@ -390,7 +394,7 @@ static UniValue getaccount(const JSONRPCRequest& request)
             "getaccount \"address\"\n"
             "\nDEPRECATED. Returns the account associated with the given address.\n"
             "\nArguments:\n"
-            "1. \"address\"         (string, required) The suqa address for account lookup.\n"
+            "1. \"address\"         (string, required) The sin address for account lookup.\n"
             "\nResult:\n"
             "\"accountname\"        (string) the account address\n"
             "\nExamples:\n"
@@ -402,7 +406,7 @@ static UniValue getaccount(const JSONRPCRequest& request)
 
     CTxDestination dest = DecodeDestination(request.params[0].get_str());
     if (!IsValidDestination(dest)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Bitcoin address");
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid SIN address");
     }
 
     std::string strAccount;
@@ -425,9 +429,9 @@ static UniValue getaddressesbyaccount(const JSONRPCRequest& request)
 
     if (!IsDeprecatedRPCEnabled("accounts")) {
         if (request.fHelp) {
-            throw std::runtime_error("getaddressbyaccount (Deprecated, will be removed in V0.18. To use this command, start suqad with -deprecatedrpc=accounts)");
+            throw std::runtime_error("getaddressbyaccount (Deprecated, will be removed in V0.18. To use this command, start sind with -deprecatedrpc=accounts)");
         }
-        throw JSONRPCError(RPC_METHOD_DEPRECATED, "getaddressesbyaccount is deprecated and will be removed in V0.18. To use this command, start suqad with -deprecatedrpc=accounts.");
+        throw JSONRPCError(RPC_METHOD_DEPRECATED, "getaddressesbyaccount is deprecated and will be removed in V0.18. To use this command, start sind with -deprecatedrpc=accounts.");
     }
 
     if (request.fHelp || request.params.size() != 1)
@@ -438,7 +442,7 @@ static UniValue getaddressesbyaccount(const JSONRPCRequest& request)
             "1. \"account\"        (string, required) The account name.\n"
             "\nResult:\n"
             "[                     (json array of string)\n"
-            "  \"address\"         (string) a suqa address associated with the given account\n"
+            "  \"address\"         (string) a sin address associated with the given account\n"
             "  ,...\n"
             "]\n"
             "\nExamples:\n"
@@ -462,7 +466,7 @@ static UniValue getaddressesbyaccount(const JSONRPCRequest& request)
     return ret;
 }
 
-static CTransactionRef SendMoney(CWallet * const pwallet, const CTxDestination &address, CAmount nValue, bool fSubtractFeeFromAmount, const CCoinControl& coin_control, mapValue_t mapValue, std::string fromAccount, int termDepositLength)
+static CTransactionRef SendMoney(CWallet * const pwallet, const CTxDestination &address, CAmount nValue, bool fSubtractFeeFromAmount, const CCoinControl& coin_control, mapValue_t mapValue, std::string fromAccount, int termDepositLength, bool fUseInstantSend=false, bool fUsePrivateSend=false)
 {
     CAmount curBalance = pwallet->GetBalance();
 
@@ -497,7 +501,7 @@ static CTransactionRef SendMoney(CWallet * const pwallet, const CTxDestination &
     CRecipient recipient = {scriptPubKey, nValue, fSubtractFeeFromAmount};
     vecSend.push_back(recipient);
     CTransactionRef tx;
-    if (!pwallet->CreateTransaction(vecSend, tx, reservekey, nFeeRequired, nChangePosRet, strError, coin_control)) {
+    if (!pwallet->CreateTransaction(vecSend, tx, reservekey, nFeeRequired, nChangePosRet, strError, coin_control, true, fUsePrivateSend ? ONLY_DENOMINATED : ALL_COINS, fUseInstantSend)) {
         if (!fSubtractFeeFromAmount && nValue + nFeeRequired > curBalance)
             strError = strprintf("Error: This transaction requires a transaction fee of at least %s", FormatMoney(nFeeRequired));
         throw JSONRPCError(RPC_WALLET_ERROR, strError);
@@ -524,7 +528,7 @@ static UniValue sendtoaddress(const JSONRPCRequest& request)
             "sendtoaddress \"address\" amount ( \"comment\" \"comment_to\" subtractfeefromamount replaceable conf_target \"estimate_mode\")\n"
             "\nSend an amount to a given address.\n"
             "\nArguments:\n"
-            "1. \"address\"            (string, required) The suqa address to send to.\n"
+            "1. \"address\"            (string, required) The sin address to send to.\n"
             "2. \"amount\"             (numeric or string, required) The amount in " + CURRENCY_UNIT + " to send. eg 0.1\n"
             "3. \"comment\"            (string, optional) A comment used to store what the transaction is for. \n"
             "                             This is not part of the transaction, just kept in your wallet.\n"
@@ -532,7 +536,7 @@ static UniValue sendtoaddress(const JSONRPCRequest& request)
             "                             to which you're sending the transaction. This is not part of the \n"
             "                             transaction, just kept in your wallet.\n"
             "5. subtractfeefromamount  (boolean, optional, default=false) The fee will be deducted from the amount being sent.\n"
-            "                             The recipient will receive less suqas than you enter in the amount field.\n"
+            "                             The recipient will receive less sins than you enter in the amount field.\n"
             "6. replaceable            (boolean, optional) Allow this transaction to be replaced by a transaction with higher fees via BIP 125\n"
             "7. conf_target            (numeric, optional) Confirmation target (in blocks)\n"
             "8. \"estimate_mode\"      (string, optional, default=UNSET) The fee estimate mode, must be one of:\n"
@@ -745,6 +749,74 @@ static UniValue listtermdeposits(const JSONRPCRequest& request)
     return ret;
 }
 
+// Dash
+UniValue instantsendtoaddress(const JSONRPCRequest& request)
+{
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    CWallet* const pwallet = wallet.get();
+
+    if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
+        return NullUniValue;
+
+    if (request.fHelp || request.params.size() < 2 || request.params.size() > 5)
+        throw std::runtime_error(
+            "instantsendtoaddress \"dashaddress\" amount ( \"comment\" \"comment-to\" subtractfeefromamount )\n"
+            "\nSend an amount to a given address. The amount is a real and is rounded to the nearest 0.00000001\n"
+            + HelpRequiringPassphrase(pwallet) +
+            "\nArguments:\n"
+            "1. \"dashaddress\"  (string, required) The dash address to send to.\n"
+            "2. \"amount\"      (numeric, required) The amount in btc to send. eg 0.1\n"
+            "3. \"comment\"     (string, optional) A comment used to store what the transaction is for. \n"
+            "                             This is not part of the transaction, just kept in your wallet.\n"
+            "4. \"comment-to\"  (string, optional) A comment to store the name of the person or organization \n"
+            "                             to which you're sending the transaction. This is not part of the \n"
+            "                             transaction, just kept in your wallet.\n"
+            "5. subtractfeefromamount  (boolean, optional, default=false) The fee will be deducted from the amount being sent.\n"
+            "                             The recipient will receive less amount of Dash than you enter in the amount field.\n"
+            "\nResult:\n"
+            "\"transactionid\"  (string) The transaction id.\n"
+            "\nExamples:\n"
+            + HelpExampleCli("instantsendtoaddress", "\"XwnLY9Tf7Zsef8gMGL2fhWA9ZmMjt4KPwg\" 0.1")
+            + HelpExampleCli("instantsendtoaddress", "\"XwnLY9Tf7Zsef8gMGL2fhWA9ZmMjt4KPwg\" 0.1 \"donation\" \"seans outpost\"")
+            + HelpExampleCli("instantsendtoaddress", "\"XwnLY9Tf7Zsef8gMGL2fhWA9ZmMjt4KPwg\" 0.1 \"\" \"\" true")
+            + HelpExampleRpc("instantsendtoaddress", "\"XwnLY9Tf7Zsef8gMGL2fhWA9ZmMjt4KPwg\", 0.1, \"donation\", \"seans outpost\"")
+        );
+
+    pwallet->BlockUntilSyncedToCurrentChain();
+
+    LOCK2(cs_main, pwallet->cs_wallet);
+
+    CTxDestination dest = DecodeDestination(request.params[0].get_str());
+    if (!IsValidDestination(dest)) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address");
+    }
+
+    // Amount
+    CAmount nAmount = AmountFromValue(request.params[1]);
+    if (nAmount <= 0)
+        throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount for send");
+
+    // Wallet comments
+    mapValue_t mapValue;
+    if (!request.params[2].isNull() && !request.params[2].get_str().empty())
+        mapValue["comment"] = request.params[2].get_str();
+    if (!request.params[3].isNull() && !request.params[3].get_str().empty())
+        mapValue["to"] = request.params[3].get_str();
+
+    bool fSubtractFeeFromAmount = false;
+    if (!request.params[4].isNull()) {
+        fSubtractFeeFromAmount = request.params[4].get_bool();
+    }
+
+    CCoinControl coin_control;
+
+    EnsureWalletIsUnlocked(pwallet);
+
+    CTransactionRef tx = SendMoney(pwallet, dest, nAmount, fSubtractFeeFromAmount, coin_control, std::move(mapValue), {} /* fromAccount */, true);
+    return tx->GetHash().GetHex();
+}
+//
+
 static UniValue listaddressgroupings(const JSONRPCRequest& request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
@@ -764,7 +836,7 @@ static UniValue listaddressgroupings(const JSONRPCRequest& request)
             "[\n"
             "  [\n"
             "    [\n"
-            "      \"address\",            (string) The suqa address\n"
+            "      \"address\",            (string) The sin address\n"
             "      amount,                 (numeric) The amount in " + CURRENCY_UNIT + "\n"
             "      \"label\"               (string, optional) The label\n"
             "    ]\n"
@@ -819,7 +891,7 @@ static UniValue signmessage(const JSONRPCRequest& request)
             "\nSign a message with the private key of an address"
             + HelpRequiringPassphrase(pwallet) + "\n"
             "\nArguments:\n"
-            "1. \"address\"         (string, required) The suqa address to use for the private key.\n"
+            "1. \"address\"         (string, required) The sin address to use for the private key.\n"
             "2. \"message\"         (string, required) The message to create a signature of.\n"
             "\nResult:\n"
             "\"signature\"          (string) The signature of the message encoded in base 64\n"
@@ -876,13 +948,14 @@ static UniValue getreceivedbyaddress(const JSONRPCRequest& request)
         return NullUniValue;
     }
 
-    if (request.fHelp || request.params.size() < 1 || request.params.size() > 2)
+    if (request.fHelp || request.params.size() < 1 || request.params.size() > 3)
         throw std::runtime_error(
             "getreceivedbyaddress \"address\" ( minconf )\n"
             "\nReturns the total amount received by the given address in transactions with at least minconf confirmations.\n"
             "\nArguments:\n"
-            "1. \"address\"         (string, required) The suqa address for transactions.\n"
+            "1. \"address\"         (string, required) The sin address for transactions.\n"
             "2. minconf             (numeric, optional, default=1) Only include transactions confirmed at least this many times.\n"
+            "3. addlockconf    (bool, optional, default=false) Whether to add " + std::to_string(nInstantSendDepth) + " confirmations to transactions locked via InstantSend.\n"
             "\nResult:\n"
             "amount   (numeric) The total amount in " + CURRENCY_UNIT + " received at this address.\n"
             "\nExamples:\n"
@@ -905,7 +978,7 @@ static UniValue getreceivedbyaddress(const JSONRPCRequest& request)
     // Bitcoin address
     CTxDestination dest = DecodeDestination(request.params[0].get_str());
     if (!IsValidDestination(dest)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Bitcoin address");
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid SIN address");
     }
     CScript scriptPubKey = GetScriptForDestination(dest);
     if (!IsMine(*pwallet, scriptPubKey)) {
@@ -916,6 +989,9 @@ static UniValue getreceivedbyaddress(const JSONRPCRequest& request)
     int nMinDepth = 1;
     if (!request.params[1].isNull())
         nMinDepth = request.params[1].get_int();
+    // Dash
+    bool fAddLockConf = (!request.params[2].isNull() && request.params[2].get_bool());
+    //
 
     // Tally
     CAmount nAmount = 0;
@@ -926,7 +1002,7 @@ static UniValue getreceivedbyaddress(const JSONRPCRequest& request)
 
         for (const CTxOut& txout : wtx.tx->vout)
             if (txout.scriptPubKey == scriptPubKey)
-                if (wtx.GetDepthInMainChain() >= nMinDepth)
+                if (wtx.GetDepthInMainChain(fAddLockConf) >= nMinDepth)
                     nAmount += txout.nValue;
     }
 
@@ -945,18 +1021,19 @@ static UniValue getreceivedbylabel(const JSONRPCRequest& request)
 
     if (!IsDeprecatedRPCEnabled("accounts") && request.strMethod == "getreceivedbyaccount") {
         if (request.fHelp) {
-            throw std::runtime_error("getreceivedbyaccount (Deprecated, will be removed in V0.18. To use this command, start suqad with -deprecatedrpc=accounts)");
+            throw std::runtime_error("getreceivedbyaccount (Deprecated, will be removed in V0.18. To use this command, start sind with -deprecatedrpc=accounts)");
         }
-        throw JSONRPCError(RPC_METHOD_DEPRECATED, "getreceivedbyaccount is deprecated and will be removed in V0.18. To use this command, start suqad with -deprecatedrpc=accounts.");
+        throw JSONRPCError(RPC_METHOD_DEPRECATED, "getreceivedbyaccount is deprecated and will be removed in V0.18. To use this command, start sind with -deprecatedrpc=accounts.");
     }
 
-    if (request.fHelp || request.params.size() < 1 || request.params.size() > 2)
+    if (request.fHelp || request.params.size() < 1 || request.params.size() > 3)
         throw std::runtime_error(
             "getreceivedbylabel \"label\" ( minconf )\n"
             "\nReturns the total amount received by addresses with <label> in transactions with at least [minconf] confirmations.\n"
             "\nArguments:\n"
             "1. \"label\"        (string, required) The selected label, may be the default label using \"\".\n"
             "2. minconf          (numeric, optional, default=1) Only include transactions confirmed at least this many times.\n"
+            "3. addlockconf    (bool, optional, default=false) Whether to add " + std::to_string(nInstantSendDepth) + " confirmations to transactions locked via InstantSend.\n"
             "\nResult:\n"
             "amount              (numeric) The total amount in " + CURRENCY_UNIT + " received for this label.\n"
             "\nExamples:\n"
@@ -980,6 +1057,9 @@ static UniValue getreceivedbylabel(const JSONRPCRequest& request)
     int nMinDepth = 1;
     if (!request.params[1].isNull())
         nMinDepth = request.params[1].get_int();
+    // Dash
+    bool fAddLockConf = (!request.params[2].isNull() && request.params[2].get_bool());
+    //
 
     // Get the set of pub keys assigned to label
     std::string label = LabelFromValue(request.params[0]);
@@ -996,7 +1076,7 @@ static UniValue getreceivedbylabel(const JSONRPCRequest& request)
         {
             CTxDestination address;
             if (ExtractDestination(txout.scriptPubKey, address) && IsMine(*pwallet, address) && setAddress.count(address)) {
-                if (wtx.GetDepthInMainChain() >= nMinDepth)
+                if (wtx.GetDepthInMainChain(fAddLockConf) >= nMinDepth)
                     nAmount += txout.nValue;
             }
         }
@@ -1015,7 +1095,10 @@ static UniValue getbalance(const JSONRPCRequest& request)
         return NullUniValue;
     }
 
-    if (request.fHelp || (request.params.size() > 3 ))
+    // Dash
+    //if (request.fHelp || (request.params.size() > 3 ))
+    if (request.fHelp || (request.params.size() > 4 ))
+    //
         throw std::runtime_error(
            (IsDeprecatedRPCEnabled("accounts") ? std::string(
             "getbalance ( \"account\" minconf include_watchonly )\n"
@@ -1027,7 +1110,7 @@ static UniValue getbalance(const JSONRPCRequest& request)
             "The server total may be different to the balance in the default \"\" account.\n"
             "\nArguments:\n"
             "1. \"account\"         (string, optional) DEPRECATED. This argument will be removed in V0.18. \n"
-            "                     To use this deprecated argument, start suqad with -deprecatedrpc=accounts. The account string may be given as a\n"
+            "                     To use this deprecated argument, start sind with -deprecatedrpc=accounts. The account string may be given as a\n"
             "                     specific account name to find the balance associated with wallet keys in\n"
             "                     a named account, or as the empty string (\"\") to find the balance\n"
             "                     associated with wallet keys not in any named account, or as \"*\" to find\n"
@@ -1050,6 +1133,9 @@ static UniValue getbalance(const JSONRPCRequest& request)
             "1. (dummy)           (string, optional) Remains for backward compatibility. Must be excluded or set to \"*\".\n"
             "2. minconf           (numeric, optional, default=0) Only include transactions confirmed at least this many times.\n")) +
             "3. include_watchonly (bool, optional, default=false) Also include balance in watch-only addresses (see 'importaddress')\n"
+            // Dash
+            "4. addlockconf      (bool, optional, default=false) Whether to add " + std::to_string(nInstantSendDepth) + " confirmations to transactions locked via InstantSend.\n"
+            //
             "\nResult:\n"
             "amount              (numeric) The total amount in " + CURRENCY_UNIT + " received for this account.\n"
             "\nExamples:\n"
@@ -1091,7 +1177,13 @@ static UniValue getbalance(const JSONRPCRequest& request)
         if (!IsDeprecatedRPCEnabled("accounts") && account_param != "*") {
             throw JSONRPCError(RPC_METHOD_DEPRECATED, "dummy first argument must be excluded or set to \"*\".");
         } else if (IsDeprecatedRPCEnabled("accounts")) {
-            return ValueFromAmount(pwallet->GetLegacyBalance(filter, min_depth, account));
+            // Dash
+            bool fAddLockConf = (!request.params[3].isNull() && request.params[3].get_bool());
+            //
+            // Dash
+            //return ValueFromAmount(pwallet->GetLegacyBalance(filter, nMinDepth, account));
+            return ValueFromAmount(pwallet->GetLegacyBalance(filter, min_depth, account, fAddLockConf));
+            //
         }
     }
 
@@ -1133,9 +1225,9 @@ static UniValue movecmd(const JSONRPCRequest& request)
 
     if (!IsDeprecatedRPCEnabled("accounts")) {
         if (request.fHelp) {
-            throw std::runtime_error("move (Deprecated, will be removed in V0.18. To use this command, start suqad with -deprecatedrpc=accounts)");
+            throw std::runtime_error("move (Deprecated, will be removed in V0.18. To use this command, start sind with -deprecatedrpc=accounts)");
         }
-        throw JSONRPCError(RPC_METHOD_DEPRECATED, "move is deprecated and will be removed in V0.18. To use this command, start suqad with -deprecatedrpc=accounts.");
+        throw JSONRPCError(RPC_METHOD_DEPRECATED, "move is deprecated and will be removed in V0.18. To use this command, start sind with -deprecatedrpc=accounts.");
     }
 
     if (request.fHelp || request.params.size() < 3 || request.params.size() > 5)
@@ -1201,14 +1293,14 @@ static UniValue sendfrom(const JSONRPCRequest& request)
     if (request.fHelp || request.params.size() < 3 || request.params.size() > 6)
         throw std::runtime_error(
             "sendfrom \"fromaccount\" \"toaddress\" amount ( minconf \"comment\" \"comment_to\" )\n"
-            "\nDEPRECATED (use sendtoaddress). Sent an amount from an account to a suqa address."
+            "\nDEPRECATED (use sendtoaddress). Sent an amount from an account to a sin address."
             + HelpRequiringPassphrase(pwallet) + "\n"
             "\nArguments:\n"
             "1. \"fromaccount\"       (string, required) The name of the account to send funds from. May be the default account using \"\".\n"
             "                       Specifying an account does not influence coin selection, but it does associate the newly created\n"
             "                       transaction with the account, so the account's balance computation and transaction history can reflect\n"
             "                       the spend.\n"
-            "2. \"toaddress\"         (string, required) The suqa address to send funds to.\n"
+            "2. \"toaddress\"         (string, required) The sin address to send funds to.\n"
             "3. amount                (numeric or string, required) The amount in " + CURRENCY_UNIT + " (transaction fee is added on top).\n"
             "4. minconf               (numeric, optional, default=1) Only use funds with at least this many confirmations.\n"
             "5. \"comment\"           (string, optional) A comment used to store what the transaction is for. \n"
@@ -1236,7 +1328,7 @@ static UniValue sendfrom(const JSONRPCRequest& request)
     std::string strAccount = LabelFromValue(request.params[0]);
     CTxDestination dest = DecodeDestination(request.params[1].get_str());
     if (!IsValidDestination(dest)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Bitcoin address");
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid SIN address");
     }
     CAmount nAmount = AmountFromValue(request.params[2]);
     if (nAmount <= 0)
@@ -1278,20 +1370,20 @@ static UniValue sendmany(const JSONRPCRequest& request)
         help_text = "sendmany \"\" {\"address\":amount,...} ( minconf \"comment\" [\"address\",...] replaceable conf_target \"estimate_mode\")\n"
             "\nSend multiple times. Amounts are double-precision floating point numbers.\n"
             "Note that the \"fromaccount\" argument has been removed in V0.17. To use this RPC with a \"fromaccount\" argument, restart\n"
-            "suqad with -deprecatedrpc=accounts\n"
+            "sind with -deprecatedrpc=accounts\n"
             + HelpRequiringPassphrase(pwallet) + "\n"
             "\nArguments:\n"
             "1. \"dummy\"               (string, required) Must be set to \"\" for backwards compatibility.\n"
             "2. \"amounts\"             (string, required) A json object with addresses and amounts\n"
             "    {\n"
-            "      \"address\":amount   (numeric or string) The suqa address is the key, the numeric amount (can be string) in " + CURRENCY_UNIT + " is the value\n"
+            "      \"address\":amount   (numeric or string) The sin address is the key, the numeric amount (can be string) in " + CURRENCY_UNIT + " is the value\n"
             "      ,...\n"
             "    }\n"
             "3. minconf                 (numeric, optional, default=1) Only use the balance confirmed at least this many times.\n"
             "4. \"comment\"             (string, optional) A comment\n"
             "5. subtractfeefrom         (array, optional) A json array with addresses.\n"
             "                           The fee will be equally deducted from the amount of each selected address.\n"
-            "                           Those recipients will receive less suqas than you enter in their corresponding amount field.\n"
+            "                           Those recipients will receive less sins than you enter in their corresponding amount field.\n"
             "                           If no addresses are specified here, the sender pays the fee.\n"
             "    [\n"
             "      \"address\"          (string) Subtract fee from this address\n"
@@ -1323,14 +1415,14 @@ static UniValue sendmany(const JSONRPCRequest& request)
             "1. \"fromaccount\"         (string, required) DEPRECATED. The account to send the funds from. Should be \"\" for the default account\n"
             "2. \"amounts\"             (string, required) A json object with addresses and amounts\n"
             "    {\n"
-            "      \"address\":amount   (numeric or string) The suqa address is the key, the numeric amount (can be string) in " + CURRENCY_UNIT + " is the value\n"
+            "      \"address\":amount   (numeric or string) The sin address is the key, the numeric amount (can be string) in " + CURRENCY_UNIT + " is the value\n"
             "      ,...\n"
             "    }\n"
             "3. minconf                 (numeric, optional, default=1) Only use the balance confirmed at least this many times.\n"
             "4. \"comment\"             (string, optional) A comment\n"
             "5. subtractfeefrom         (array, optional) A json array with addresses.\n"
             "                           The fee will be equally deducted from the amount of each selected address.\n"
-            "                           Those recipients will receive less suqas than you enter in their corresponding amount field.\n"
+            "                           Those recipients will receive less sins than you enter in their corresponding amount field.\n"
             "                           If no addresses are specified here, the sender pays the fee.\n"
             "    [\n"
             "      \"address\"          (string) Subtract fee from this address\n"
@@ -1342,7 +1434,9 @@ static UniValue sendmany(const JSONRPCRequest& request)
             "       \"UNSET\"\n"
             "       \"ECONOMICAL\"\n"
             "       \"CONSERVATIVE\"\n"
-             "\nResult:\n"
+            "9. \"use_is\"                (bool, optional) Send this transaction as InstantSend (default: false)\n"
+            "10. \"use_ps\"                (bool, optional) Use anonymized funds only (default: false)\n"
+            "\nResult:\n"
             "\"txid\"                   (string) The transaction id for the send. Only 1 transaction is created regardless of \n"
             "                                    the number of addresses.\n"
             "\nExamples:\n"
@@ -1408,7 +1502,7 @@ static UniValue sendmany(const JSONRPCRequest& request)
     for (const std::string& name_ : keys) {
         CTxDestination dest = DecodeDestination(name_);
         if (!IsValidDestination(dest)) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, std::string("Invalid Bitcoin address: ") + name_);
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, std::string("Invalid SIN address: ") + name_);
         }
 
         if (destinations.count(dest)) {
@@ -1450,8 +1544,18 @@ static UniValue sendmany(const JSONRPCRequest& request)
     CAmount nFeeRequired = 0;
     int nChangePosRet = -1;
     std::string strFailReason;
+
+    // Dash
+    bool fUseInstantSend = false;
+    bool fUsePrivateSend = false;
+    if (!request.params[8].isNull())
+        fUseInstantSend = request.params[8].get_bool();
+    if (!request.params[9].isNull())
+        fUsePrivateSend = request.params[9].get_bool();
+    //
+
     CTransactionRef tx;
-    bool fCreated = pwallet->CreateTransaction(vecSend, tx, keyChange, nFeeRequired, nChangePosRet, strFailReason, coin_control);
+    bool fCreated = pwallet->CreateTransaction(vecSend, tx, keyChange, nFeeRequired, nChangePosRet, strFailReason, coin_control, true, fUsePrivateSend ? ONLY_DENOMINATED : ALL_COINS, fUseInstantSend);
     if (!fCreated)
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, strFailReason);
     CValidationState state;
@@ -1475,16 +1579,16 @@ static UniValue addmultisigaddress(const JSONRPCRequest& request)
     if (request.fHelp || request.params.size() < 2 || request.params.size() > 4) {
         std::string msg = "addmultisigaddress nrequired [\"key\",...] ( \"label\" \"address_type\" )\n"
             "\nAdd a nrequired-to-sign multisignature address to the wallet. Requires a new wallet backup.\n"
-            "Each key is a Bitcoin address or hex-encoded public key.\n"
+            "Each key is a SIN address or hex-encoded public key.\n"
             "This functionality is only intended for use with non-watchonly addresses.\n"
             "See `importaddress` for watchonly p2sh address support.\n"
             "If 'label' is specified, assign address to that label.\n"
 
             "\nArguments:\n"
             "1. nrequired                      (numeric, required) The number of required signatures out of the n keys or addresses.\n"
-            "2. \"keys\"                         (string, required) A json array of suqa addresses or hex-encoded public keys\n"
+            "2. \"keys\"                         (string, required) A json array of sin addresses or hex-encoded public keys\n"
             "     [\n"
-            "       \"address\"                  (string) suqa address or hex-encoded public key\n"
+            "       \"address\"                  (string) sin address or hex-encoded public key\n"
             "       ...,\n"
             "     ]\n"
             "3. \"label\"                        (string, optional) A label to assign the addresses to.\n"
@@ -1628,13 +1732,13 @@ static UniValue addwitnessaddress(const JSONRPCRequest& request)
 
     if (!IsDeprecatedRPCEnabled("addwitnessaddress")) {
         throw JSONRPCError(RPC_METHOD_DEPRECATED, "addwitnessaddress is deprecated and will be fully removed in v0.17. "
-            "To use addwitnessaddress in v0.16, restart suqad with -deprecatedrpc=addwitnessaddress.\n"
+            "To use addwitnessaddress in v0.16, restart sind with -deprecatedrpc=addwitnessaddress.\n"
             "Projects should transition to using the address_type argument of getnewaddress, or option -addresstype=[bech32|p2sh-segwit] instead.\n");
     }
 
     CTxDestination dest = DecodeDestination(request.params[0].get_str());
     if (!IsValidDestination(dest)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Bitcoin address");
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid SIN address");
     }
 
     bool p2sh = true;
@@ -1888,9 +1992,9 @@ static UniValue listreceivedbylabel(const JSONRPCRequest& request)
 
     if (!IsDeprecatedRPCEnabled("accounts") && request.strMethod == "listreceivedbyaccount") {
         if (request.fHelp) {
-            throw std::runtime_error("listreceivedbyaccount (Deprecated, will be removed in V0.18. To use this command, start suqad with -deprecatedrpc=accounts)");
+            throw std::runtime_error("listreceivedbyaccount (Deprecated, will be removed in V0.18. To use this command, start sind with -deprecatedrpc=accounts)");
         }
-        throw JSONRPCError(RPC_METHOD_DEPRECATED, "listreceivedbyaccount is deprecated and will be removed in V0.18. To use this command, start suqad with -deprecatedrpc=accounts.");
+        throw JSONRPCError(RPC_METHOD_DEPRECATED, "listreceivedbyaccount is deprecated and will be removed in V0.18. To use this command, start sind with -deprecatedrpc=accounts.");
     }
 
     if (request.fHelp || request.params.size() > 3)
@@ -2066,7 +2170,7 @@ UniValue listtransactions(const JSONRPCRequest& request)
             "\nIf a label name is provided, this will return only incoming transactions paying to addresses with the specified label.\n"
             "\nReturns up to 'count' most recent transactions skipping the first 'from' transactions.\n"
             "Note that the \"account\" argument and \"otheraccount\" return value have been removed in V0.17. To use this RPC with an \"account\" argument, restart\n"
-            "suqad with -deprecatedrpc=accounts\n"
+            "sind with -deprecatedrpc=accounts\n"
             "\nArguments:\n"
             "1. \"label\"    (string, optional) If set, should be a valid label name to return only incoming transactions\n"
             "              with the specified label, or \"*\" to disable filtering and return all transactions.\n"
@@ -2076,7 +2180,7 @@ UniValue listtransactions(const JSONRPCRequest& request)
             "\nResult:\n"
             "[\n"
             "  {\n"
-            "    \"address\":\"address\",    (string) The suqa address of the transaction.\n"
+            "    \"address\":\"address\",    (string) The sin address of the transaction.\n"
             "    \"category\":\"send|receive\", (string) The transaction category.\n"
             "    \"amount\": x.xxx,          (numeric) The amount in " + CURRENCY_UNIT + ". This is negative for the 'send' category, and is positive\n"
             "                                        for the 'receive' category,\n"
@@ -2121,7 +2225,7 @@ UniValue listtransactions(const JSONRPCRequest& request)
             "  {\n"
             "    \"account\":\"accountname\",       (string) DEPRECATED. This field will be removed in V0.18. The account name associated with the transaction. \n"
             "                                                It will be \"\" for the default account.\n"
-            "    \"address\":\"address\",    (string) The suqa address of the transaction. Not present for \n"
+            "    \"address\":\"address\",    (string) The sin address of the transaction. Not present for \n"
             "                                                move transactions (category = move).\n"
             "    \"category\":\"send|receive|move\", (string) The transaction category. 'move' is a local (off blockchain)\n"
             "                                                transaction between accounts, and not associated with an address,\n"
@@ -2254,9 +2358,9 @@ static UniValue listaccounts(const JSONRPCRequest& request)
 
     if (!IsDeprecatedRPCEnabled("accounts")) {
         if (request.fHelp) {
-            throw std::runtime_error("listaccounts (Deprecated, will be removed in V0.18. To use this command, start suqad with -deprecatedrpc=accounts)");
+            throw std::runtime_error("listaccounts (Deprecated, will be removed in V0.18. To use this command, start sind with -deprecatedrpc=accounts)");
         }
-        throw JSONRPCError(RPC_METHOD_DEPRECATED, "listaccounts is deprecated and will be removed in V0.18. To use this command, start suqad with -deprecatedrpc=accounts.");
+        throw JSONRPCError(RPC_METHOD_DEPRECATED, "listaccounts is deprecated and will be removed in V0.18. To use this command, start sind with -deprecatedrpc=accounts.");
     }
 
     if (request.fHelp || request.params.size() > 2)
@@ -2362,8 +2466,8 @@ static UniValue listsinceblock(const JSONRPCRequest& request)
             "\nResult:\n"
             "{\n"
             "  \"transactions\": [\n"
-            "    \"account\":\"accountname\",       (string) DEPRECATED. This field will be removed in V0.18. To see this deprecated field, start suqad with -deprecatedrpc=accounts. The account name associated with the transaction. Will be \"\" for the default account.\n"
-            "    \"address\":\"address\",    (string) The suqa address of the transaction. Not present for move transactions (category = move).\n"
+            "    \"account\":\"accountname\",       (string) DEPRECATED. This field will be removed in V0.18. To see this deprecated field, start sind with -deprecatedrpc=accounts. The account name associated with the transaction. Will be \"\" for the default account.\n"
+            "    \"address\":\"address\",    (string) The sin address of the transaction. Not present for move transactions (category = move).\n"
             "    \"category\":\"send|receive\",     (string) The transaction category. 'send' has negative amounts, 'receive' has positive amounts.\n"
             "    \"amount\": x.xxx,          (numeric) The amount in " + CURRENCY_UNIT + ". This is negative for the 'send' category, and for the 'move' category for moves \n"
             "                                          outbound. It is positive for the 'receive' category, and for the 'move' category for inbound funds.\n"
@@ -2511,8 +2615,8 @@ static UniValue gettransaction(const JSONRPCRequest& request)
             "                                                   may be unknown for unconfirmed transactions not in the mempool\n"
             "  \"details\" : [\n"
             "    {\n"
-            "      \"account\" : \"accountname\",      (string) DEPRECATED. This field will be removed in a V0.18. To see this deprecated field, start suqad with -deprecatedrpc=accounts. The account name involved in the transaction, can be \"\" for the default account.\n"
-            "      \"address\" : \"address\",          (string) The suqa address involved in the transaction\n"
+            "      \"account\" : \"accountname\",      (string) DEPRECATED. This field will be removed in a V0.18. To see this deprecated field, start sind with -deprecatedrpc=accounts. The account name involved in the transaction, can be \"\" for the default account.\n"
+            "      \"address\" : \"address\",          (string) The sin address involved in the transaction\n"
             "      \"category\" : \"send|receive\",    (string) The category, either 'send' or 'receive'\n"
             "      \"amount\" : x.xxx,                 (numeric) The amount in " + CURRENCY_UNIT + "\n"
             "      \"label\" : \"label\",              (string) A comment for the address/transaction, if any\n"
@@ -2722,7 +2826,7 @@ static UniValue walletpassphrase(const JSONRPCRequest& request)
         throw std::runtime_error(
             "walletpassphrase \"passphrase\" timeout\n"
             "\nStores the wallet decryption key in memory for 'timeout' seconds.\n"
-            "This is needed prior to performing transactions related to private keys such as sending suqas\n"
+            "This is needed prior to performing transactions related to private keys such as sending sins\n"
             "\nArguments:\n"
             "1. \"passphrase\"     (string, required) The wallet passphrase\n"
             "2. timeout            (numeric, required) The time to keep the decryption key in seconds; capped at 100000000 (~3 years).\n"
@@ -2909,7 +3013,7 @@ static UniValue encryptwallet(const JSONRPCRequest& request)
             "\nExamples:\n"
             "\nEncrypt your wallet\n"
             + HelpExampleCli("encryptwallet", "\"my pass phrase\"") +
-            "\nNow set the passphrase to use the wallet, such as for signing or sending suqa\n"
+            "\nNow set the passphrase to use the wallet, such as for signing or sending sin\n"
             + HelpExampleCli("walletpassphrase", "\"my pass phrase\"") +
             "\nNow we can do something like sign\n"
             + HelpExampleCli("signmessage", "\"address\" \"test message\"") +
@@ -2945,7 +3049,7 @@ static UniValue encryptwallet(const JSONRPCRequest& request)
     // slack space in .dat files; that is bad if the old data is
     // unencrypted private keys. So:
     StartShutdown();
-    return "wallet encrypted; Bitcoin server stopping, restart to run with encrypted wallet. The keypool has been flushed and a new HD seed was generated (if you are using HD). You need to make a new backup.";
+    return "wallet encrypted; SIN server stopping, restart to run with encrypted wallet. The keypool has been flushed and a new HD seed was generated (if you are using HD). You need to make a new backup.";
 }
 
 static UniValue lockunspent(const JSONRPCRequest& request)
@@ -2963,7 +3067,7 @@ static UniValue lockunspent(const JSONRPCRequest& request)
             "\nUpdates list of temporarily unspendable outputs.\n"
             "Temporarily lock (unlock=false) or unlock (unlock=true) specified transaction outputs.\n"
             "If no transaction outputs are specified when unlocking then all current locked transaction outputs are unlocked.\n"
-            "A locked transaction output will not be chosen by automatic coin selection, when spending suqas.\n"
+            "A locked transaction output will not be chosen by automatic coin selection, when spending sins.\n"
             "Locks are stored in memory only. Nodes start with zero locked outputs, and the locked output list\n"
             "is always cleared (by virtue of process exit) when a node stops or fails.\n"
             "Also see the listunspent call\n"
@@ -3267,7 +3371,7 @@ static UniValue loadwallet(const JSONRPCRequest& request)
         throw std::runtime_error(
             "loadwallet \"filename\"\n"
             "\nLoads a wallet from a wallet file or directory."
-            "\nNote that all wallet command-line options used when starting suqad will be"
+            "\nNote that all wallet command-line options used when starting sind will be"
             "\napplied to the new wallet (eg -zapwallettxes, upgradewallet, rescan, etc).\n"
             "\nArguments:\n"
             "1. \"filename\"    (string, required) The wallet directory or .dat file.\n"
@@ -3416,6 +3520,58 @@ static UniValue unloadwallet(const JSONRPCRequest& request)
     return NullUniValue;
 }
 
+// Dash
+UniValue keepass(const JSONRPCRequest& request) {
+    std::string strCommand;
+
+    if (request.params.size() >= 1)
+        strCommand = request.params[0].get_str();
+
+    if (request.fHelp  ||
+        (strCommand != "genkey" && strCommand != "init" && strCommand != "setpassphrase"))
+        throw std::runtime_error(
+            "keepass <genkey|init|setpassphrase>\n");
+
+    if (strCommand == "genkey")
+    {
+        SecureString sResult;
+        // Generate RSA key
+        SecureString sKey = CKeePassIntegrator::generateKeePassKey();
+        sResult = "Generated Key: ";
+        sResult += sKey;
+        return sResult.c_str();
+    }
+    else if(strCommand == "init")
+    {
+        // Generate base64 encoded 256 bit RSA key and associate with KeePassHttp
+        SecureString sResult;
+        SecureString sKey;
+        std::string strId;
+        keePassInt.rpcAssociate(strId, sKey);
+        sResult = "Association successful. Id: ";
+        sResult += strId.c_str();
+        sResult += " - Key: ";
+        sResult += sKey.c_str();
+        return sResult.c_str();
+    }
+    else if(strCommand == "setpassphrase")
+    {
+        if(request.params.size() != 2) {
+            return "setlogin: invalid number of parameters. Requires a passphrase";
+        }
+
+        SecureString sPassphrase = SecureString(request.params[1].get_str().c_str());
+
+        keePassInt.updatePassphrase(sPassphrase);
+
+        return "setlogin: Updated credentials.";
+    }
+
+    return "Invalid command";
+
+}
+//
+
 static UniValue resendwallettransactions(const JSONRPCRequest& request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
@@ -3471,9 +3627,9 @@ static UniValue listunspent(const JSONRPCRequest& request)
             "\nArguments:\n"
             "1. minconf          (numeric, optional, default=1) The minimum confirmations to filter\n"
             "2. maxconf          (numeric, optional, default=9999999) The maximum confirmations to filter\n"
-            "3. \"addresses\"      (string) A json array of suqa addresses to filter\n"
+            "3. \"addresses\"      (string) A json array of sin addresses to filter\n"
             "    [\n"
-            "      \"address\"     (string) suqa address\n"
+            "      \"address\"     (string) sin address\n"
             "      ,...\n"
             "    ]\n"
             "4. include_unsafe (bool, optional, default=true) Include outputs that are not safe to spend\n"
@@ -3490,9 +3646,9 @@ static UniValue listunspent(const JSONRPCRequest& request)
             "  {\n"
             "    \"txid\" : \"txid\",          (string) the transaction id \n"
             "    \"vout\" : n,               (numeric) the vout value\n"
-            "    \"address\" : \"address\",    (string) the suqa address\n"
+            "    \"address\" : \"address\",    (string) the sin address\n"
             "    \"label\" : \"label\",        (string) The associated label, or \"\" for the default label\n"
-            "    \"account\" : \"account\",    (string) DEPRECATED. This field will be removed in V0.18. To see this deprecated field, start suqad with -deprecatedrpc=accounts. The associated account, or \"\" for the default account\n"
+            "    \"account\" : \"account\",    (string) DEPRECATED. This field will be removed in V0.18. To see this deprecated field, start sind with -deprecatedrpc=accounts. The associated account, or \"\" for the default account\n"
             "    \"scriptPubKey\" : \"key\",   (string) the script key\n"
             "    \"amount\" : x.xxx,         (numeric) the transaction output amount in " + CURRENCY_UNIT + "\n"
             "    \"confirmations\" : n,      (numeric) The number of confirmations\n"
@@ -3534,7 +3690,7 @@ static UniValue listunspent(const JSONRPCRequest& request)
             const UniValue& input = inputs[idx];
             CTxDestination dest = DecodeDestination(input.get_str());
             if (!IsValidDestination(dest)) {
-                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, std::string("Invalid Bitcoin address: ") + input.get_str());
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, std::string("Invalid SIN address: ") + input.get_str());
             }
             if (!destinations.insert(dest).second) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, std::string("Invalid parameter, duplicated address: ") + input.get_str());
@@ -3664,7 +3820,7 @@ void FundTransaction(CWallet* const pwallet, CMutableTransaction& tx, CAmount& f
             CTxDestination dest = DecodeDestination(options["changeAddress"].get_str());
 
             if (!IsValidDestination(dest)) {
-                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "changeAddress must be a valid suqa address");
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "changeAddress must be a valid sin address");
             }
 
             coinControl.destChange = dest;
@@ -4321,13 +4477,13 @@ UniValue getaddressinfo(const JSONRPCRequest& request)
     if (request.fHelp || request.params.size() != 1) {
         throw std::runtime_error(
             "getaddressinfo \"address\"\n"
-            "\nReturn information about the given suqa address. Some information requires the address\n"
+            "\nReturn information about the given sin address. Some information requires the address\n"
             "to be in the wallet.\n"
             "\nArguments:\n"
-            "1. \"address\"                    (string, required) The suqa address to get the information of.\n"
+            "1. \"address\"                    (string, required) The sin address to get the information of.\n"
             "\nResult:\n"
             "{\n"
-            "  \"address\" : \"address\",        (string) The suqa address validated\n"
+            "  \"address\" : \"address\",        (string) The sin address validated\n"
             "  \"scriptPubKey\" : \"hex\",       (string) The hex encoded scriptPubKey generated by the address\n"
             "  \"ismine\" : true|false,        (boolean) If the address is yours or not\n"
             "  \"iswatchonly\" : true|false,   (boolean) If the address is watchonly\n"
@@ -4347,7 +4503,7 @@ UniValue getaddressinfo(const JSONRPCRequest& request)
             "  \"embedded\" : {...},           (object, optional) Information about the address embedded in P2SH or P2WSH, if relevant and known. It includes all getaddressinfo output fields for the embedded address, excluding metadata (\"timestamp\", \"hdkeypath\", \"hdseedid\") and relation to the wallet (\"ismine\", \"iswatchonly\", \"account\").\n"
             "  \"iscompressed\" : true|false,  (boolean) If the address is compressed\n"
             "  \"label\" :  \"label\"         (string) The label associated with the address, \"\" is the default account\n"
-            "  \"account\" : \"account\"         (string) DEPRECATED. This field will be removed in V0.18. To see this deprecated field, start suqad with -deprecatedrpc=accounts. The account associated with the address, \"\" is the default account\n"
+            "  \"account\" : \"account\"         (string) DEPRECATED. This field will be removed in V0.18. To see this deprecated field, start sind with -deprecatedrpc=accounts. The account associated with the address, \"\" is the default account\n"
             "  \"timestamp\" : timestamp,      (number, optional) The creation time of the key if available in seconds since epoch (Jan 1 1970 GMT)\n"
             "  \"hdkeypath\" : \"keypath\"       (string, optional) The HD keypath if the key is HD and available\n"
             "  \"hdseedid\" : \"<hash160>\"      (string, optional) The Hash160 of the HD seed\n"
@@ -5010,6 +5166,12 @@ static const CRPCCommand commands[] =
     { "wallet",             "setlabel",                         &setlabel,                      {"address","label"} },
 
     { "generating",         "generate",                         &generate,                      {"nblocks","maxtries"} },
+
+    // Dash
+    /* Wallet */
+    { "wallet",             "keepass",                &keepass,                {"genkey-init-setpassphrase"} },
+    { "wallet",             "instantsendtoaddress",   &instantsendtoaddress,   {"dashaddress", "amount", "comment", "comment-to", "subtractfeefromamount"} },
+    //
 };
 
 void RegisterWalletRPCCommands(CRPCTable &t)

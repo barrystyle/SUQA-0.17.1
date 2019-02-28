@@ -54,6 +54,9 @@ public:
         PruneSize,              // int
         DatabaseCache,          // int
         SpendZeroConfChange,    // bool
+        // Dash
+        ShowMasternodesTab,     // bool
+        //
         Listen,                 // bool
         OptionIDRowCount,
     };

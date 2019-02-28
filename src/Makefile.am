@@ -204,6 +204,38 @@ BITCOIN_CORE_H = \
   zmq/zmqpublishnotifier.h \
   zmq/zmqrpc.h
 
+# dash core #
+BITCOIN_CORE_H += \
+  activemasternode.h \
+  cachemap.h \
+  cachemultimap.h \
+  dsnotificationinterface.h \
+  flat-database.h \
+  governance.h \
+  governance-classes.h \
+  governance-exceptions.h \
+  governance-misc.h \
+  governance-object.h \
+  governance-validators.h \
+  governance-vote.h \
+  governance-votedb.h \
+  instantx.h \
+  keepass.h \
+  leveldbwrapper.h \
+  masternode.h \
+  masternodeman.h \
+  masternode-payments.h \
+  masternode-sync.h \
+  masternodeconfig.h \
+  messagesigner.h \
+  netfulfilledman.h \
+  privatesend.h \
+  privatesend-client.h \
+  privatesend-server.h \
+  privatesend-util.h \
+  spork.h \
+  sporkdb.h
+
 
 obj/build.h: FORCE
 	@$(MKDIR_P) $(builddir)/obj
@@ -258,6 +290,33 @@ libsuqa_server_a_SOURCES = \
   versionbits.cpp \
   $(BITCOIN_CORE_H)
 
+# dash server
+libsuqa_server_a_SOURCES += \
+  activemasternode.cpp \
+  dsnotificationinterface.cpp \
+  governance.cpp \
+  governance-classes.cpp \
+  governance-object.cpp \
+  governance-validators.cpp \
+  governance-vote.cpp \
+  governance-votedb.cpp \
+  instantx.cpp \
+  leveldbwrapper.cpp \
+  masternode.cpp \
+  masternodeman.cpp \
+  masternode-payments.cpp \
+  masternode-sync.cpp \
+  masternodeconfig.cpp \
+  messagesigner.cpp \
+  netfulfilledman.cpp \
+  privatesend.cpp \
+  privatesend-server.cpp \
+  rpc/governance.cpp \
+  rpc/masternode.cpp \
+  spork.cpp \
+  sporkdb.cpp
+
+
 if ENABLE_ZMQ
 libsuqa_zmq_a_CPPFLAGS = $(BITCOIN_INCLUDES) $(ZMQ_CFLAGS)
 libsuqa_zmq_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
@@ -288,6 +347,12 @@ libsuqa_wallet_a_SOURCES = \
   wallet/walletutil.cpp \
   wallet/coinselection.cpp \
   $(BITCOIN_CORE_H)
+
+# dash wallet
+libsuqa_wallet_a_SOURCES += \
+  keepass.cpp \
+  privatesend-client.cpp \
+  privatesend-util.cpp
 
 # crypto primitives library
 crypto_libsuqa_crypto_base_a_CPPFLAGS = $(AM_CPPFLAGS)

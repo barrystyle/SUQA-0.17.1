@@ -1,5 +1,8 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2018 The Bitcoin Core developers
+// Copyright (c) 2014-2017 The Dash Core developers
+// Copyright (c) 2018 FXTC developers
+// Copyright (c) 2018 - 2019 SUQA developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -119,6 +122,8 @@ struct update_for_parent_inclusion
 
     CTxMemPool::txiter iter;
 };
+
+int64_t UpdateTime(CBlock* pblock, const Consensus::Params& consensusParams, const CBlockIndex* pindexPrev);
 
 /** Generate a new block, without valid proof-of-work */
 class BlockAssembler

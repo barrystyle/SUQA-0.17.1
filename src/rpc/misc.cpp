@@ -26,6 +26,11 @@
 #endif
 #include <warnings.h>
 
+// Dash
+#include <masternode-sync.h>
+#include <spork.h>
+//
+
 #include <stdint.h>
 #ifdef HAVE_MALLOC_INFO
 #include <malloc.h>
@@ -33,22 +38,135 @@
 
 #include <univalue.h>
 
+// Dash
+UniValue mnsync(const JSONRPCRequest& request)
+{
+    if (request.fHelp || request.params.size() != 1)
+        throw std::runtime_error(
+            "mnsync [status|next|reset]\n"
+            "Returns the sync status, updates to the next step or resets it entirely.\n"
+        );
+
+    std::string strMode = request.params[0].get_str();
+
+    if(strMode == "status") {
+        UniValue objStatus(UniValue::VOBJ);
+        objStatus.push_back(Pair("AssetID", masternodeSync.GetAssetID()));
+        objStatus.push_back(Pair("AssetName", masternodeSync.GetAssetName()));
+        objStatus.push_back(Pair("AssetStartTime", masternodeSync.GetAssetStartTime()));
+        objStatus.push_back(Pair("Attempt", masternodeSync.GetAttempt()));
+        objStatus.push_back(Pair("IsBlockchainSynced", masternodeSync.IsBlockchainSynced()));
+        objStatus.push_back(Pair("IsMasternodeListSynced", masternodeSync.IsMasternodeListSynced()));
+        objStatus.push_back(Pair("IsWinnersListSynced", masternodeSync.IsWinnersListSynced()));
+        objStatus.push_back(Pair("IsSynced", masternodeSync.IsSynced()));
+        objStatus.push_back(Pair("IsFailed", masternodeSync.IsFailed()));
+        return objStatus;
+    }
+
+    if(strMode == "next")
+    {
+        masternodeSync.SwitchToNextAsset(*g_connman);
+        return "sync updated to " + masternodeSync.GetAssetName();
+    }
+
+    if(strMode == "reset")
+    {
+        masternodeSync.Reset();
+        masternodeSync.SwitchToNextAsset(*g_connman);
+        return "success";
+    }
+    return "failure";
+}
+
+/*
+    Used for updating/reading spork settings on the network
+*/
+UniValue spork(const JSONRPCRequest& request)
+{
+    if(request.params.size() == 1 && request.params[0].get_str() == "show"){
+        UniValue ret(UniValue::VOBJ);
+        for(int nSporkID = SPORK_START; nSporkID <= SPORK_END; nSporkID++){
+            if(sporkManager.GetSporkNameByID(nSporkID) != "Unknown")
+                ret.push_back(Pair(sporkManager.GetSporkNameByID(nSporkID), sporkManager.GetSporkValue(nSporkID)));
+        }
+        // FXTC BEGIN
+        for(int nSporkID = SPORK_FXTC_START; nSporkID <= SPORK_FXTC_END; nSporkID++){
+            if(sporkManager.GetSporkNameByID(nSporkID) != "Unknown")
+                ret.push_back(Pair(sporkManager.GetSporkNameByID(nSporkID), sporkManager.GetSporkValue(nSporkID)));
+        }
+        // FXTC END
+        return ret;
+    } else if(request.params.size() == 1 && request.params[0].get_str() == "active"){
+        UniValue ret(UniValue::VOBJ);
+        for(int nSporkID = SPORK_START; nSporkID <= SPORK_END; nSporkID++){
+            if(sporkManager.GetSporkNameByID(nSporkID) != "Unknown")
+                ret.push_back(Pair(sporkManager.GetSporkNameByID(nSporkID), sporkManager.IsSporkActive(nSporkID)));
+        }
+        // FXTC BEGIN
+        for(int nSporkID = SPORK_FXTC_START; nSporkID <= SPORK_FXTC_END; nSporkID++){
+            if(sporkManager.GetSporkNameByID(nSporkID) != "Unknown")
+                ret.push_back(Pair(sporkManager.GetSporkNameByID(nSporkID), sporkManager.IsSporkActive(nSporkID)));
+        }
+        // FXTC END
+        return ret;
+    }
+#ifdef ENABLE_WALLET
+    else if (request.params.size() == 2){
+        RPCTypeCheck(request.params, {UniValue::VSTR, UniValue::VNUM});
+
+        int nSporkID = sporkManager.GetSporkIDByName(request.params[0].get_str());
+        if(nSporkID == -1){
+            return "Invalid spork name";
+        }
+
+        if (!g_connman)
+            throw JSONRPCError(RPC_CLIENT_P2P_DISABLED, "Error: Peer-to-peer functionality missing or disabled");
+
+        // SPORK VALUE
+        int64_t nValue = request.params[1].get_int64();
+
+        //broadcast new spork
+        if(sporkManager.UpdateSpork(nSporkID, nValue, *g_connman)){
+            sporkManager.ExecuteSpork(nSporkID, nValue);
+            return "success";
+        } else {
+            return "failure";
+        }
+
+    }
+
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    CWallet* const pwallet = wallet.get();
+    throw std::runtime_error(
+        "spork <name> [<value>]\n"
+        "<name> is the corresponding spork name, or 'show' to show all current spork settings, active to show which sporks are active\n"
+        "<value> is a epoch datetime to enable or disable spork\n"
+        + HelpRequiringPassphrase(pwallet));
+#else // ENABLE_WALLET
+    throw std::runtime_error(
+        "spork <name>\n"
+        "<name> is the corresponding spork name, or 'show' to show all current spork settings, active to show which sporks are active\n");
+#endif // ENABLE_WALLET
+
+}
+//
+
 static UniValue validateaddress(const JSONRPCRequest& request)
 {
     if (request.fHelp || request.params.size() != 1)
         throw std::runtime_error(
             "validateaddress \"address\"\n"
-            "\nReturn information about the given suqa address.\n"
+            "\nReturn information about the given sin address.\n"
             "DEPRECATION WARNING: Parts of this command have been deprecated and moved to getaddressinfo. Clients must\n"
             "transition to using getaddressinfo to access this information before upgrading to v0.18. The following deprecated\n"
             "fields have moved to getaddressinfo and will only be shown here with -deprecatedrpc=validateaddress: ismine, iswatchonly,\n"
             "script, hex, pubkeys, sigsrequired, pubkey, addresses, embedded, iscompressed, account, timestamp, hdkeypath, kdmasterkeyid.\n"
             "\nArguments:\n"
-            "1. \"address\"                    (string, required) The suqa address to validate\n"
+            "1. \"address\"                    (string, required) The sin address to validate\n"
             "\nResult:\n"
             "{\n"
             "  \"isvalid\" : true|false,       (boolean) If the address is valid or not. If not, this is the only property returned.\n"
-            "  \"address\" : \"address\",        (string) The suqa address validated\n"
+            "  \"address\" : \"address\",        (string) The sin address validated\n"
             "  \"scriptPubKey\" : \"hex\",       (string) The hex encoded scriptPubKey generated by the address\n"
             "  \"isscript\" : true|false,      (boolean) If the key is a script\n"
             "  \"iswitness\" : true|false,     (boolean) If the address is a witness address\n"
@@ -162,7 +280,7 @@ static UniValue verifymessage(const JSONRPCRequest& request)
             "verifymessage \"address\" \"signature\" \"message\"\n"
             "\nVerify a signed message\n"
             "\nArguments:\n"
-            "1. \"address\"         (string, required) The suqa address to use for the signature.\n"
+            "1. \"address\"         (string, required) The sin address to use for the signature.\n"
             "2. \"signature\"       (string, required) The signature provided by the signer in base 64 encoding (see signmessage).\n"
             "3. \"message\"         (string, required) The message that was signed.\n"
             "\nResult:\n"
@@ -450,7 +568,7 @@ static UniValue echo(const JSONRPCRequest& request)
             "echo|echojson \"message\" ...\n"
             "\nSimply echo back the input arguments. This command is for testing.\n"
             "\nThe difference between echo and echojson is that echojson has argument conversion enabled in the client-side table in"
-            "suqa-cli and the GUI. There is no server-side difference."
+            "sin-cli and the GUI. There is no server-side difference."
         );
 
     return request.params;
@@ -464,7 +582,7 @@ static UniValue getinfo_deprecated(const JSONRPCRequest& request)
         "- getblockchaininfo: blocks, difficulty, chain\n"
         "- getnetworkinfo: version, protocolversion, timeoffset, connections, proxy, relayfee, warnings\n"
         "- getwalletinfo: balance, keypoololdest, keypoolsize, paytxfee, unlocked_until, walletversion\n"
-        "\nsuqa-cli has the option -getinfo to collect and format these in the old format."
+        "\nsin-cli has the option -getinfo to collect and format these in the old format."
     );
 }
 
@@ -483,6 +601,11 @@ static const CRPCCommand commands[] =
     { "hidden",             "echo",                   &echo,                   {"arg0","arg1","arg2","arg3","arg4","arg5","arg6","arg7","arg8","arg9"}},
     { "hidden",             "echojson",               &echo,                   {"arg0","arg1","arg2","arg3","arg4","arg5","arg6","arg7","arg8","arg9"}},
     { "hidden",             "getinfo",                &getinfo_deprecated,     {}},
+
+    // Dash
+    { "dash",               "mnsync",                 &mnsync,                 {"status-next-reset"}  },
+    { "dash",               "spork",                  &spork,                  {"name", "value"}  },
+    //
 };
 
 void RegisterMiscRPCCommands(CRPCTable &t)

@@ -183,20 +183,20 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
             if(termDepositLength>0) {
                 std::ostringstream ss;
                 if(termDepositLength < 720*1) {
-                    ss <<"!!!!!WARNING: There is no interest rate advantage of using a Term Deposit for a period of less than 1 day. It is recommended that you cancel this transaction. ";
+                    ss << "!!!!!WARNING: There is no interest rate advantage of using a Term Deposit for a period of less than 1 day. It is recommended that you cancel this transaction. ";
                 }
                 if(termDepositLength > 720*30){
-                    ss <<"!!!!!WARNING: There is no interest rate advantage of using a Term Deposit for a period of more than 1 month. It is recommended that you cancel this transaction. ";
+                    ss << "!!!!!WARNING: There is no interest rate advantage of using a Term Deposit for a period of more than 1 month. It is recommended that you cancel this transaction. ";
                 }
-                ss <<"Term Deposit Instruction Detected: " << std::fixed;
+                ss << "Term Deposit Instruction Detected: " << std::fixed;
                 ss.precision(8);
-                ss <<"This will send the amount of " << (0.0+rcp.amount)/COIN <<" SUQA ";
-                ss <<"to be locked for " << termDepositLength << " blocks. ";
+                ss << "This will send the amount of " << (0.0+rcp.amount)/COIN <<" SUQA ";
+                ss << "to be locked for " << termDepositLength << " blocks. ";
                 ss.precision(2);
-                ss <<"This is approximately " << (0.0+termDepositLength)/(720) << " days. ";
+                ss << "This is approximately " << (0.0+termDepositLength)/(720) << " days. ";
                 CAmount withInterest=GetInterest(rcp.amount, chainActive.Height()+1, chainActive.Height()+1+termDepositLength, chainActive.Height()+1+termDepositLength);
                 ss.precision(8);
-                ss <<"Upon maturation, it will be worth " << (0.0+withInterest)/COIN << " SUQA. ";
+                ss << "Upon maturation, it will be worth " << (0.0+withInterest)/COIN << " SUQA. ";
                 termdepositquestion = ss.str();
                 scriptPubKey = GetTimeLockScriptForDestination(address,chainActive.Height()+1+termDepositLength);
             }else{
@@ -214,7 +214,7 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
         return DuplicateAddress;
     }
 
-    CAmount nBalance = m_wallet->getBalance();
+    CAmount nBalance = m_wallet->getAvailableBalance(coinControl);
 
     if(total > nBalance)
     {
@@ -227,7 +227,13 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
         std::string strFailReason;
 
         auto& newTx = transaction.getWtx();
-        newTx = m_wallet->createTransaction(vecSend, coinControl, true, nChangePosRet, nFeeRequired, strFailReason);
+
+        // Dash
+        // FXTC TODO: check
+        //newTx = m_wallet->createTransaction(vecSend, coinControl, true /* sign */, nChangePosRet, nFeeRequired, strFailReason);
+        newTx = m_wallet->createTransaction(vecSend, coinControl, true /* sign */, nChangePosRet, nFeeRequired, strFailReason, recipients[0].inputType, recipients[0].fUseInstantSend);
+        //
+
         transaction.setTransactionFee(nFeeRequired);
         if (fSubtractFeeFromAmount && newTx)
             transaction.reassignAmounts(nChangePosRet);
@@ -243,8 +249,10 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
             return TransactionCreationFailed;
         }
 
-        // reject absurdly high fee > 0.1 bitcoin
-        if (nFeeRequired > 10000000)
+        // reject absurdly high fee. (This can never happen because the
+        // wallet caps the fee at maxTxFee. This merely serves as a
+        // belt-and-suspenders check)
+        if (nFeeRequired > m_node.getMaxTxFee())
             return AbsurdFee;
     }
 
@@ -343,9 +351,13 @@ WalletModel::EncryptionStatus WalletModel::getEncryptionStatus() const
     {
         return Unencrypted;
     }
-    else if(m_wallet->isLocked())
+    else if(m_wallet->isLocked(true))
     {
         return Locked;
+    }
+    else if(m_wallet->isLocked())
+    {
+        return UnlockedForMixingOnly;
     }
     else
     {
@@ -367,17 +379,17 @@ bool WalletModel::setWalletEncrypted(bool encrypted, const SecureString &passphr
     }
 }
 
-bool WalletModel::setWalletLocked(bool locked, const SecureString &passPhrase)
+bool WalletModel::setWalletLocked(bool locked, const SecureString &passPhrase, bool fMixing)
 {
     if(locked)
     {
         // Lock
-        return m_wallet->lock();
+        return m_wallet->lock(fMixing);
     }
     else
     {
         // Unlock
-        return m_wallet->unlock(passPhrase);
+        return m_wallet->unlock(passPhrase, fMixing);
     }
 }
 
@@ -461,32 +473,61 @@ void WalletModel::unsubscribeFromCoreSignals()
 }
 
 // WalletModel::UnlockContext implementation
-WalletModel::UnlockContext WalletModel::requestUnlock()
+WalletModel::UnlockContext WalletModel::requestUnlock(bool fForMixingOnly)
 {
-    bool was_locked = getEncryptionStatus() == Locked;
-    if(was_locked)
+    // Dash
+    //bool was_locked = getEncryptionStatus() == Locked;
+    EncryptionStatus encStatusOld = getEncryptionStatus();
+
+    // Wallet was completely locked
+    bool was_locked = (encStatusOld == Locked);
+    // Wallet was unlocked for mixing
+    bool was_mixing = (encStatusOld == UnlockedForMixingOnly);
+    // Wallet was unlocked for mixing and now user requested to fully unlock it
+    bool fMixingToFullRequested = !fForMixingOnly && was_mixing;
+
+    //if(was_locked)
+    if(was_locked || fMixingToFullRequested)
+    //
     {
         // Request UI to unlock wallet
-        Q_EMIT requireUnlock();
+        //Q_EMIT requireUnlock();
+        Q_EMIT requireUnlock(fForMixingOnly);
     }
-    // If wallet is still locked, unlock was failed or cancelled, mark context as invalid
-    bool valid = getEncryptionStatus() != Locked;
 
-    return UnlockContext(this, valid, was_locked);
+    // If wallet is still locked, unlock was failed or cancelled, mark context as invalid
+    //bool valid = getEncryptionStatus() != Locked;
+    EncryptionStatus encStatusNew = getEncryptionStatus();
+
+    // Wallet was locked, user requested to unlock it for mixing and failed to do so
+    bool fMixingUnlockFailed = fForMixingOnly && !(encStatusNew == UnlockedForMixingOnly);
+    // Wallet was unlocked for mixing, user requested to fully unlock it and failed
+    bool fMixingToFullFailed = fMixingToFullRequested && !(encStatusNew == Unlocked);
+    // If wallet is still locked, unlock failed or was cancelled, mark context as invalid
+    bool fInvalid = (encStatusNew == Locked) || fMixingUnlockFailed || fMixingToFullFailed;
+    // Wallet was not locked in any way or user tried to unlock it for mixing only and succeeded, keep it unlocked
+    bool fKeepUnlocked = !was_locked || (fForMixingOnly && !fMixingUnlockFailed);
+
+    //return UnlockContext(this, valid, was_locked);
+    return UnlockContext(this, !fInvalid, !fKeepUnlocked, was_mixing);
+    //
 }
 
-WalletModel::UnlockContext::UnlockContext(WalletModel *_wallet, bool _valid, bool _relock):
+WalletModel::UnlockContext::UnlockContext(WalletModel *_wallet, bool _valid, bool _relock, bool was_mixing):
         wallet(_wallet),
         valid(_valid),
-        relock(_relock)
+        relock(_relock),
+        // Dash
+        was_mixing(was_mixing)
+        //
 {
 }
 
 WalletModel::UnlockContext::~UnlockContext()
 {
-    if(valid && relock)
+    if(valid && (relock || was_mixing))
     {
-        wallet->setWalletLocked(true);
+        wallet->setWalletLocked(true, "", was_mixing);
     }
 }
 
@@ -495,6 +536,9 @@ void WalletModel::UnlockContext::CopyFrom(const UnlockContext& rhs)
     // Transfer context; old object no longer relocks wallet
     *this = rhs;
     rhs.relock = false;
+    // Dash
+    rhs.was_mixing = false;
+    //
 }
 
 void WalletModel::loadReceiveRequests(std::vector<std::string>& vReceiveRequests)

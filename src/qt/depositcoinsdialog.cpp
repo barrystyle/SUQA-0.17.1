@@ -125,6 +125,9 @@ DepositCoinsDialog::DepositCoinsDialog(const PlatformStyle *_platformStyle, QWid
     ui->customFee->setValue(settings.value("nTransactionFee").toLongLong());
     ui->checkBoxMinimumFee->setChecked(settings.value("fPayOnlyMinFee").toBool());
     minimizeFeeSection(settings.value("fFeeSectionMinimized").toBool());
+
+    ui->addButton->hide();
+    ui->clearButton->hide();
 }
 
 void DepositCoinsDialog::setClientModel(ClientModel *_clientModel)
@@ -161,7 +164,7 @@ void DepositCoinsDialog::setModel(WalletModel *_model)
         // Coin Control
         connect(_model->getOptionsModel(), SIGNAL(displayUnitChanged(int)), this, SLOT(coinControlUpdateLabels()));
         connect(_model->getOptionsModel(), SIGNAL(coinControlFeaturesChanged(bool)), this, SLOT(coinControlFeatureChanged(bool)));
-        ui->frameCoinControl->setVisible(_model->getOptionsModel()->getCoinControlFeatures());
+        // ui->frameCoinControl->setVisible(_model->getOptionsModel()->getCoinControlFeatures());
         coinControlUpdateLabels();
 
         // fee section
@@ -231,8 +234,9 @@ void DepositCoinsDialog::on_sendButton_clicked()
             if(entry->validate(model->node()))
             {
                 recipients.append(entry->getValue());
-                termDepositBlocks=entry->getTermDepositLength();
-                if (termDepositBlocks >= 720 && termDepositBlocks < 730) termDepositBlocks = 730;
+                termDepositBlocks = entry->getTermDepositLength();
+                if (termDepositBlocks >= 720 && termDepositBlocks < 730)
+                   termDepositBlocks = 730;
             }
             else
             {
@@ -255,17 +259,18 @@ void DepositCoinsDialog::on_sendButton_clicked()
         return;
     }
 
-    // prepare transaction for getting txFee earlier
-    WalletModelTransaction currentTransaction(recipients);
-    WalletModel::SendCoinsReturn prepareStatus;
-
     // Always use a CCoinControl instance, use the CoinControlDialog instance if CoinControl has been enabled
     CCoinControl ctrl;
     if (model->getOptionsModel()->getCoinControlFeatures())
         ctrl = *CoinControlDialog::coinControl();
+
     updateCoinControlState(ctrl);
 
+    // prepare transaction for getting txFee earlier
+    WalletModelTransaction currentTransaction(recipients);
+    WalletModel::SendCoinsReturn prepareStatus;
     std::string termDepositConfirmQuestion = "";
+
     prepareStatus = model->prepareTransaction(currentTransaction, termDepositConfirmQuestion, termDepositBlocks);
 
     // process prepareStatus and on error generate message shown to user
@@ -290,6 +295,10 @@ void DepositCoinsDialog::on_sendButton_clicked()
         }
     }else{
         QString questionString = QString::fromStdString("Something went wrong! No term deposit instruction was detected. Instruction will be cancelled.");
+        QMessageBox::StandardButton retval = QMessageBox::question(this, tr("No Term Deposit Detected"),
+            questionString,
+            QMessageBox::Yes | QMessageBox::Cancel,
+            QMessageBox::Cancel);
         fNewRecipientAllowed = true;
         return;
     }
@@ -338,18 +347,33 @@ void DepositCoinsDialog::on_sendButton_clicked()
     }
 
     QString questionString = tr("Are you sure you want to send?");
-    questionString.append("<br /><br />%1");
+    questionString.append("<br /><span style='font-size:10pt;'>");
+    questionString.append(tr("Please, review your transaction."));
+    questionString.append("</span><br />%1");
 
     if(txFee > 0)
     {
         // append fee string if a fee is required
-        questionString.append("<hr /><span style='color:#aa0000;'>");
-        questionString.append(BitcoinUnits::formatHtmlWithUnit(model->getOptionsModel()->getDisplayUnit(), txFee));
-        questionString.append("</span> ");
-        questionString.append(tr("added as transaction fee"));
+        questionString.append("<hr /><b>");
+        questionString.append(tr("Transaction fee"));
+        questionString.append("</b>");
 
         // append transaction size
-        questionString.append(" (" + QString::number((double)currentTransaction.getTransactionSize() / 1000) + " kB)");
+        questionString.append(" (" + QString::number((double)currentTransaction.getTransactionSize() / 1000) + " kB): ");
+
+        // append transaction fee value
+        questionString.append("<span style='color:#aa0000; font-weight:bold;'>");
+        questionString.append(BitcoinUnits::formatHtmlWithUnit(model->getOptionsModel()->getDisplayUnit(), txFee));
+        questionString.append("</span><br />");
+
+        // append RBF message according to transaction's signalling
+        questionString.append("<span style='font-size:10pt; font-weight:normal;'>");
+        if (ui->optInRBF->isChecked()) {
+            questionString.append(tr("You can increase the fee later (signals Replace-By-Fee, BIP-125)."));
+        } else {
+            questionString.append(tr("Not signalling Replace-By-Fee, BIP-125."));
+        }
+        questionString.append("</span>");
     }
 
     // add total amount in all subdivision units
@@ -361,14 +385,15 @@ void DepositCoinsDialog::on_sendButton_clicked()
         if(u != model->getOptionsModel()->getDisplayUnit())
             alternativeUnits.append(BitcoinUnits::formatHtmlWithUnit(u, totalAmount));
     }
-    questionString.append(tr("Total Amount %1<span style='font-size:10pt;font-weight:normal;'><br />(=%2)</span>")
-        .arg(BitcoinUnits::formatHtmlWithUnit(model->getOptionsModel()->getDisplayUnit(), totalAmount))
-        .arg(alternativeUnits.join(" " + tr("or") + "<br />")));
+    questionString.append(QString("<b>%1</b>: <b>%2</b>").arg(tr("Total Amount"))
+        .arg(BitcoinUnits::formatHtmlWithUnit(model->getOptionsModel()->getDisplayUnit(), totalAmount)));
+    questionString.append(QString("<br /><span style='font-size:10pt; font-weight:normal;'>(=%1)</span>")
+        .arg(alternativeUnits.join(" " + tr("or") + " ")));
 
-    QMessageBox::StandardButton retval = QMessageBox::question(this, tr("Confirm send coins"),
-        questionString.arg(formatted.join("<br />")),
-        QMessageBox::Yes | QMessageBox::Cancel,
-        QMessageBox::Cancel);
+    DepositConfirmationDialog confirmationDialog(tr("Confirm send coins"),
+        questionString.arg(formatted.join("<br />")), SEND_CONFIRM_DELAY, this);
+    confirmationDialog.exec();
+    QMessageBox::StandardButton retval = static_cast<QMessageBox::StandardButton>(confirmationDialog.result());
 
     if(retval != QMessageBox::Yes)
     {

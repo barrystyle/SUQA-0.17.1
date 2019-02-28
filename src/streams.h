@@ -1,5 +1,8 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2018 The Bitcoin Core developers
+// Copyright (c) 2014-2017 The Dash Core developers
+// Copyright (c) 2018 FXTC developers
+// Copyright (c) 2018-2019 SUQA developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -390,6 +393,15 @@ public:
         if (!vch.empty())
             s.write((char*)vch.data(), vch.size() * sizeof(value_type));
     }
+
+    // FXTC BEGIN
+    template<typename T>
+    unsigned int GetSerializeSize(const T& obj)
+    {
+        // Tells the size of the object if serialized to this stream
+        return ::GetSerializeSize(obj, nType, nVersion);
+    }
+    // FXTC END
 
     template<typename T>
     CDataStream& operator<<(const T& obj)

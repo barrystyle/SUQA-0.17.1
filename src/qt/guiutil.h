@@ -115,11 +115,19 @@ namespace GUIUtil
     // Determine whether a widget is hidden behind other windows
     bool isObscured(QWidget *w);
 
+    // Activate, show and raise the widget
+    void bringToFront(QWidget* w);
+
     // Open debug.log
     void openDebugLogfile();
 
     // Open the config file
     bool openBitcoinConf();
+
+    // Dash
+    // Open masternode.conf
+    void openMNConfigfile();
+    //
 
     /** Qt event filter that intercepts ToolTipChange events, and replaces the tooltip with a rich text
       representation if needed. This assures that Qt can word-wrap long tooltip messages.

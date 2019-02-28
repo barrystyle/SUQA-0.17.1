@@ -1,5 +1,8 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2018 The Bitcoin Core developers
+// Copyright (c) 2014-2017 The Dash Core developers
+// Copyright (c) 2018 FXTC developers
+// Copyright (c) 2018 - 2019 SUQA developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -13,7 +16,9 @@
 #include <consensus/tx_verify.h>
 #include <consensus/merkle.h>
 #include <consensus/validation.h>
+#include <crypto/scrypt.h>
 #include <hash.h>
+#include <key_io.h>
 #include <crypto/scrypt.h>
 #include <net.h>
 #include <policy/feerate.h>
@@ -24,7 +29,13 @@
 #include <timedata.h>
 #include <util.h>
 #include <utilmoneystr.h>
+#include <validation.h>
 #include <validationinterface.h>
+
+// Dash
+#include <masternode-payments.h>
+#include <masternode-sync.h>
+//
 
 #include <validation.h>
 
@@ -40,17 +51,46 @@
 uint64_t nLastBlockTx = 0;
 uint64_t nLastBlockWeight = 0;
 
-int64_t UpdateTime(CBlockHeader* pblock, const Consensus::Params& consensusParams, const CBlockIndex* pindexPrev)
+int64_t UpdateTime(CBlock* pblock, const Consensus::Params& consensusParams, const CBlockIndex* pindexPrev)
 {
     int64_t nOldTime = pblock->nTime;
     int64_t nNewTime = std::max(pindexPrev->GetMedianTimePast()+1, GetAdjustedTime());
 
     if (nOldTime < nNewTime)
-        pblock->nTime = nNewTime;
+    {
+        // We have to know original fees
+        CAmount nFees = pblock->vtx[0]->GetValueOut() - GetBlockSubsidy(pindexPrev->nHeight + 1, consensusParams);
 
-    // Updating time can change work required on testnet:
-    if (consensusParams.fPowAllowMinDifficultyBlocks)
+        pblock->nTime = nNewTime;
+        // Parameter consensusParams.fPowAllowMinDifficultyBlocks implemented into GetNextWorkRequired
         pblock->nBits = GetNextWorkRequired(pindexPrev, pblock, consensusParams);
+
+        // Calculate delta reward
+        CAmount nBlockReward = GetBlockSubsidy(pindexPrev->nHeight + 1, consensusParams);
+        CAmount nMasternodePayment = GetMasternodePayment(pindexPrev->nHeight + 1, nFees + nBlockReward);
+
+        // Update rewards if necessary
+        if (pblock->vtx[0]->GetValueOut() != nFees + nBlockReward) {
+            // Update coinbase output to new value
+            CMutableTransaction coinbaseTx(*pblock->vtx[0]);
+            coinbaseTx.vout[0].nValue = nFees + nBlockReward;
+
+            // Update masternode reward to new value
+			//sintype
+            CScript cMasternodePayee;
+            if(mnpayments.GetBlockPayee(pindexPrev->nHeight + 1, 1, cMasternodePayee)) {
+                for (auto output : coinbaseTx.vout) {
+                    if (output.scriptPubKey == cMasternodePayee) {
+                        coinbaseTx.vout[0].nValue -= nMasternodePayment;
+                        output.nValue = nMasternodePayment;
+                        break;
+                    }
+                }
+            }
+
+            pblock->vtx[0] = MakeTransactionRef(std::move(coinbaseTx));
+        }
+    }
 
     return nNewTime - nOldTime;
 }
@@ -162,6 +202,8 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
     coinbaseTx.vout[0].scriptPubKey = scriptPubKeyIn;
     coinbaseTx.vout[0].nValue = nFees + GetBlockSubsidy(nHeight, chainparams.GetConsensus());
     coinbaseTx.vin[0].scriptSig = CScript() << nHeight << OP_0;
+
+    //FillBlockPayments(coinbaseTx, nHeight, nFees + nBlockReward, pblock->txoutMasternode, pblock->voutSuperblock);
 
 		coinbaseTx.vout.resize(2);
 		coinbaseTx.vout[1].scriptPubKey = devScript;

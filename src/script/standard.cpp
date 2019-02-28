@@ -43,19 +43,59 @@ const char* GetTxnOutputType(txnouttype t)
     return nullptr;
 }
 
+static bool MatchPayToPubkey(const CScript& script, valtype& pubkey)
+{
+    if (script.size() == CPubKey::PUBLIC_KEY_SIZE + 2 && script[0] == CPubKey::PUBLIC_KEY_SIZE && script.back() == OP_CHECKSIG) {
+        pubkey = valtype(script.begin() + 1, script.begin() + CPubKey::PUBLIC_KEY_SIZE + 1);
+        return CPubKey::ValidSize(pubkey);
+    }
+    if (script.size() == CPubKey::COMPRESSED_PUBLIC_KEY_SIZE + 2 && script[0] == CPubKey::COMPRESSED_PUBLIC_KEY_SIZE && script.back() == OP_CHECKSIG) {
+        pubkey = valtype(script.begin() + 1, script.begin() + CPubKey::COMPRESSED_PUBLIC_KEY_SIZE + 1);
+        return CPubKey::ValidSize(pubkey);
+    }
+    return false;
+}
+
+static bool MatchPayToPubkeyHash(const CScript& script, valtype& pubkeyhash)
+{
+    if (script.size() == 25 && script[0] == OP_DUP && script[1] == OP_HASH160 && script[2] == 20 && script[23] == OP_EQUALVERIFY && script[24] == OP_CHECKSIG) {
+        pubkeyhash = valtype(script.begin () + 3, script.begin() + 23);
+        return true;
+    }
+    return false;
+}
+
 /** Test for "small positive integer" script opcodes - OP_1 through OP_16. */
 static constexpr bool IsSmallInteger(opcodetype opcode)
 {
     return opcode >= OP_1 && opcode <= OP_16;
 }
 
-bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, vector<vector<unsigned char> >& vSolutionsRet)
+static bool MatchMultisig(const CScript& script, unsigned int& required, std::vector<valtype>& pubkeys)
+{
+    opcodetype opcode;
+    valtype data;
+    CScript::const_iterator it = script.begin();
+    if (script.size() < 1 || script.back() != OP_CHECKMULTISIG) return false;
+
+    if (!script.GetOp(it, opcode, data) || !IsSmallInteger(opcode)) return false;
+    required = CScript::DecodeOP_N(opcode);
+    while (script.GetOp(it, opcode, data) && CPubKey::ValidSize(data)) {
+        pubkeys.emplace_back(std::move(data));
+    }
+    if (!IsSmallInteger(opcode)) return false;
+    unsigned int keys = CScript::DecodeOP_N(opcode);
+    if (pubkeys.size() != keys || keys < required) return false;
+    return (it + 1 == script.end());
+}
+
+bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, std::vector<std::vector<unsigned char> >& vSolutionsRet)
 {
     int CLTVreleaseBlock;
     return Solver(scriptPubKey, typeRet, vSolutionsRet, CLTVreleaseBlock);
 }
 
-bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, vector<vector<unsigned char> >& vSolutionsRet, int& CLTVreleaseBlock)
+bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, std::vector<std::vector<unsigned char> >& vSolutionsRet, int& CLTVreleaseBlock)
 {
     // Templates
     static multimap<txnouttype, CScript> mTemplates;
@@ -83,7 +123,7 @@ bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, vector<vector<unsi
     if (scriptPubKey.IsPayToScriptHash())
     {
         typeRet = TX_SCRIPTHASH;
-        vector<unsigned char> hashBytes(scriptPubKey.begin()+2, scriptPubKey.begin()+22);
+        std::vector<unsigned char> hashBytes(scriptPubKey.begin()+2, scriptPubKey.begin()+22);
         vSolutionsRet.push_back(hashBytes);
         return true;
     }

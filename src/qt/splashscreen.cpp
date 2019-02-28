@@ -61,8 +61,8 @@ SplashScreen::SplashScreen(interfaces::Node& node, Qt::WindowFlags f, const Netw
     pixPaint.drawPixmap(rectBg, bg);
 
     pixPaint.setFont(QFont(font, 32*fontFactor, QFont::Bold));
-    QRect rectTitle(QPoint(0,0), QSize(splashSize.width(), (splashSize.height()/1.2)));
-    pixPaint.drawText(rectTitle, Qt::AlignHCenter | Qt::AlignBottom, titleText);
+    QRect rectTitle(QPoint(0,0), QSize(splashSize.width(), (splashSize.height() / 2)));
+//    pixPaint.drawText(rectTitle, Qt::AlignHCenter | Qt::AlignBottom, titleText);
 
     QPoint versionPoint(rectTitle.bottomLeft());
 
@@ -72,12 +72,12 @@ SplashScreen::SplashScreen(interfaces::Node& node, Qt::WindowFlags f, const Netw
         QRect titleAddRect(rectTitle.bottomLeft(), QSize(rectTitle.width(), titleAddTextHeight));
         versionPoint = titleAddRect.bottomLeft();
         pixPaint.setFont(QFont(font, 8*fontFactor, QFont::Bold));
-        pixPaint.drawText(titleAddRect, Qt::AlignHCenter | Qt::AlignVCenter, titleAddText);
+//        pixPaint.drawText(titleAddRect, Qt::AlignHCenter | Qt::AlignVCenter, titleAddText);
     }
 
     pixPaint.setFont(QFont(font, 11*fontFactor));
     QRect versionRect(versionPoint, QSize(rectTitle.width(), versionTextHeight));
-    pixPaint.drawText(versionRect, Qt::AlignHCenter | Qt::AlignTop, versionText);
+//    pixPaint.drawText(versionRect, Qt::AlignHCenter | Qt::AlignTop, versionText);
 
     // draw copyright stuff
     QFont statusFont = QApplication::font();
@@ -92,7 +92,7 @@ SplashScreen::SplashScreen(interfaces::Node& node, Qt::WindowFlags f, const Netw
     pixPaint.end();
 
     // Set window title
-    setWindowTitle(titleText + " " + titleAddText);
+//    setWindowTitle(titleText + " " + titleAddText);
 
     // Resize window and move to center of desktop, disallow resizing
     QRect r(QPoint(), QSize(pixmap.size().width()/devicePixelRatio,pixmap.size().height()/devicePixelRatio));
