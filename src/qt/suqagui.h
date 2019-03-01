@@ -32,6 +32,7 @@ class WalletFrame;
 class WalletModel;
 class HelpMessageDialog;
 class ModalOverlay;
+class MasternodeList;
 
 namespace interfaces {
 class Handler;
@@ -104,6 +105,9 @@ private:
     QToolBar* appToolBar = nullptr;
     QAction* overviewAction = nullptr;
     QAction* historyAction = nullptr;
+    // Dash
+    QAction *masternodeAction = nullptr;
+    //
     QAction* quitAction = nullptr;
     QAction* sendCoinsAction = nullptr;
     QAction* depositCoinsAction = nullptr;
@@ -121,8 +125,14 @@ private:
     QAction* encryptWalletAction = nullptr;
     QAction* backupWalletAction = nullptr;
     QAction* changePassphraseAction = nullptr;
+    // Dash
+    QAction *unlockWalletAction = nullptr;
+    //
     QAction* aboutQtAction = nullptr;
     QAction* openRPCConsoleAction = nullptr;
+    // Dash
+    QAction *openMNConfEditorAction = nullptr;
+    //
     QAction* openAction = nullptr;
     QAction* showHelpMessageAction = nullptr;
     QAction* m_wallet_selector_label_action = nullptr;
@@ -180,6 +190,11 @@ public Q_SLOTS:
     /** Set number of blocks and last block date shown in the UI */
     void setNumBlocks(int count, const QDateTime& blockDate, double nVerificationProgress, bool headers);
 
+    // Dash
+    /** Set additional data sync status shown in the UI */
+    void setAdditionalDataSyncProgress(double nSyncProgress);
+    //
+
     /** Notify the user of an event from the core network or transaction handling code.
        @param[in] title     the message box / notification title
        @param[in] message   the displayed text
@@ -226,6 +241,12 @@ private Q_SLOTS:
     void gotoOverviewPage();
     /** Switch to history (transactions) page */
     void gotoHistoryPage();
+
+    // Dash
+    /** Switch to masternode page */
+    void gotoMasternodePage();
+    //
+
     /** Switch to receive coins page */
     void gotoReceiveCoinsPage();
     /** Switch to send coins page */
@@ -249,11 +270,32 @@ private Q_SLOTS:
     void showDebugWindow();
     /** Show debug window and set focus to the console */
     void showDebugWindowActivateConsole();
+
+    // Dash
+    // FXTC TODO: menu items
+    /** Show debug window and set focus to the appropriate tab */
+    //-//void showInfo();
+    //-//void showConsole();
+    //-//void showGraph();
+    //-//void showPeers();
+    //-//void showRepair();
+
+    /** Open external (default) editor with dash.conf */
+    //-//void showConfEditor();
+    /** Open external (default) editor with masternode.conf */
+    void showMNConfEditor();
+    /** Show folder with wallet backups in default file browser */
+    //-//void showBackups();
+    //
+
     /** Show help message dialog */
     void showHelpMessageClicked();
 #ifndef Q_OS_MAC
     /** Handle tray icon clicked */
     void trayIconActivated(QSystemTrayIcon::ActivationReason reason);
+#else
+    /** Handle macOS Dock icon clicked */
+    void macosDockIconActivated();
 #endif
 
     /** Show window if hidden, unminimize when minimized, rise when obscured or show if hidden and fToggleHidden is true */
