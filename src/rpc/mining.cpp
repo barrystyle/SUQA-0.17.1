@@ -718,13 +718,15 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
 
     // Dash
     UniValue masternodeObj(UniValue::VOBJ);
-    if(pblock->txoutMasternode != CTxOut()) {
-        CTxDestination address1;
-        ExtractDestination(pblock->txoutMasternode.scriptPubKey, address1);
-        std::string address2 = EncodeDestination(address1);
-        masternodeObj.push_back(Pair("payee", address2.c_str()));
-        masternodeObj.push_back(Pair("script", HexStr(pblock->txoutMasternode.scriptPubKey.begin(), pblock->txoutMasternode.scriptPubKey.end())));
-        masternodeObj.push_back(Pair("amount", pblock->txoutMasternode.nValue));
+    if(!pblock->txoutMasternode.empty()) {
+		for (const CTxOut& txout : pblock->txoutMasternode) {
+			CTxDestination address1;
+			ExtractDestination(txout.scriptPubKey, address1);
+			std::string address2 = EncodeDestination(address1);
+			masternodeObj.push_back(Pair("payee", address2.c_str()));
+			masternodeObj.push_back(Pair("script", HexStr(txout.scriptPubKey.begin(), txout.scriptPubKey.end())));
+			masternodeObj.push_back(Pair("amount", txout.nValue));
+		}
     }
     result.push_back(Pair("masternode", masternodeObj));
     result.push_back(Pair("masternode_payments_started", pindexPrev->nHeight + 1 > Params().GetConsensus().nMasternodePaymentsStartBlock));

@@ -215,13 +215,8 @@ bool IsBlockPayeeValid(const CTransactionRef txNew, int nBlockHeight, CAmount bl
     return true;
 }
 
-void NetworkDiagnostic(int nBlockHeight, int& nSINNODE_1Ret, int& nSINNODE_5Ret, int& nSINNODE_10Ret)
-{
-    mnodeman.NetworkDiagnostic(nBlockHeight, nSINNODE_1Ret, nSINNODE_5Ret, nSINNODE_10Ret);
-    LogPrint(BCLog::MNPAYMENTS, "FillBlockPayments -- SIN type in network, BIGSIN: %d MIDSIN: %d LiLSIN: %s\n", nSINNODE_10Ret, nSINNODE_5Ret, nSINNODE_1Ret);
-}
-
-void FillBlockPayments(CMutableTransaction& txNew, int nBlockHeight, CAmount blockReward, CTxOut& txoutMasternodeRet, std::vector<CTxOut>& voutSuperblockRet)
+void FillBlockPayments(CMutableTransaction& txNew, int nBlockHeight, CAmount blockReward, std::vector<CTxOut>& txoutMasternodeRet, std::vector<CTxOut>& voutSuperblockRet,
+					int nSINNODE_1, int nSINNODE_5, int nSINNODE_10)
 {
     // only create superblocks if spork is enabled AND if superblock is actually triggered
     // (height should be validated inside)
@@ -233,9 +228,15 @@ void FillBlockPayments(CMutableTransaction& txNew, int nBlockHeight, CAmount blo
     }
 
     // FILL BLOCK PAYEE WITH MASTERNODE PAYMENT OTHERWISE
-    mnpayments.FillBlockPayee(txNew, nBlockHeight, blockReward, txoutMasternodeRet);
-    LogPrint(BCLog::MNPAYMENTS, "FillBlockPayments -- nBlockHeight %d blockReward %lld txoutMasternodeRet %s txNew %s\n",
-                            nBlockHeight, blockReward, txoutMasternodeRet.ToString(), txNew.ToString());
+	sintype_pair_vec_t vSinType;
+	vSinType.push_back(std::make_pair(1, nSINNODE_1));
+	vSinType.push_back(std::make_pair(5, nSINNODE_5));
+	vSinType.push_back(std::make_pair(10, nSINNODE_10));
+    mnpayments.FillBlockPayee(txNew, nBlockHeight, blockReward, txoutMasternodeRet, vSinType);
+	for (auto txoutMasternode : txoutMasternodeRet) {
+		LogPrint(BCLog::MNPAYMENTS, "FillBlockPayments -- nBlockHeight %d blockReward %lld txoutMasternodeRet %s txNew %s\n",
+                            nBlockHeight, blockReward, txoutMasternode.ToString(), txNew.ToString());
+	}
 }
 
 std::string GetRequiredPaymentsString(int nBlockHeight)
@@ -275,40 +276,44 @@ bool CMasternodePayments::CanVote(COutPoint outMasternode, int nBlockHeight)
 *   Fill Masternode ONLY payment block
 */
 
-void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int nBlockHeight, CAmount blockReward, CTxOut& txoutMasternodeRet)
+void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int nBlockHeight, CAmount blockReward, std::vector<CTxOut>& txoutMasternodeRet, sintype_pair_vec_t& vSinType)
 {
     // make sure it's not filled yet
-    txoutMasternodeRet = CTxOut();
+    txoutMasternodeRet.clear();
 
     CScript payee;
-    //change sintype
-    if(!mnpayments.GetBlockPayee(nBlockHeight, 1, payee)) {
-        // no masternode detected...
-        int nCount = 0;
-        masternode_info_t mnInfo;
-        if(!mnodeman.GetNextMasternodeInQueueForPayment(nBlockHeight, true, nCount, mnInfo)) {
-            // ...and we can't calculate it on our own
-            LogPrintf("CMasternodePayments::FillBlockPayee -- Failed to detect masternode to pay\n");
-            return;
-        }
-        // fill payee with locally calculated winner and hope for the best
-        payee = GetScriptForDestination(mnInfo.pubKeyCollateralAddress.GetID());
-    }
+	for (auto& sintype : vSinType) {
+		if (sintype.second == 1) {
+			if(!mnpayments.GetBlockPayee(nBlockHeight, sintype.first, payee)) {
+				// no masternode detected/voted from network...
+				int nCount = 0;
+				masternode_info_t mnInfo;
+				if(!mnodeman.GetNextMasternodeInQueueForPayment(nBlockHeight, true, nCount, mnInfo)) {
+					// ...and we can't calculate it on our own
+					LogPrintf("CMasternodePayments::FillBlockPayee -- Failed to detect masternode to pay\n");
+					continue;
+				}
+				// fill payee with locally calculated winner and hope for the best
+				payee = GetScriptForDestination(mnInfo.pubKeyCollateralAddress.GetID());
+			}
 
-    // GET MASTERNODE PAYMENT VARIABLES SETUP
-    CAmount masternodePayment = GetMasternodePayment(nBlockHeight, blockReward);
+			// GET MASTERNODE PAYMENT VARIABLES SETUP
+			CAmount masternodePayment = GetMasternodePayment(nBlockHeight, sintype.first);
 
-    // split reward between miner ...
-    txNew.vout[0].nValue -= masternodePayment;
-    // ... and masternode
-    txoutMasternodeRet = CTxOut(masternodePayment, payee);
-    txNew.vout.push_back(txoutMasternodeRet);
+			// split reward between miner ...
+			txNew.vout[0].nValue -= masternodePayment;
+			// ... and masternode
+			txoutMasternodeRet.push_back(CTxOut(masternodePayment, payee));
+			txNew.vout.push_back(CTxOut(masternodePayment, payee));
 
-    CTxDestination address1;
-    ExtractDestination(payee, address1);
-    std::string address2 = EncodeDestination(address1);
+			CTxDestination address1;
+			ExtractDestination(payee, address1);
+			std::string address2 = EncodeDestination(address1);
 
-    LogPrintf("CMasternodePayments::FillBlockPayee -- Masternode payment %lld to %s\n", masternodePayment, address2);
+			LogPrintf("CMasternodePayments::FillBlockPayee -- Masternode payment %lld to %s\n", masternodePayment, address2);
+		}
+	}
+	return;
 }
 
 int CMasternodePayments::GetMinMasternodePaymentsProto() {
@@ -459,6 +464,25 @@ bool CMasternodePayments::GetBlockPayee(int nBlockHeight, int sintype, CScript& 
 
     return false;
 }
+
+void CMasternodePayments::NetworkDiagnostic(int nBlockHeight, int& nSINNODE_1Ret, int& nSINNODE_5Ret, int& nSINNODE_10Ret)
+{
+	nSINNODE_1Ret = 0; nSINNODE_5Ret = 0; nSINNODE_10Ret = 0;
+	CScript payee;
+
+	if(mapMasternodeBlocks.count(nBlockHeight) && mapMasternodeBlocks[nBlockHeight].GetBestPayee(CMasternode::SinType::SINNODE_1, payee)){
+		nSINNODE_1Ret = 1;
+	}
+
+	if(mapMasternodeBlocks.count(nBlockHeight) && mapMasternodeBlocks[nBlockHeight].GetBestPayee(CMasternode::SinType::SINNODE_5, payee)){
+		nSINNODE_1Ret = 1;
+	}
+
+	if(mapMasternodeBlocks.count(nBlockHeight) && mapMasternodeBlocks[nBlockHeight].GetBestPayee(CMasternode::SinType::SINNODE_10, payee)){
+		nSINNODE_1Ret = 1;
+	}
+}
+
 
 // Is this masternode scheduled to get paid soon?
 // -- Only look ahead up to 8 blocks to allow for propagation of the latest 2 blocks of votes

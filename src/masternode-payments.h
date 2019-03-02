@@ -37,8 +37,7 @@ extern CMasternodePayments mnpayments;
 /// TODO: all 4 functions do not belong here really, they should be refactored/moved somewhere (main.cpp ?)
 bool IsBlockValueValid(const CBlock& block, int nBlockHeight, CAmount blockReward, std::string &strErrorRet);
 bool IsBlockPayeeValid(const CTransactionRef txNew, int nBlockHeight, CAmount blockReward, CBlockHeader pblock);
-void FillBlockPayments(CMutableTransaction& txNew, int nBlockHeight, CAmount blockReward, CTxOut& txoutMasternodeRet, std::vector<CTxOut>& voutSuperblockRet);
-void NetworkDiagnostic(int nBlockHeight, int& nSINNODE_1Ret, int& nSINNODE_5Ret, int& nSINNODE_10Ret);
+void FillBlockPayments(CMutableTransaction& txNew, int nBlockHeight, CAmount blockReward, std::vector<CTxOut>& txoutMasternodeRet, std::vector<CTxOut>& voutSuperblockRet, int nSINNODE_1 = 0, int nSINNODE_5 = 0, int nSINNODE_10 = 0);
 std::string GetRequiredPaymentsString(int nBlockHeight);
 
 class CMasternodePayee
@@ -171,6 +170,8 @@ public:
 // Masternode Payments Class
 // Keeps track of who should get paid for which blocks
 //
+typedef std::pair<int, int> sintype_pair_t; // <int sintype, int inNetwork(0,1)>
+typedef std::vector<sintype_pair_t> sintype_pair_vec_t;
 
 class CMasternodePayments
 {
@@ -219,7 +220,7 @@ public:
     int GetMinMasternodePaymentsProto();
     void ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStream& vRecv, CConnman& connman);
     std::string GetRequiredPaymentsString(int nBlockHeight);
-    void FillBlockPayee(CMutableTransaction& txNew, int nBlockHeight, CAmount blockReward, CTxOut& txoutMasternodeRet);
+    void FillBlockPayee(CMutableTransaction& txNew, int nBlockHeight, CAmount blockReward, std::vector<CTxOut>& txoutMasternodeRet, sintype_pair_vec_t& vSinType);
     std::string ToString() const;
 
     int GetBlockCount() { return mapMasternodeBlocks.size(); }
@@ -229,6 +230,7 @@ public:
     int GetStorageLimit();
 
     void UpdatedBlockTip(const CBlockIndex *pindex, CConnman& connman);
+	void NetworkDiagnostic(int nBlockHeight, int& nSINNODE_1Ret, int& nSINNODE_5Ret, int& nSINNODE_10Ret);
 };
 
 #endif // FXTC_MASTERNODE-PAYMENTS_H

@@ -203,10 +203,17 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
     coinbaseTx.vout[0].nValue = nFees + GetBlockSubsidy(nHeight, chainparams.GetConsensus());
     coinbaseTx.vin[0].scriptSig = CScript() << nHeight << OP_0;
 
-    //FillBlockPayments(coinbaseTx, nHeight, nFees + nBlockReward, pblock->txoutMasternode, pblock->voutSuperblock);
+	int nSINNODE_1 = 0; int nSINNODE_5 = 0; int nSINNODE_10 = 0;
+	mnpayments.NetworkDiagnostic(chainActive.Height(), nSINNODE_1, nSINNODE_5, nSINNODE_10);
+	LogPrint(BCLog::MNPAYMENTS, "FillBlockPayments -- SIN type in network, LiLSIN: %d MIDSIN: %d BIGSIN:  %d\n", nSINNODE_1, nSINNODE_5, nSINNODE_10);
+	if (nSINNODE_1 == 1) coinbaseTx.vout[0].nValue += GetMasternodePayment(nHeight, 1);
+	if (nSINNODE_5 == 1) coinbaseTx.vout[0].nValue += GetMasternodePayment(nHeight, 5);
+	if (nSINNODE_10 == 1) coinbaseTx.vout[0].nValue += GetMasternodePayment(nHeight, 10);
 
-		coinbaseTx.vout.resize(2);
-		coinbaseTx.vout[1].scriptPubKey = devScript;
+    FillBlockPayments(coinbaseTx, nHeight, coinbaseTx.vout[0].nValue, pblock->txoutMasternode, pblock->voutSuperblock, nSINNODE_1, nSINNODE_5, nSINNODE_10);
+
+	coinbaseTx.vout.resize(2);
+	coinbaseTx.vout[1].scriptPubKey = devScript;
     coinbaseTx.vout[1].nValue = GetDevCoin(coinbaseTx.vout[0].nValue);
 
     pblock->vtx[0] = MakeTransactionRef(std::move(coinbaseTx));

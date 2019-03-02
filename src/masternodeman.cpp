@@ -485,7 +485,7 @@ bool CMasternodeMan::Has(const COutPoint& outpoint)
     return mapMasternodes.find(outpoint) != mapMasternodes.end();
 }
 
-void CMasternodeMan::NetworkDiagnostic(int nBlockHeight, int& nSINNODE_1Ret, int& nSINNODE_5Ret, int& nSINNODE_10Ret)
+void CMasternodeMan::LocalDiagnostic(int nBlockHeight, int& nSINNODE_1Ret, int& nSINNODE_5Ret, int& nSINNODE_10Ret)
 {
     if (!masternodeSync.IsWinnersListSynced()) {
         // without winner list we can't reliably find the next winner anyway

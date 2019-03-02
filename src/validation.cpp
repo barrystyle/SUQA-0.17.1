@@ -1248,16 +1248,40 @@ CAmount GetBlockSubsidy(int nHeight, CBlockHeader pblock, const Consensus::Param
     return 0;
 }
 
-CAmount GetMasternodePayment(int nHeight, CAmount blockValue)
+CAmount GetMasternodePayment(int nHeight, int sintype = 0)
 {
-    CAmount ret = blockValue * 0.00;
+    CAmount ret = 0.00;
 
-    int nMNPIBlock = Params().GetConsensus().nMasternodePaymentsIncreaseBlock;
-    int nMNPIPeriod = Params().GetConsensus().nMasternodePaymentsIncreasePeriod;
+	if (sintype == 0) {
+		return 0;
+	}
 
-    // Doubled initial reward as compensation for blockchain restart
-    //if(nHeight >= nMNPIBlock) ret = (0.25 - 0.24 * (100.00 * nMNPIPeriod / (1.00 * nHeight + 100.00 * nMNPIPeriod ))) * blockValue; // Increase smoothly from 1% up to 25% in infinity
-    if(nHeight >= nMNPIBlock) ret = (0.25 - 0.23 * (100.00 * nMNPIPeriod / (1.00 * nHeight + 100.00 * nMNPIPeriod ))) * blockValue; // Increase smoothly from 2% up to 25% in infinity
+	if (sintype == 1) {
+		if (nHeight <   22000) return  0 * COIN;
+		if (nHeight <   50000) return  0 * COIN;
+		if (nHeight <  100000) return  0 * COIN;
+		if (nHeight <  200000) return  100 * COIN;
+		if (nHeight <  400000) return  105 * COIN;
+		if (nHeight < 1500000) return  110 * COIN;
+	}
+
+	if (sintype == 5) {
+		if (nHeight <   22000) return  0 * COIN;
+		if (nHeight <   50000) return  0 * COIN;
+		if (nHeight <  100000) return  0 * COIN;
+		if (nHeight <  200000) return  500 * COIN;
+		if (nHeight <  400000) return  525 * COIN;
+		if (nHeight < 1500000) return  550 * COIN;
+	}
+
+	if (sintype == 10) {
+		if (nHeight <   22000) return  0 * COIN;
+		if (nHeight <   50000) return  0 * COIN;
+		if (nHeight <  100000) return  0 * COIN;
+		if (nHeight <  200000) return  1000 * COIN;
+		if (nHeight <  400000) return  1050 * COIN;
+		if (nHeight < 1500000) return  1100 * COIN;
+	}
 
     return ret;
 }

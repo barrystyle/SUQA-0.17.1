@@ -79,7 +79,7 @@ public:
 
     // memory only
     // Dash
-    mutable CTxOut txoutMasternode; // masternode payment
+    mutable std::vector<CTxOut> txoutMasternode; // masternode payment
     mutable std::vector<CTxOut> voutSuperblock; // superblock payment
     //
     mutable bool fChecked;
@@ -107,7 +107,7 @@ public:
     {
         CBlockHeader::SetNull();
         vtx.clear();
-        txoutMasternode = CTxOut();
+        txoutMasternode.clear();
         voutSuperblock.clear();
         fChecked = false;
     }

@@ -478,7 +478,7 @@ void ThreadCheckPrivateSend(CConnman& connman)
 
             if(nTick % 60 == 0) {
 				int nSINNODE_1 = 0; int nSINNODE_5 = 0; int nSINNODE_10 = 0;
-				mnodeman.NetworkDiagnostic(chainActive.Height(), nSINNODE_1, nSINNODE_5, nSINNODE_10);
+				mnodeman.LocalDiagnostic(chainActive.Height(), nSINNODE_1, nSINNODE_5, nSINNODE_10);
 				LogPrint(BCLog::MNPAYMENTS, "FillBlockPayments -- SIN type in network, BIGSIN: %d MIDSIN: %d LiLSIN: %s\n", nSINNODE_10, nSINNODE_5, nSINNODE_1);
 				
                 mnodeman.ProcessMasternodeConnections(connman);
