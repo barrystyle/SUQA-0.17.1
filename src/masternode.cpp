@@ -182,16 +182,19 @@ CMasternode::CollateralStatus CMasternode::CheckCollateral(const COutPoint& outp
 
     Coin coin;
     if(!GetUTXOCoin(outpoint, coin)) {
+		LogPrintf("CMasternode::CollateralStatus -- Check Collateral tx not found %s-%d\n", outpoint.hash.ToString(), outpoint.n);
         return COLLATERAL_UTXO_NOT_FOUND;
     }
 
     nHeightRet = coin.nHeight;
 
     CMasternode cm;
-    if(coin.out.nValue < Params().GetConsensus().nMasternodeCollateralMinimum * COIN) {
+    if(round(coin.out.nValue / COIN) < Params().GetConsensus().nMasternodeCollateralMinimum) {
+		LogPrintf("CMasternode::CollateralStatus -- Collateral tx value is inferior than minumum required %s-%d\n", outpoint.hash.ToString(), outpoint.n);
        return COLLATERAL_INVALID_AMOUNT;
     }
 
+	LogPrintf("CMasternode::CollateralStatus -- Collateral tx is valid %s-%d\n", outpoint.hash.ToString(), outpoint.n);
     nHeightRet = coin.nHeight;
     return COLLATERAL_OK;
 }
@@ -206,8 +209,6 @@ CMasternode::BurnFundStatus CMasternode::CheckBurnFund(const COutPoint& outpoint
 {
     AssertLockHeld(cs_main);
 
-    std::vector<std::shared_ptr<CWallet>> wallets = GetWallets();
-    CWallet * const pwallet = (wallets.size() > 0) ? wallets[0].get() : nullptr;
     Coin coin;
     if(!GetUTXOCoin(outpoint, coin)) {
         return BURNFUND_UTXO_NOT_FOUND;
@@ -227,60 +228,6 @@ CMasternode::BurnFundStatus CMasternode::CheckBurnFund(const COutPoint& outpoint
         return BURNFUND_BURNADDRESS_KO;
     }
     
-    map<uint256, CWalletTx>::const_iterator it =  pwallet->mapWallet.find(outpoint.hash);
-    if (it == pwallet->mapWallet.end()) {
-        LogPrintf("CMasternode::BurnFundStatus -- Tx not in wallet\n");
-        return BURNFUND_ISMINE_NO;
-    }
-    LogPrintf("CMasternode::BurnFundStatus -- ISMINE OK\n");
-    
-    UniValue r(UniValue::VOBJ);
-    CTransactionRef tx;
-    uint256 hashblock;
-    if(!GetTransaction(outpoint.hash, tx, Params().GetConsensus(), hashblock, false)) {
-        LogPrintf("CMasternode::BurnFundStatus -- Tx is not in block");
-        return BURNFUND_INPUTADDRES_KO;
-    } else {
-        int counter=0;
-        for (const CTxIn& txin : tx->vin)  {
-            string strAsm = ScriptToAsmStr(txin.scriptSig, true);
-            //LogPrintf("CMasternode::BurnFundStatus -- script signature(ASM): %s\n", strAsm);
-            //LogPrintf("CMasternode::BurnFundStatus -- script signature(HEX): %s\n", HexStr(txin.scriptSig.begin(), txin.scriptSig.end()));
-            string s;
-            stringstream ss(strAsm);
-            int i=0;
-            while (getline(ss, s,' ')) {
-                if (i==1) {
-                    //LogPrintf("CMasternode::BurnFundStatus -- Pubkey Hex:%s\n",s.c_str());
-                    std::vector<unsigned char> data(ParseHex(s));
-                    CPubKey pubKey(data.begin(), data.end());
-                    if (!pubKey.IsFullyValid()) {
-                        LogPrintf("CMasternode::BurnFundStatus -- Pubkey Hex is not a valid public key\n");
-                        return BURNFUND_INPUTADDRES_KO;
-                    } else {
-                        //LogPrintf("CMasternode::BurnFundStatus -- Pubkey is correct\n");
-                        OutputType output_type = pwallet->m_default_address_type;
-                        CTxDestination dest = GetDestinationForKey(pubKey, output_type);
-                        //LogPrintf("CMasternode::BurnFundStatus -- Pubkey: %s\n", EncodeDestination(dest));
-                        CScript scriptPubKey = GetScriptForDestination(dest);
-                        if (!IsMine(*pwallet, scriptPubKey)) {
-                            LogPrintf("CMasternode::BurnFundStatus -- Address not found in wallet\n");
-                            return BURNFUND_INPUTADDRES_KO;
-                        } else {
-                            //LogPrintf("CMasternode::BurnFundStatus -- Address found in wallet\n");
-                            counter++;
-                        }
-                    }
-                }
-                i++;
-            }
-        }
-        if (counter != (int)tx->vin.size()) {
-            LogPrintf("CMasternode::BurnFundStatus -- one of Address(es) input not found in wallet\n");
-            return BURNFUND_INPUTADDRES_KO;
-        }
-    }
-    
     nHeightRet = coin.nHeight;
     
     if ((chainActive.Height() - 720*365) > coin.nHeight) {
@@ -288,15 +235,99 @@ CMasternode::BurnFundStatus CMasternode::CheckBurnFund(const COutPoint& outpoint
         return BURNFUND_EXPIRED;
     }
 
-    if(coin.out.nValue != Params().GetConsensus().nMasternodeBurnSINNODE_1 * COIN
-        && coin.out.nValue != Params().GetConsensus().nMasternodeBurnSINNODE_5 * COIN
-        && coin.out.nValue != Params().GetConsensus().nMasternodeBurnSINNODE_10 * COIN) {
-		LogPrintf("CMasternode::BurnFundStatus -- BurnFund is %d\n", coin.out.nValue);
+    if( coin.out.nValue < (Params().GetConsensus().nMasternodeBurnSINNODE_1 - 1) * COIN ||
+        (coin.out.nValue > Params().GetConsensus().nMasternodeBurnSINNODE_1 * COIN && coin.out.nValue < (Params().GetConsensus().nMasternodeBurnSINNODE_5 -1) * COIN) ||
+        (coin.out.nValue > Params().GetConsensus().nMasternodeBurnSINNODE_5 * COIN && coin.out.nValue < (Params().GetConsensus().nMasternodeBurnSINNODE_10 - 1) * COIN) ||
+        coin.out.nValue > Params().GetConsensus().nMasternodeBurnSINNODE_10 * COIN 
+       ) {
+		LogPrintf("CMasternode::BurnFundStatus -- BurnFund  is %d\n", coin.out.nValue);
         return BURNFUND_INVALID_AMOUNT;
     }
 
+	LogPrintf("CMasternode::BurnFundStatus -- BurnFund is checked: nHeight: %d & value: %d \n",nHeightRet, coin.out.nValue);
     nHeightRet = coin.nHeight;
     return BURNFUND_OK;
+}
+
+bool CMasternode::CheckCollateralBurnFundRelation(const COutPoint& outpoint, const COutPoint& outpointBurnFund)
+{
+    AssertLockHeld(cs_main);
+
+    Coin coin;
+    if(!GetUTXOCoin(outpoint, coin)) {
+		LogPrintf("CMasternode::CheckCollateralBurnFundRelation -- Check Collateral tx not found %s-%d\n", outpoint.hash.ToString(), outpoint.n);
+        return false;
+    }
+
+    const CTxOut& txoutCollateral = coin.out;
+    CTxDestination addressCollateral;
+
+    if (!ExtractDestination(txoutCollateral.scriptPubKey, addressCollateral)) {
+        LogPrintf("CMasternode::CheckCollateralBurnFundRelation -- Unknown destination of BurnFund tx.\n");
+        return false;
+    }
+
+    LogPrintf("CMasternode::CheckCollateralBurnFundRelation -- Collateral address:%s.\n",EncodeDestination(addressCollateral));
+
+    Coin BurnFundcoin;
+    if(!GetUTXOCoin(outpointBurnFund, BurnFundcoin)) {
+		LogPrintf("CMasternode::CheckCollateralBurnFundRelation -- Check Collateral tx not found %s-%d\n", outpointBurnFund.hash.ToString(), outpointBurnFund.n);
+        return false;
+    }
+
+    const CTxOut& txout = BurnFundcoin.out;
+    CTxDestination address;
+
+    if (!ExtractDestination(txout.scriptPubKey, address)) {
+        LogPrintf("CMasternode::CheckCollateralBurnFundRelation -- Unknown destination of BurnFund tx.\n");
+        return false;
+    }
+
+    LogPrintf("CMasternode::CheckCollateralBurnFundRelation -- BurnFund address:%s.\n",EncodeDestination(address));
+
+    if (EncodeDestination(address) != Params().GetConsensus().cBurnAddress) {
+        LogPrintf("CMasternode::CheckCollateralBurnFundRelation -- BurnFund address is diffrent with BurnAddress in consensus.\n");
+        return false;
+    }
+
+    CTransactionRef tx;
+    uint256 hashblock;
+    if(!GetTransaction(outpointBurnFund.hash, tx, Params().GetConsensus(), hashblock, false)) {
+        LogPrintf("CMasternode::CheckCollateralBurnFundRelation -- BurnFund tx is not in block");
+        return false;
+    }
+
+    int counter=0;
+    for (const CTxIn& txin : tx->vin)  {
+        string strAsm = ScriptToAsmStr(txin.scriptSig, true);
+        //LogPrintf("CMasternode::CheckCollateralBurnFundRelation -- script signature(ASM): %s\n", strAsm);
+        //LogPrintf("CMasternode::CheckCollateralBurnFundRelation -- script signature(HEX): %s\n", HexStr(txin.scriptSig.begin(), txin.scriptSig.end()));
+        string s;
+        stringstream ss(strAsm);
+        int i=0;
+        while (getline(ss, s,' ')) {
+            if (i==1) {
+                //LogPrintf("CMasternode::CheckCollateralBurnFundRelation -- Pubkey Hex:%s\n",s.c_str());
+                std::vector<unsigned char> data(ParseHex(s));
+                CPubKey pubKey(data.begin(), data.end());
+                if (!pubKey.IsFullyValid()) {
+                    LogPrintf("CMasternode::CheckCollateralBurnFundRelation -- Pubkey key of BurnFund tx is not valid.\n");
+                    return false;
+                } else {
+                    //LogPrintf("CMasternode::BurnFundStatus -- Pubkey is correct\n");
+                    OutputType output_type = OutputType::LEGACY;
+                    CTxDestination dest = GetDestinationForKey(pubKey, output_type);
+                    LogPrintf("CMasternode::CheckCollateralBurnFundRelation -- Pubkey address of input BurnFund tx: %s.\n", EncodeDestination(dest));
+                    if ( dest != addressCollateral ) {
+                        LogPrintf("CMasternode::CheckCollateralBurnFundRelation -- Pubkey address of input BurnFund tx and Collateral address is different.\n");
+                        return false;
+                    }
+                }
+            }
+            i++;
+        }
+    }
+    return true;
 }
 
 void CMasternode::Check(bool fForce)
@@ -324,11 +355,17 @@ void CMasternode::Check(bool fForce)
             LogPrint(BCLog::MASTERNODE, "CMasternode::Check -- Failed to find Masternode UTXO, masternode=%s\n", vin.prevout.ToStringShort());
             return;
         }
-        
+
         BurnFundStatus errBurnFund = CheckBurnFund(vinBurnFund.prevout);
         if (errBurnFund != BURNFUND_OK) {
             nActiveState = MASTERNODE_OUTPOINT_SPENT;
             LogPrint(BCLog::MASTERNODE, "CMasternode::Check -- Failed to check SIN Node BurnFund tx, masternode=%s\n", vin.prevout.ToStringShort());
+            return;
+        }
+
+        if(!CheckCollateralBurnFundRelation(vin.prevout, vinBurnFund.prevout)) {
+            nActiveState = MASTERNODE_OUTPOINT_SPENT;
+            LogPrint(BCLog::MASTERNODE, "CMasternode::Check -- Failed to check the relation between Collateral and BurnFund, masternode=%s\n", vin.prevout.ToStringShort());
             return;
         }
 

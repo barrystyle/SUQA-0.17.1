@@ -2883,7 +2883,8 @@ void CWallet::AvailableCoins(std::vector<COutput> &vCoins, bool fOnlySafe, const
             if (coinControl && coinControl->HasSelected() && !coinControl->fAllowOtherInputs && !coinControl->IsSelected(COutPoint(entry.first, i)))
                 continue;
 
-            if (IsLockedCoin(entry.first, i))
+            //Masternode collateral is locked. if it is not ONLY_MASTERNODE_COLLATERAL and locked => continue
+            if (IsLockedCoin(entry.first, i) && ONLY_MASTERNODE_COLLATERAL != nCoinType)
                 continue;
 
             if (IsSpent(wtxid, i))
@@ -3424,8 +3425,8 @@ bool CWallet::GetMasternodeOutpointAndKeys(COutPoint& outpointRet, CPubKey& pubK
     // Find possible candidates
     std::vector<COutput> vPossibleCoins;
     AvailableCoins(vPossibleCoins, true, NULL, false, ONLY_MASTERNODE_COLLATERAL);
-    
-    if((int)vPossibleCoins.size() == 0) {
+
+    if(vPossibleCoins.empty()) {
         LogPrintf("CWallet::GetMasternodeOutpointAndKeys -- Could not locate any valid masternode vin\n");
         return false;
     }
@@ -3438,6 +3439,7 @@ bool CWallet::GetMasternodeOutpointAndKeys(COutPoint& outpointRet, CPubKey& pubK
     int nOutputIndex = atoi(strOutputIndex.c_str());
 
     for (auto& out : vPossibleCoins){
+        LogPrintf("CWallet::GetMasternodeOutpointAndKeys -- Coin: %s - %d", out.tx->GetHash().ToString(), out.i);
         if(out.tx->GetHash() == txHash && out.i == nOutputIndex){ // found it!
             return GetOutpointAndKeysFromOutput(out, outpointRet, pubKeyRet, keyRet);
         }

@@ -228,6 +228,7 @@ public:
     static CollateralStatus CheckCollateral(const COutPoint& outpoint, int& nHeightRet);
     static BurnFundStatus CheckBurnFund(const COutPoint& outpoint);
     static BurnFundStatus CheckBurnFund(const COutPoint& outpoint, int& nHeightRet);
+	bool CheckCollateralBurnFundRelation(const COutPoint& outpoint, const COutPoint& outpointBurnFund);
 
     void Check(bool fForce = false);
     SinType GetSinType();
