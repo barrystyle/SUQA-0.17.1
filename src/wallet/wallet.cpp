@@ -2900,20 +2900,6 @@ void CWallet::AvailableCoins(std::vector<COutput> &vCoins, bool fOnlySafe, const
             bool spendable = ((mine & ISMINE_SPENDABLE) != ISMINE_NO) || (((mine & ISMINE_WATCH_ONLY) != ISMINE_NO) && (coinControl && coinControl->fAllowWatchOnly && solvable));
 
             vCoins.push_back(COutput(pcoin, i, nDepth, spendable, solvable, safeTx, (coinControl && coinControl->fAllowWatchOnly)));
-
-            // Checks the sum amount of all UTXO's.
-            if (nMinimumSumAmount != MAX_MONEY) {
-                nTotal += pcoin->tx->vout[i].nValue;
-
-                if (nTotal >= nMinimumSumAmount) {
-                    return;
-                }
-            }
-
-            // Checks the maximum number of UTXO's.
-            if (nMaximumCount > 0 && vCoins.size() >= nMaximumCount) {
-                return;
-            }
         }
     }
 }
@@ -2992,6 +2978,15 @@ bool CWallet::SelectCoinsMinConf(const CAmount& nTargetValue, const CoinEligibil
     nValueRet = 0;
 
     std::vector<OutputGroup> utxo_pool;
+    // FXTC TODO: revise implementation of coinLowestLarger
+    // Dash
+    // List of values less than target
+    //boost::optional<CInputCoin> coinLowestLarger;
+    //coinLowestLarger->txout.nValue = fUseInstantSend
+    //                                    ? sporkManager.GetSporkValue(SPORK_5_INSTANTSEND_MAX_VALUE)*COIN
+    //                                    : std::numeric_limits<CAmount>::max();
+    //coinLowestLarger->txout = NULL;
+    //
     if (coin_selection_params.use_bnb) {
         // Get long term estimate
         FeeCalculation feeCalc;
@@ -3971,6 +3966,8 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CTransac
 
                         // coin control: send change to custom address
                         // FXTC TODO: check
+                        //if (coinControl && !boost::get<CNoDestination>(&coinControl->destChange))
+                        //    scriptChange = GetScriptForDestination(coinControl->destChange);
                         if (!boost::get<CNoDestination>(&coin_control.destChange))
                             scriptChange = GetScriptForDestination(coin_control.destChange);
                         //
@@ -4024,6 +4021,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CTransac
                         std::vector<CTxOut>::iterator position = txNew.vout.begin()+nChangePosInOut;
                         txNew.vout.insert(position, newTxOut);
                     }
+                    // FXTC TODO: end of compatibility alignement
                     }
                 } else {
                     nChangePosInOut = -1;
@@ -4048,20 +4046,9 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CTransac
                     return false;
                 }
 
+/* FXTC TODO: something wrong here
                 // Dash
-                CTransaction txNewConst(txNew);
-                dPriority = txNewConst.ComputePriority(dPriority, nBytes);
-
-                // Remove scriptSigs to eliminate the fee calculation dummy signatures
-                for (auto& txin : txNew.vin) {
-                    txin.scriptSig = CScript();
-                }
-
-                // Allow to override the default confirmation target over the CoinControl instance
-                int currentConfirmationTarget = nTxConfirmTarget;
-                unsigned int target = *coin_control.m_confirm_target;
-                if (target > 0)
-                    currentConfirmationTarget = target;
+                dPriority = wtxNew.tx->ComputePriority(dPriority, nBytes);
 
                 // Can we complete this as a free transaction?
                 // Note: InstantSend transaction can't be a free one
@@ -4077,19 +4064,18 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CTransac
 //                    if (dPriorityNeeded > 0 && dPriority >= dPriorityNeeded)
 //                        break;
                 }
-                
-                CAmount nFeeNeeded = max(nFeePay, GetMinimumFee(*this, nBytes, coin_control, ::mempool, ::feeEstimator, &feeCalc));
+                CAmount nFeeNeeded = max(nFeePay, GetMinimumFee(*this, nBytes, coin_control, ::mempool, ::feeEstimator, &feeCals));
+                // FXTC TODO: check
                 //if (coinControl && nFeeNeeded > 0 && coinControl->nMinimumTotalFee > nFeeNeeded) {
                 //    nFeeNeeded = coinControl->nMinimumTotalFee;
                 if (nFeeNeeded > 0 && coin_control.nMinimumTotalFee > nFeeNeeded) {
                     nFeeNeeded = coin_control.nMinimumTotalFee;
                 }
+                //
                 if(fUseInstantSend) {
                     nFeeNeeded = std::max(nFeeNeeded, CTxLockRequest(txNew).GetMinFee());
-                }
-                //SIN TODO:
-                //if (coin_control.fOverrideFeeRate)
-                //    nFeeNeeded = *(coin_control.m_feerate);
+                }*/
+                //
 
                 // If we made it here and we aren't even able to meet the relay fee on the next pass, give up
                 // because we must be at the maximum allowed fee.

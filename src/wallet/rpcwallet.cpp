@@ -554,16 +554,15 @@ static UniValue sendtoaddress(const JSONRPCRequest& request)
 
     // Make sure the results are valid at least up to the most recent block
     // the user could have gotten from another RPC command prior to now
-	printf("before 1");
     pwallet->BlockUntilSyncedToCurrentChain();
-printf("before 2");
+
     LOCK2(cs_main, pwallet->cs_wallet);
-printf("before 3");
+
     CTxDestination dest = DecodeDestination(request.params[0].get_str());
     if (!IsValidDestination(dest)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address");
     }
-printf("before 4");
+
     // Amount
     CAmount nAmount = AmountFromValue(request.params[1]);
     if (nAmount <= 0)
@@ -575,7 +574,7 @@ printf("before 4");
         mapValue["comment"] = request.params[2].get_str();
     if (!request.params[3].isNull() && !request.params[3].get_str().empty())
         mapValue["to"] = request.params[3].get_str();
-printf("before 5");
+
     bool fSubtractFeeFromAmount = false;
     if (!request.params[4].isNull()) {
         fSubtractFeeFromAmount = request.params[4].get_bool();
@@ -595,10 +594,10 @@ printf("before 5");
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid estimate_mode parameter");
         }
     }
-printf("before 6");
+
 
     EnsureWalletIsUnlocked(pwallet);
-printf("before 7");
+
     CTransactionRef tx = SendMoney(pwallet, dest, nAmount, fSubtractFeeFromAmount, coin_control, std::move(mapValue), {} /* fromAccount */, 0);
     return tx->GetHash().GetHex();
 }
@@ -611,12 +610,12 @@ static UniValue deposittoaddress(const JSONRPCRequest& request)
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
         return NullUniValue;
     }
-
+/*
     if (IsInitialBlockDownload())
         throw std::runtime_error(
             "Please wait until block synchronization has completed.\n"
     );
-
+*/
     if (request.fHelp || request.params.size() < 4 || request.params.size() > 7)
         throw std::runtime_error(
             "deposittoaddress \"fromaccount\" \"SUQAaddress\" amount termdepositlength ( \"comment\" \"comment-to\" subtractfeefromamount )\n"
@@ -687,7 +686,7 @@ static UniValue listtermdeposits(const JSONRPCRequest& request)
     if (IsInitialBlockDownload())
         throw std::runtime_error(
             "Please wait until block synchronization has completed.\n"
-    );
+        );
 
     if (request.fHelp || request.params.size() != 1)
         throw std::runtime_error(
@@ -1188,6 +1187,7 @@ static UniValue getbalance(const JSONRPCRequest& request)
         }
     }
 
+    // FXTC TODO: fAddLockConf?
     return ValueFromAmount(pwallet->GetBalance());
 }
 
@@ -5170,8 +5170,8 @@ static const CRPCCommand commands[] =
 
     // Dash
     /* Wallet */
-    { "wallet",             "keepass",                &keepass,                {"genkey-init-setpassphrase"} },
-    { "wallet",             "instantsendtoaddress",   &instantsendtoaddress,   {"dashaddress", "amount", "comment", "comment-to", "subtractfeefromamount"} },
+    //{ "wallet",             "keepass",                &keepass,                {"genkey-init-setpassphrase"} },
+    //{ "wallet",             "instantsendtoaddress",   &instantsendtoaddress,   {"dashaddress", "amount", "comment", "comment-to", "subtractfeefromamount"} },
     //
 };
 
