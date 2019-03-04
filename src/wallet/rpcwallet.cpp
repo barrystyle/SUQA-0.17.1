@@ -760,11 +760,11 @@ UniValue instantsendtoaddress(const JSONRPCRequest& request)
 
     if (request.fHelp || request.params.size() < 2 || request.params.size() > 5)
         throw std::runtime_error(
-            "instantsendtoaddress \"dashaddress\" amount ( \"comment\" \"comment-to\" subtractfeefromamount )\n"
+            "instantsendtoaddress \"sinaddress\" amount ( \"comment\" \"comment-to\" subtractfeefromamount )\n"
             "\nSend an amount to a given address. The amount is a real and is rounded to the nearest 0.00000001\n"
             + HelpRequiringPassphrase(pwallet) +
             "\nArguments:\n"
-            "1. \"dashaddress\"  (string, required) The dash address to send to.\n"
+            "1. \"sinaddress\"  (string, required) The sin address to send to.\n"
             "2. \"amount\"      (numeric, required) The amount in btc to send. eg 0.1\n"
             "3. \"comment\"     (string, optional) A comment used to store what the transaction is for. \n"
             "                             This is not part of the transaction, just kept in your wallet.\n"
@@ -5171,8 +5171,8 @@ static const CRPCCommand commands[] =
     // Dash
     /* Wallet */
     //{ "wallet",             "keepass",                &keepass,                {"genkey-init-setpassphrase"} },
-    //{ "wallet",             "instantsendtoaddress",   &instantsendtoaddress,   {"dashaddress", "amount", "comment", "comment-to", "subtractfeefromamount"} },
-    //
+    { "wallet",             "instantsendtoaddress",             &instantsendtoaddress,   {"sinaddress", "amount", "comment", "comment-to", "subtractfeefromamount"} },
+    
 };
 
 void RegisterWalletRPCCommands(CRPCTable &t)

@@ -81,10 +81,10 @@ bool CMasternodeConfig::read(std::string& strErr) {
                 streamConfig.close();
                 return false;
             }
-        } else if(port == nDefaultPort) {
+        } else if(port == 20970) {
             strErr = _("Invalid port detected in masternode.conf") + "\n" +
                     strprintf(_("Line: %d"), linenumber) + "\n\"" + line + "\"" + "\n" +
-                    strprintf(_("(%d could be used only on mainnet)"), nDefaultPort);
+                    strprintf(_("(%d could be used only on mainnet)"), 20970);
             streamConfig.close();
             return false;
         }

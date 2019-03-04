@@ -4072,9 +4072,10 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CTransac
                     nFeeNeeded = coin_control.nMinimumTotalFee;
                 }
                 //
+				*/
                 if(fUseInstantSend) {
                     nFeeNeeded = std::max(nFeeNeeded, CTxLockRequest(txNew).GetMinFee());
-                }*/
+                }
                 //
 
                 // If we made it here and we aren't even able to meet the relay fee on the next pass, give up

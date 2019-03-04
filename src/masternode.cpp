@@ -607,8 +607,8 @@ bool CMasternodeBroadcast::Create(std::string strService, std::string strKeyMast
     if (Params().NetworkIDString() == CBaseChainParams::MAIN) {
         if (service.GetPort() != nDefaultPort)
             return Log(strprintf("Invalid port %u for masternode %s, only %d is supported on mainnet.", service.GetPort(), strService, nDefaultPort));
-    } else if (service.GetPort() == nDefaultPort)
-        return Log(strprintf("Invalid port %u for masternode %s, %d is the only supported on mainnet.", service.GetPort(), strService, nDefaultPort));
+    } else if (service.GetPort() == 20970)
+        return Log(strprintf("Invalid port %u for masternode %s, %d is the only supported on mainnet.", service.GetPort(), strService, 20970));
 
     return Create(outpoint, outpointBurnFund, service, keyCollateralAddressNew, pubKeyCollateralAddressNew, keyMasternodeNew, pubKeyMasternodeNew, strErrorRet, mnbRet);
 }
