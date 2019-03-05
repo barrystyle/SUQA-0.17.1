@@ -248,15 +248,15 @@ void BitcoinGUI::createActions()
     sendCoinsMenuAction->setStatusTip(sendCoinsAction->statusTip());
     sendCoinsMenuAction->setToolTip(sendCoinsMenuAction->statusTip());
 
-    depositCoinsAction = new QAction(platformStyle->SingleColorIcon(":/icons/deposit"), tr("&Timelock"), this);
-    depositCoinsAction->setStatusTip(tr("Timelock coins to a SUQA address"));
-    depositCoinsAction->setToolTip(depositCoinsAction->statusTip());
-    depositCoinsAction->setCheckable(true);
-    tabGroup->addAction(depositCoinsAction);
+    //depositCoinsAction = new QAction(platformStyle->SingleColorIcon(":/icons/deposit"), tr("&Timelock"), this);
+    //depositCoinsAction->setStatusTip(tr("Timelock coins to a SUQA address"));
+    //depositCoinsAction->setToolTip(depositCoinsAction->statusTip());
+    //depositCoinsAction->setCheckable(true);
+    //tabGroup->addAction(depositCoinsAction);
 
-    depositCoinsMenuAction = new QAction(platformStyle->TextColorIcon(":/icons/deposit"), depositCoinsAction->text(), this);
-    depositCoinsMenuAction->setStatusTip(depositCoinsAction->statusTip());
-    depositCoinsMenuAction->setToolTip(depositCoinsMenuAction->statusTip());
+    //depositCoinsMenuAction = new QAction(platformStyle->TextColorIcon(":/icons/deposit"), depositCoinsAction->text(), this);
+    //depositCoinsMenuAction->setStatusTip(depositCoinsAction->statusTip());
+    //depositCoinsMenuAction->setToolTip(depositCoinsMenuAction->statusTip());
 
     receiveCoinsAction = new QAction(platformStyle->SingleColorIcon(":/icons/receiving_addresses"), tr("&Receive"), this);
     receiveCoinsAction->setStatusTip(tr("Request payments (generates QR codes and suqa: URIs)"));
@@ -303,10 +303,10 @@ void BitcoinGUI::createActions()
     connect(sendCoinsAction, SIGNAL(triggered()), this, SLOT(gotoSendCoinsPage()));
     connect(sendCoinsMenuAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(sendCoinsMenuAction, SIGNAL(triggered()), this, SLOT(gotoSendCoinsPage()));
-    connect(depositCoinsAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
-    connect(depositCoinsAction, SIGNAL(triggered()), this, SLOT(gotoDepositCoinsPage()));
-    connect(depositCoinsMenuAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
-    connect(depositCoinsMenuAction, SIGNAL(triggered()), this, SLOT(gotoDepositCoinsPage()));
+    //connect(depositCoinsAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+    //connect(depositCoinsAction, SIGNAL(triggered()), this, SLOT(gotoDepositCoinsPage()));
+    //connect(depositCoinsMenuAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+    //connect(depositCoinsMenuAction, SIGNAL(triggered()), this, SLOT(gotoDepositCoinsPage()));
     connect(receiveCoinsAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(receiveCoinsAction, SIGNAL(triggered()), this, SLOT(gotoReceiveCoinsPage()));
     connect(receiveCoinsMenuAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
@@ -545,7 +545,7 @@ void BitcoinGUI::createToolBars()
         toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
         toolbar->addAction(overviewAction);
         toolbar->addAction(sendCoinsAction);
-        toolbar->addAction(depositCoinsAction);
+        //toolbar->addAction(depositCoinsAction);
         toolbar->addAction(receiveCoinsAction);
         toolbar->addAction(historyAction);
         // Dash
@@ -707,8 +707,8 @@ void BitcoinGUI::setWalletActionsEnabled(bool enabled)
     overviewAction->setEnabled(enabled);
     sendCoinsAction->setEnabled(enabled);
     sendCoinsMenuAction->setEnabled(enabled);
-    depositCoinsAction->setEnabled(enabled);
-    depositCoinsMenuAction->setEnabled(enabled);
+    //depositCoinsAction->setEnabled(enabled);
+    //depositCoinsMenuAction->setEnabled(enabled);
     receiveCoinsAction->setEnabled(enabled);
     receiveCoinsMenuAction->setEnabled(enabled);
     historyAction->setEnabled(enabled);
@@ -772,7 +772,7 @@ void BitcoinGUI::createTrayIconMenu()
 #endif
     if (enableWallet) {
         trayIconMenu->addAction(sendCoinsMenuAction);
-        trayIconMenu->addAction(depositCoinsMenuAction);
+        //trayIconMenu->addAction(depositCoinsMenuAction);
         trayIconMenu->addAction(receiveCoinsMenuAction);
         trayIconMenu->addSeparator();
         trayIconMenu->addAction(signMessageAction);
@@ -904,11 +904,11 @@ void BitcoinGUI::gotoSendCoinsPage(QString addr)
     if (walletFrame) walletFrame->gotoSendCoinsPage(addr);
 }
 
-void BitcoinGUI::gotoDepositCoinsPage(QString addr)
-{
-    depositCoinsAction->setChecked(true);
-    if (walletFrame) walletFrame->gotoDepositCoinsPage(addr);
-}
+//void BitcoinGUI::gotoDepositCoinsPage(QString addr)
+//{
+  //  depositCoinsAction->setChecked(true);
+    //if (walletFrame) walletFrame->gotoDepositCoinsPage(addr);
+//}
 
 void BitcoinGUI::gotoSignMessageTab(QString addr)
 {
