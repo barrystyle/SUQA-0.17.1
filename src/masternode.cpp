@@ -136,15 +136,15 @@ CMasternode::SinType CMasternode::GetSinType()
 {
     CAmount nBurnFundValue = CheckOutPointValue(vinBurnFund.prevout);
     
-    if (nBurnFundValue == Params().GetConsensus().nMasternodeBurnSINNODE_1 * COIN) {
+    if ((Params().GetConsensus().nMasternodeBurnSINNODE_1 - 1) * COIN < nBurnFundValue && nBurnFundValue < Params().GetConsensus().nMasternodeBurnSINNODE_1 * COIN) {
         return SINNODE_1;
     }
     
-    if (nBurnFundValue == Params().GetConsensus().nMasternodeBurnSINNODE_5 * COIN) {
+    if ((Params().GetConsensus().nMasternodeBurnSINNODE_5 -1) * COIN < nBurnFundValue &&  nBurnFundValue < Params().GetConsensus().nMasternodeBurnSINNODE_5 * COIN) {
         return SINNODE_5;
     }
     
-    if (nBurnFundValue == Params().GetConsensus().nMasternodeBurnSINNODE_10 * COIN) {
+    if ((Params().GetConsensus().nMasternodeBurnSINNODE_10 - 1) * COIN < nBurnFundValue && nBurnFundValue < Params().GetConsensus().nMasternodeBurnSINNODE_10 * COIN) {
         return SINNODE_10;
     }
     
@@ -155,15 +155,15 @@ int CMasternode::GetSinTypeInt()
 {
     CAmount nBurnFundValue = CheckOutPointValue(vinBurnFund.prevout);
     
-    if (nBurnFundValue == Params().GetConsensus().nMasternodeBurnSINNODE_1 * COIN) {
+    if ((Params().GetConsensus().nMasternodeBurnSINNODE_1 - 1) * COIN < nBurnFundValue && nBurnFundValue < Params().GetConsensus().nMasternodeBurnSINNODE_1 * COIN) {
         return 1;
     }
     
-    if (nBurnFundValue == Params().GetConsensus().nMasternodeBurnSINNODE_5 * COIN) {
+    if ((Params().GetConsensus().nMasternodeBurnSINNODE_5 -1) * COIN < nBurnFundValue &&  nBurnFundValue < Params().GetConsensus().nMasternodeBurnSINNODE_5 * COIN) {
         return 5;
     }
     
-    if (nBurnFundValue == Params().GetConsensus().nMasternodeBurnSINNODE_10 * COIN) {
+    if ((Params().GetConsensus().nMasternodeBurnSINNODE_10 - 1) * COIN < nBurnFundValue && nBurnFundValue < Params().GetConsensus().nMasternodeBurnSINNODE_10 * COIN) {
         return 10;
     }
     
