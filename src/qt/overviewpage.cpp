@@ -182,49 +182,11 @@ void OverviewPage::setBalance(const interfaces::WalletBalances& balances)
     ui->labelImmatureText->setVisible(showImmature || showWatchOnlyImmature);
     ui->labelWatchImmature->setVisible(showWatchOnlyImmature); // show watch-only immature balance
 
-    // get termDeposit data
-    std::vector<COutput> termDepositInfo = balances.term_deposit_info;
-    ui->hodlTable->setRowCount(termDepositInfo.size());
+    
 
-    // actually update labels
-    int nDisplayUnit = BitcoinUnits::SUQA;
-
-    int i = 0;
-    for (const COutput& ctermDeposit : termDepositInfo) {
-        int curHeight=chainActive.Height();
-        int lockHeight=curHeight-ctermDeposit.nDepth;
-        int releaseBlock=ctermDeposit.tx->tx->vout[ctermDeposit.i].scriptPubKey.GetTermDepositReleaseBlock();
-        int term =releaseBlock-lockHeight;
-        int blocksRemaining=releaseBlock-curHeight;
-        CAmount withInterest=ctermDeposit.tx->tx->vout[ctermDeposit.i].GetValueWithInterest(lockHeight,(curHeight<releaseBlock?curHeight:releaseBlock));
-        CAmount matureValue=ctermDeposit.tx->tx->vout[ctermDeposit.i].GetValueWithInterest(lockHeight,releaseBlock);
-        ui->hodlTable->setSortingEnabled(false);
-        if(curHeight>=releaseBlock)
-            ui->hodlTable->setItem(i, 0, new QTableWidgetItem(QString("Matured (Warning: this amount is no longer earning interest of any kind)")));
-        else
-            ui->hodlTable->setItem(i, 0, new QTableWidgetItem(QString("HOdled")));
-        ui->hodlTable->setItem(i, 1, new QTableWidgetItem(BitcoinUnits::format(nDisplayUnit, ctermDeposit.tx->tx->vout[ctermDeposit.i].nValue)));
-        ui->hodlTable->setItem(i, 2, new QTableWidgetItem(BitcoinUnits::format(nDisplayUnit, withInterest-ctermDeposit.tx->tx->vout[ctermDeposit.i].nValue)));
-        ui->hodlTable->setItem(i, 3, new QTableWidgetItem(BitcoinUnits::format(nDisplayUnit, withInterest)));
-        ui->hodlTable->setItem(i, 4, new QTableWidgetItem(BitcoinUnits::format(nDisplayUnit, matureValue)));
-        ui->hodlTable->setItem(i, 5, new QTableWidgetItem(QString::number((term)/561)));
-        ui->hodlTable->setItem(i, 6, new QTableWidgetItem(QString::number(lockHeight)));
-        ui->hodlTable->setItem(i, 7, new QTableWidgetItem(QString::number(releaseBlock)));
-
-        time_t rawtime;
-        struct tm * timeinfo;
-        char buffer[80];
-        time (&rawtime);
-        rawtime+=blocksRemaining*154;
-        timeinfo = localtime(&rawtime);
-        strftime(buffer,80,"%Y/%m/%d",timeinfo);
-        std::string str(buffer);
-
-        ui->hodlTable->setItem(i, 8, new QTableWidgetItem(QString(buffer)));
-        ui->hodlTable->setSortingEnabled(true);
-	i++;
+    
     }
-}
+
 
 // show/hide watch-only labels
 void OverviewPage::updateWatchOnlyLabels(bool showWatchOnly)
