@@ -113,9 +113,10 @@ public:
         consensus.fPowNoRetargeting = false;
         consensus.nRuleChangeActivationThreshold = 1916;
         consensus.nMinerConfirmationWindow = 2016;
-	consensus.devAddressPubKey = "841e6bf56b99a59545da932de2efb23ab93b4f44";
+        consensus.devAddressPubKey = "841e6bf56b99a59545da932de2efb23ab93b4f44";
         consensus.devAddress = "SZLafuDjnjqh2tAfTrG9ZAGzbP8HkzNXvB";
-	consensus.cBurnAddress = "ScK6eotHEke2CjU9XaJvXLCRhfa3qAUars";
+        consensus.cBurnAddress = "ScK6eotHEke2CjU9XaJvXLCRhfa3qAUars";
+        strSporkPubKey = "04491f11731dd8c8a6f6418e69d01cf35a93327971c3c207dde66b58fc2e7e5c9510b5a80a61bc4982fea1533e96f25a1319cd602e14edd1702d652cd3da367bcb";
 
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].bit = 28;
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nStartTime = NEVER;
@@ -179,8 +180,6 @@ public:
 
         nPoolMaxTransactions = 3;
         nFulfilledRequestExpireTime = 60*60; // fulfilled requests expire in 1 hour
-        strSporkPubKey = "04491f11731dd8c8a6f6418e69d01cf35a93327971c3c207dde66b58fc2e7e5c9510b5a80a61bc4982fea1533e96f25a1319cd602e14edd1702d652cd3da367bcb";
-
 
         checkpointData = {
             {
@@ -204,6 +203,27 @@ public:
     CTestNetParams() {
         strNetworkID = "test";
         consensus.nSubsidyHalvingInterval = 210000;
+        consensus.nMasternodeMinimumConfirmations = 15;
+	    consensus.nMasternodePaymentsStartBlock = 50;
+        consensus.nMasternodePaymentsIncreaseBlock = 50;
+        consensus.nMasternodePaymentsIncreasePeriod = 365 * 1440; // 1 common year
+        consensus.nMasternodeCollateralMinimum = 10;
+		consensus.nMasternodeBurnSINNODE_1 = 1;
+		consensus.nMasternodeBurnSINNODE_5 = 5;
+		consensus.nMasternodeBurnSINNODE_10 = 15;
+		
+        consensus.nInstantSendKeepLock = 24;
+
+        consensus.nBudgetPaymentsStartBlock = 365 * 1440; // 1 common year
+        consensus.nBudgetPaymentsCycleBlocks = 10958; // weekly
+        consensus.nBudgetPaymentsWindowBlocks = 100;
+        consensus.nBudgetProposalEstablishingTime = 86400; // 1 day
+
+        consensus.nSuperblockStartBlock = 365 * 1440; // 1 common year
+        consensus.nSuperblockCycle = 10958; // weekly
+
+        consensus.nGovernanceMinQuorum = 10;
+        consensus.nGovernanceFilterElements = 20000;
         consensus.BIP16Exception = uint256S("0000000000000000000000000000000000000000000000000000000000000000");
         consensus.BIP34Height = 8388608;
         consensus.BIP34Hash = uint256S("0000000000000000000000000000000000000000000000000000000000000000");
@@ -216,9 +236,10 @@ public:
         consensus.fPowNoRetargeting = false;
         consensus.nRuleChangeActivationThreshold = 1916;
         consensus.nMinerConfirmationWindow = 2016;
-	consensus.devAddressPubKey = "841e6bf56b99a59545da932de2efb23ab93b4f44";
+        consensus.devAddressPubKey = "841e6bf56b99a59545da932de2efb23ab93b4f44";
         consensus.devAddress = "SZLafuDjnjqh2tAfTrG9ZAGzbP8HkzNXvB";
-	consensus.cBurnAddress = "ScK6eotHEke2CjU9XaJvXLCRhfa3qAUars";
+        consensus.cBurnAddress = "ScK6eotHEke2CjU9XaJvXLCRhfa3qAUars";
+        strSporkPubKey = "04491f11731dd8c8a6f6418e69d01cf35a93327971c3c207dde66b58fc2e7e5c9510b5a80a61bc4982fea1533e96f25a1319cd602e14edd1702d652cd3da367bcb";
 
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].bit = 28;
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nStartTime = NEVER;
