@@ -27,6 +27,9 @@ bool CMasternodeConfig::read(std::string& strErr) {
     boost::filesystem::ifstream streamConfig(pathMasternodeConfigFile);
 
     if (!streamConfig.good()) {
+
+        LogPrintf("* masternode config bad or not found\n");
+
         FILE* configFile = fopen(pathMasternodeConfigFile.string().c_str(), "a");
         if (configFile != NULL) {
             std::string strHeader = "# Masternode config file\n"
@@ -40,10 +43,16 @@ bool CMasternodeConfig::read(std::string& strErr) {
 
     for(std::string line; std::getline(streamConfig, line); linenumber++)
     {
-        if(line.empty()) continue;
+        if(line.empty())
+        {
+             LogPrintf("* line is empty\n");
+             continue;
+        }
 
         std::istringstream iss(line);
         std::string comment, alias, ip, privKey, txHash, outputIndex, txHashBurnFund, outputIndexBurnFund;
+
+        LogPrintf("* parsing line '%s'\n",line.c_str());
 
         if (iss >> comment) {
             if(comment.at(0) == '#') continue;
@@ -84,7 +93,7 @@ bool CMasternodeConfig::read(std::string& strErr) {
         } else if(port == 20970) {
             strErr = _("Invalid port detected in masternode.conf") + "\n" +
                     strprintf(_("Line: %d"), linenumber) + "\n\"" + line + "\"" + "\n" +
-                    strprintf(_("(%d could be used only on mainnet)"), 20970);
+                    strprintf(_("(%d could be used only on mainnet)"), Params().GetDefaultPort());
             streamConfig.close();
             return false;
         }
