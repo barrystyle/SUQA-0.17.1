@@ -1788,6 +1788,10 @@ bool AppInitMain()
     }
 
     if(fMasterNode) {
+        std::string strErr;
+        if(!masternodeConfig.read(strErr)) {
+            LogPrintf("* Cannot read masternode.conf file:%s\n", strErr);
+        }
         LogPrintf("MASTERNODE:\n");
 
         std::string strMasterNodePrivKey = gArgs.GetArg("-masternodeprivkey", "");
