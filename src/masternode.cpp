@@ -702,7 +702,7 @@ bool CMasternodeBroadcast::SimpleCheck(int& nDos)
     int nDefaultPort = Params().GetDefaultPort();
     if(Params().NetworkIDString() == CBaseChainParams::MAIN) {
         if(addr.GetPort() != nDefaultPort) return false;
-    } else if(addr.GetPort() == nDefaultPort) return false;
+    } else if(addr.GetPort() == 20970) return false;
 
     return true;
 }
