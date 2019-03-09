@@ -178,7 +178,7 @@ public:
         fRequireStandard = true;
         fMineBlocksOnDemand = false;
 
-        nPoolMaxTransactions = 3;
+        nPoolMaxTransactions = 10;
         nFulfilledRequestExpireTime = 60*60; // fulfilled requests expire in 1 hour
 
         checkpointData = {
@@ -211,17 +211,13 @@ public:
 		consensus.nMasternodeBurnSINNODE_1 = 1;
 		consensus.nMasternodeBurnSINNODE_5 = 5;
 		consensus.nMasternodeBurnSINNODE_10 = 15;
-		
         consensus.nInstantSendKeepLock = 24;
-
         consensus.nBudgetPaymentsStartBlock = 365 * 1440; // 1 common year
         consensus.nBudgetPaymentsCycleBlocks = 10958; // weekly
         consensus.nBudgetPaymentsWindowBlocks = 100;
         consensus.nBudgetProposalEstablishingTime = 86400; // 1 day
-
         consensus.nSuperblockStartBlock = 365 * 1440; // 1 common year
         consensus.nSuperblockCycle = 10958; // weekly
-
         consensus.nGovernanceMinQuorum = 10;
         consensus.nGovernanceFilterElements = 20000;
         consensus.BIP16Exception = uint256S("0000000000000000000000000000000000000000000000000000000000000000");
@@ -265,8 +261,8 @@ public:
         pchMessageStart[1] = 0xfd;
         pchMessageStart[2] = 0xf4;
         pchMessageStart[3] = 0xd8;
-        //nDefaultPort = 20980;
         nPruneAfterHeight = 1000;
+        nFulfilledRequestExpireTime = 60*60;
 
         genesis = CreateGenesisBlock(1457163389, 2962201989, 0x1f00ffff, 1, 0 * COIN);
         consensus.hashGenesisBlock = genesis.GetHash();
@@ -361,6 +357,7 @@ public:
         fDefaultConsistencyChecks = true;
         fRequireStandard = false;
         fMineBlocksOnDemand = true;
+
 
         checkpointData = {
         };

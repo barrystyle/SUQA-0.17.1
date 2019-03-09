@@ -155,6 +155,7 @@ void CMasternodeSync::ClearFulfilledRequests(CConnman& connman)
 
 void CMasternodeSync::ProcessTick(CConnman& connman)
 {
+
     static int nTick = 0;
     if(nTick++ % MASTERNODE_SYNC_TICK_SECONDS != 0) return;
 
@@ -193,13 +194,14 @@ void CMasternodeSync::ProcessTick(CConnman& connman)
     uiInterface.NotifyAdditionalDataSyncProgressChanged(nSyncProgress);
 
     std::vector<CNode*> vNodesCopy = connman.CopyNodeVector();
-
+	LogPrintf("CMasternodeSync::ProcessTick -- 6: Ask number node:%d\n", vNodesCopy.size());
     for (auto* pnode : vNodesCopy)
     {
         // Don't try to sync any data from outbound "masternode" connections -
         // they are temporary and should be considered unreliable for a sync process.
         // Inbound connection this early is most likely a "masternode" connection
         // initiated from another node, so skip it too.
+
         if(pnode->fMasternode || (fMasterNode && pnode->fInbound)) continue;
 
         // QUICK MODE (REGTEST ONLY!)
@@ -271,16 +273,23 @@ void CMasternodeSync::ProcessTick(CConnman& connman)
                         connman.ReleaseNodeVector(vNodesCopy);
                         return;
                     }
+
                     SwitchToNextAsset(connman);
                     connman.ReleaseNodeVector(vNodesCopy);
                     return;
                 }
 
                 // only request once from each peer
-                if(netfulfilledman.HasFulfilledRequest(pnode->addr, "masternode-list-sync")) continue;
+                if(netfulfilledman.HasFulfilledRequest(pnode->addr, "masternode-list-sync")) {
+					LogPrintf("CMasternodeSync::ProcessTick -- only request once from each peer add: %s\n", pnode->addr.ToString());
+					continue;
+				}
+
+				LogPrintf("CMasternodeSync::ProcessTick -- add address %s to memmory that asked from him\n", pnode->addr.ToString());
                 netfulfilledman.AddFulfilledRequest(pnode->addr, "masternode-list-sync");
 
                 if (pnode->nVersion < mnpayments.GetMinMasternodePaymentsProto()) continue;
+
                 nRequestedMasternodeAttempt++;
 
                 mnodeman.DsegUpdate(pnode, connman);

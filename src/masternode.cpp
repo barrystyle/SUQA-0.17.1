@@ -211,6 +211,7 @@ CMasternode::BurnFundStatus CMasternode::CheckBurnFund(const COutPoint& outpoint
 
     Coin coin;
     if(!GetUTXOCoin(outpoint, coin)) {
+		LogPrintf("CMasternode::CheckBurnFund -- BurnFund tx not found %s-%d\n", outpoint.hash.ToString(), outpoint.n);
         return BURNFUND_UTXO_NOT_FOUND;
     }
     
