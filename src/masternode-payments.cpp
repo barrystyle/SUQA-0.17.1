@@ -310,7 +310,7 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int nBlockH
 			ExtractDestination(payee, address1);
 			std::string address2 = EncodeDestination(address1);
 
-			LogPrintf("CMasternodePayments::FillBlockPayee -- Masternode payment %lld to %s\n", masternodePayment, address2);
+			LogPrintf("CMasternodePayments::FillBlockPayee -- Masternode payment %lld to %s with SIN type %d\n", masternodePayment, address2, sintype.first);
 		}
 	}
 	return;

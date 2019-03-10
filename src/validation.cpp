@@ -1257,27 +1257,27 @@ CAmount GetMasternodePayment(int nHeight, int sintype = 0)
 	}
 
 	if (sintype == 1) {
-		if (nHeight <   22000) return  0 * COIN;
-		if (nHeight <   50000) return  0 * COIN;
-		if (nHeight <  100000) return  0 * COIN;
+		if (nHeight <   22000) return  8 * COIN;
+		if (nHeight <   50000) return  8 * COIN;
+		if (nHeight <  100000) return  8 * COIN;  //test in testnet
 		if (nHeight <  200000) return  100 * COIN;
 		if (nHeight <  400000) return  105 * COIN;
 		if (nHeight < 1500000) return  110 * COIN;
 	}
 
 	if (sintype == 5) {
-		if (nHeight <   22000) return  0 * COIN;
-		if (nHeight <   50000) return  0 * COIN;
-		if (nHeight <  100000) return  0 * COIN;
+		if (nHeight <   22000) return  40 * COIN;
+		if (nHeight <   50000) return  40 * COIN;
+		if (nHeight <  100000) return  40 * COIN;  //test in testnet
 		if (nHeight <  200000) return  500 * COIN;
 		if (nHeight <  400000) return  525 * COIN;
 		if (nHeight < 1500000) return  550 * COIN;
 	}
 
 	if (sintype == 10) {
-		if (nHeight <   22000) return  0 * COIN;
-		if (nHeight <   50000) return  0 * COIN;
-		if (nHeight <  100000) return  0 * COIN;
+		if (nHeight <   22000) return  80 * COIN;
+		if (nHeight <   50000) return  80 * COIN;
+		if (nHeight <  100000) return  80 * COIN;  //test in testnet
 		if (nHeight <  200000) return  1000 * COIN;
 		if (nHeight <  400000) return  1050 * COIN;
 		if (nHeight < 1500000) return  1100 * COIN;

@@ -202,10 +202,16 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
     coinbaseTx.vout[0].scriptPubKey = scriptPubKeyIn;
     coinbaseTx.vout[0].nValue = nFees + GetBlockSubsidy(nHeight, chainparams.GetConsensus());
     coinbaseTx.vin[0].scriptSig = CScript() << nHeight << OP_0;
+	// Burn Tx Fee
+	if (nFees > 0) {
+		CTxDestination burnDestination =  DecodeDestination(Params().GetConsensus().cBurnAddress);
+		CScript burnAddressScript = GetScriptForDestination(burnDestination);
+		coinbaseTx.vout.push_back(CTxOut(nFees, burnAddressScript));
+	}
 
 	int nSINNODE_1 = 0; int nSINNODE_5 = 0; int nSINNODE_10 = 0;
 	mnpayments.NetworkDiagnostic(chainActive.Height(), nSINNODE_1, nSINNODE_5, nSINNODE_10);
-	LogPrint(BCLog::MNPAYMENTS, "FillBlockPayments -- SIN type in network, LiLSIN: %d MIDSIN: %d BIGSIN:  %d\n", nSINNODE_1, nSINNODE_5, nSINNODE_10);
+	LogPrintf("Miner -- SIN type in network, LILSIN: %d MIDSIN: %d BIGSIN:  %d\n", nSINNODE_1, nSINNODE_5, nSINNODE_10);
 	if (nSINNODE_1 == 1) coinbaseTx.vout[0].nValue += GetMasternodePayment(nHeight, 1);
 	if (nSINNODE_5 == 1) coinbaseTx.vout[0].nValue += GetMasternodePayment(nHeight, 5);
 	if (nSINNODE_10 == 1) coinbaseTx.vout[0].nValue += GetMasternodePayment(nHeight, 10);
