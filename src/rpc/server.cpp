@@ -13,6 +13,7 @@
 #include <ui_interface.h>
 #include <util.h>
 #include <utilstrencodings.h>
+#include <testnet_notaries.h>
 
 #include <boost/bind.hpp>
 #include <boost/signals2/signal.hpp>
@@ -255,6 +256,55 @@ static UniValue uptime(const JSONRPCRequest& jsonRequest)
     return GetTime() - GetStartupTime();
 }
 
+int32_t getera(int now)
+{
+   for (int32_t i = 0; i < NUM_STAKED_ERAS; i++) {
+       if ( now <= STAKED_NOTARIES_TIMESTAMP[i] ) {
+           return(i);
+       }
+   }
+   return(0);
+}
+ 
+static UniValue getiguanajson(const JSONRPCRequest& jsonRequest)
+{
+   if (jsonRequest.fHelp || jsonRequest.params.size() != 0)
+        throw std::runtime_error("getiguanajson\nreturns json for iguana, for the current ERA.");
+
+   UniValue json(UniValue::VOBJ);
+   UniValue seeds(UniValue::VARR);
+   UniValue notaries(UniValue::VARR);
+   // get the current era, use local time for now.
+   int now = time(NULL);
+   int32_t era = getera(now);
+
+   // loop over seeds array and push back to json array for seeds
+   for (int8_t i = 0; i < 8; i++) {
+       seeds.push_back(iguanaSeeds[i][0]);
+   }
+
+   // loop over era's notaries and push back each pair to the notary array
+   for (int8_t i = 0; i < num_notaries_STAKED[era]; i++) {
+       UniValue notary(UniValue::VOBJ);
+       notary.push_back(Pair(notaries_STAKED[era][i][0],notaries_STAKED[era][i][1]));
+       notaries.push_back(notary);
+   }
+
+   // get the min sigs .. this always rounds UP so min sigs in iguana is +1 min sigs in komodod, due to some possible rounding error.
+   int minsigs;
+   if ( num_notaries_STAKED[era]/5 > overrideMinSigs )
+       minsigs = (num_notaries_STAKED[era] / 5) + 1;
+   else
+       minsigs = overrideMinSigs;
+
+   json.push_back(Pair("port",iguanaPort));
+   json.push_back(Pair("BTCminsigs",BTCminsigs));
+   json.push_back(Pair("minsigs",minsigs));
+   json.push_back(Pair("seeds",seeds));
+   json.push_back(Pair("notaries",notaries));
+   return json;
+}
+
 /**
  * Call Table
  */
@@ -265,6 +315,7 @@ static const CRPCCommand vRPCCommands[] =
     { "control",            "help",                   &help,                   {"command"}  },
     { "control",            "stop",                   &stop,                   {}  },
     { "control",            "uptime",                 &uptime,                 {}  },
+    { "control",            "getiguanajson",          &getiguanajson,          {}  },
 };
 
 CRPCTable::CRPCTable()

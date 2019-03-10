@@ -195,32 +195,30 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
     nLastBlockWeight = nBlockWeight;
 
     // Create coinbase transaction.
+	CAmount blockReward = nFees + GetBlockSubsidy(nHeight, chainparams.GetConsensus());
+
     CMutableTransaction coinbaseTx;
     coinbaseTx.vin.resize(1);
     coinbaseTx.vin[0].prevout.SetNull();
     coinbaseTx.vout.resize(1);
+	//miner reward
     coinbaseTx.vout[0].scriptPubKey = scriptPubKeyIn;
-    coinbaseTx.vout[0].nValue = nFees + GetBlockSubsidy(nHeight, chainparams.GetConsensus());
+    coinbaseTx.vout[0].nValue = blockReward;
     coinbaseTx.vin[0].scriptSig = CScript() << nHeight << OP_0;
+	//sinnode reward
+	int fSINNODE_1 = 0; int fSINNODE_5 = 0; int fSINNODE_10 = 0;
+	mnpayments.NetworkDiagnostic(chainActive.Height(), fSINNODE_1, fSINNODE_5, fSINNODE_10);
+	LogPrintf("Miner -- SIN type in network, height: %d, LILSIN: %d MIDSIN: %d BIGSIN:  %d\n", chainActive.Height(), fSINNODE_1, fSINNODE_5, fSINNODE_10);
+    FillBlockPayments(coinbaseTx, nHeight, coinbaseTx.vout[0].nValue, pblock->txoutMasternode, pblock->voutSuperblock, fSINNODE_1, fSINNODE_5, fSINNODE_10);
 	// Burn Tx Fee
-	if (nFees > 0) {
-		CTxDestination burnDestination =  DecodeDestination(Params().GetConsensus().cBurnAddress);
-		CScript burnAddressScript = GetScriptForDestination(burnDestination);
-		coinbaseTx.vout.push_back(CTxOut(nFees, burnAddressScript));
-	}
-
-	int nSINNODE_1 = 0; int nSINNODE_5 = 0; int nSINNODE_10 = 0;
-	mnpayments.NetworkDiagnostic(chainActive.Height(), nSINNODE_1, nSINNODE_5, nSINNODE_10);
-	LogPrintf("Miner -- SIN type in network, LILSIN: %d MIDSIN: %d BIGSIN:  %d\n", nSINNODE_1, nSINNODE_5, nSINNODE_10);
-	if (nSINNODE_1 == 1) coinbaseTx.vout[0].nValue += GetMasternodePayment(nHeight, 1);
-	if (nSINNODE_5 == 1) coinbaseTx.vout[0].nValue += GetMasternodePayment(nHeight, 5);
-	if (nSINNODE_10 == 1) coinbaseTx.vout[0].nValue += GetMasternodePayment(nHeight, 10);
-
-    FillBlockPayments(coinbaseTx, nHeight, coinbaseTx.vout[0].nValue, pblock->txoutMasternode, pblock->voutSuperblock, nSINNODE_1, nSINNODE_5, nSINNODE_10);
+	CTxDestination burnDestination =  DecodeDestination(Params().GetConsensus().cBurnAddress);
+	CScript burnAddressScript = GetScriptForDestination(burnDestination);
+	coinbaseTx.vout.push_back(CTxOut(nFees, burnAddressScript));
 
 	coinbaseTx.vout.resize(2);
 	coinbaseTx.vout[1].scriptPubKey = devScript;
-    coinbaseTx.vout[1].nValue = GetDevCoin(coinbaseTx.vout[0].nValue);
+    coinbaseTx.vout[1].nValue = GetDevCoin(blockReward);
+	LogPrintf("Miner -- Payout: %d. Dev fee: %d\n",blockReward, coinbaseTx.vout[1].nValue);
 
     pblock->vtx[0] = MakeTransactionRef(std::move(coinbaseTx));
     pblocktemplate->vchCoinbaseCommitment = GenerateCoinbaseCommitment(*pblock, pindexPrev, chainparams.GetConsensus());

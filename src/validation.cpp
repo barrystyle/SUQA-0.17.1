@@ -1228,13 +1228,22 @@ double ConvertBitsToDouble(unsigned int nBits)
 
 CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
 {
-    if (nHeight <   22000) return 10000 * COIN;
-    if (nHeight <   50000) return  5000 * COIN;
-    if (nHeight <  100000) return  2500 * COIN;
-    if (nHeight <  200000) return  1250 * COIN;
-    if (nHeight <  400000) return   625 * COIN;
-    if (nHeight < 1500000) return   312 * COIN;
-    return 0;
+	int fSINNODE_1 = 0; int fSINNODE_5 = 0; int fSINNODE_10 = 0;
+	mnpayments.NetworkDiagnostic(chainActive.Height(), fSINNODE_1, fSINNODE_5, fSINNODE_10);
+	LogPrintf("GetBlockSubsidy -- SIN type in network, height: %d, LILSIN: %d MIDSIN: %d BIGSIN:  %d\n", chainActive.Height(), fSINNODE_1, fSINNODE_5, fSINNODE_10);
+
+	CAmount reward = 0;
+
+    if (nHeight <   22000) reward = 10000 * COIN;
+    if (22000 <= nHeight && nHeight < 50000) reward = 5000 * COIN;
+    if (50000 <= nHeight && nHeight < 100000) reward = 2500 * COIN;
+    if (100000 <= nHeight && nHeight < 200000) reward = 1250 * COIN;
+    if (200000 <= nHeight && nHeight < 400000) reward =  625 * COIN;
+    if (400000 <= nHeight && nHeight < 1500000) reward =  312 * COIN;
+
+	reward += GetMasternodePayment(nHeight, fSINNODE_1) + GetMasternodePayment(nHeight, fSINNODE_5) + GetMasternodePayment(nHeight, fSINNODE_10);
+
+    return reward;
 }
 
 CAmount GetBlockSubsidy(int nHeight, CBlockHeader pblock, const Consensus::Params& consensusParams, bool fSuperblockPartOnly)
@@ -1275,9 +1284,9 @@ CAmount GetMasternodePayment(int nHeight, int sintype = 0)
 	}
 
 	if (sintype == 10) {
-		if (nHeight <   22000) return  80 * COIN;
-		if (nHeight <   50000) return  80 * COIN;
-		if (nHeight <  100000) return  80 * COIN;  //test in testnet
+		if (nHeight <   22000) return  81 * COIN;
+		if (nHeight <   50000) return  81 * COIN;
+		if (nHeight <  100000) return  81 * COIN;  //test in testnet
 		if (nHeight <  200000) return  1000 * COIN;
 		if (nHeight <  400000) return  1050 * COIN;
 		if (nHeight < 1500000) return  1100 * COIN;
@@ -2193,7 +2202,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
     // verify devfund addr and amount are correct
     if (block.vtx[0]->vout[1].scriptPubKey != devScript)
         return state.DoS(100, error("ConnectBlock(): coinbase does not pay to the dev fund address."), REJECT_INVALID, "bad-cb-dev-fee");
-
+	LogPrintf("Miner -- Dev fee paid: %d, Calcul dev fee %d\n", block.vtx[0]->vout[1].nValue, GetDevCoin(blockReward));
     if (block.vtx[0]->vout[1].nValue < GetDevCoin(blockReward))
         return state.DoS(100, error("ConnectBlock(): coinbase does not pay enough to the dev fund address."), REJECT_INVALID, "bad-cb-dev-fee");
 
@@ -3759,7 +3768,8 @@ bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<cons
     return true;
 }
 
-bool TestBlockValidity(CValidationState& state, const CChainParams& chainparams, const CBlock& block, CBlockIndex* pindexPrev, bool fCheckPOW, bool fCheckMerkleRoot)
+bool TestBlockValidity(CValidationState& state, const CChainParams& chainparams, const CBlock& block, CBlockIndex* pindexPrev, bool fCheckPOW, 
+					   bool fCheckMerkleRoot)
 {
     AssertLockHeld(cs_main);
     assert(pindexPrev && pindexPrev == chainActive.Tip());

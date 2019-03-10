@@ -216,7 +216,7 @@ bool IsBlockPayeeValid(const CTransactionRef txNew, int nBlockHeight, CAmount bl
 }
 
 void FillBlockPayments(CMutableTransaction& txNew, int nBlockHeight, CAmount blockReward, std::vector<CTxOut>& txoutMasternodeRet, std::vector<CTxOut>& voutSuperblockRet,
-					int nSINNODE_1, int nSINNODE_5, int nSINNODE_10)
+					int fSINNODE_1, int fSINNODE_5, int fSINNODE_10)
 {
     // only create superblocks if spork is enabled AND if superblock is actually triggered
     // (height should be validated inside)
@@ -229,9 +229,9 @@ void FillBlockPayments(CMutableTransaction& txNew, int nBlockHeight, CAmount blo
 
     // FILL BLOCK PAYEE WITH MASTERNODE PAYMENT OTHERWISE
 	sintype_pair_vec_t vSinType;
-	vSinType.push_back(std::make_pair(1, nSINNODE_1));
-	vSinType.push_back(std::make_pair(5, nSINNODE_5));
-	vSinType.push_back(std::make_pair(10, nSINNODE_10));
+	vSinType.push_back(std::make_pair(1, fSINNODE_1));
+	vSinType.push_back(std::make_pair(5, fSINNODE_5));
+	vSinType.push_back(std::make_pair(10, fSINNODE_10));
     mnpayments.FillBlockPayee(txNew, nBlockHeight, blockReward, txoutMasternodeRet, vSinType);
 	for (auto txoutMasternode : txoutMasternodeRet) {
 		LogPrint(BCLog::MNPAYMENTS, "FillBlockPayments -- nBlockHeight %d blockReward %lld txoutMasternodeRet %s txNew %s\n",
@@ -284,6 +284,7 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int nBlockH
     CScript payee;
 	for (auto& sintype : vSinType) {
 		if (sintype.second == 1) {
+			LogPrintf("CMasternodePayments::FillBlockPayee -- SIN type: %d", sintype.first);
 			if(!mnpayments.GetBlockPayee(nBlockHeight, sintype.first, payee)) {
 				// no masternode detected/voted from network...
 				int nCount = 0;
