@@ -205,6 +205,9 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
     coinbaseTx.vout[0].scriptPubKey = scriptPubKeyIn;
     coinbaseTx.vout[0].nValue = blockReward;
     coinbaseTx.vin[0].scriptSig = CScript() << nHeight << OP_0;
+    // Dev fee
+    coinbaseTx.vout.push_back(CTxOut(GetDevCoin(blockReward), devScript));
+    LogPrintf("Miner -- Payout: %d. Dev fee: %d\n",blockReward, GetDevCoin(blockReward));
 	//sinnode reward
 	int fSINNODE_1 = 0; int fSINNODE_5 = 0; int fSINNODE_10 = 0;
 	mnpayments.NetworkDiagnostic(chainActive.Height(), fSINNODE_1, fSINNODE_5, fSINNODE_10);
@@ -215,17 +218,10 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
 	CScript burnAddressScript = GetScriptForDestination(burnDestination);
 	coinbaseTx.vout.push_back(CTxOut(nFees, burnAddressScript));
 
-	coinbaseTx.vout.resize(2);
-	coinbaseTx.vout[1].scriptPubKey = devScript;
-    coinbaseTx.vout[1].nValue = GetDevCoin(blockReward);
-	LogPrintf("Miner -- Payout: %d. Dev fee: %d\n",blockReward, coinbaseTx.vout[1].nValue);
-
     pblock->vtx[0] = MakeTransactionRef(std::move(coinbaseTx));
     pblocktemplate->vchCoinbaseCommitment = GenerateCoinbaseCommitment(*pblock, pindexPrev, chainparams.GetConsensus());
     pblocktemplate->vTxFees[0] = -nFees;
-
     LogPrintf("CreateNewBlock(): block weight: %u txs: %u fees: %ld sigops %d\n", GetBlockWeight(*pblock), nBlockTx, nFees, nBlockSigOpsCost);
-
     // Fill in header
     pblock->hashPrevBlock  = pindexPrev->GetBlockHash();
     UpdateTime(pblock, chainparams.GetConsensus(), pindexPrev);

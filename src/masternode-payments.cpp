@@ -229,9 +229,9 @@ void FillBlockPayments(CMutableTransaction& txNew, int nBlockHeight, CAmount blo
 
     // FILL BLOCK PAYEE WITH MASTERNODE PAYMENT OTHERWISE
 	sintype_pair_vec_t vSinType;
-	vSinType.push_back(std::make_pair(1, fSINNODE_1));
-	vSinType.push_back(std::make_pair(5, fSINNODE_5));
-	vSinType.push_back(std::make_pair(10, fSINNODE_10));
+	vSinType.push_back(std::make_pair(CMasternode::SinType::SINNODE_1, fSINNODE_1));
+	vSinType.push_back(std::make_pair(CMasternode::SinType::SINNODE_5, fSINNODE_5));
+	vSinType.push_back(std::make_pair(CMasternode::SinType::SINNODE_10, fSINNODE_10));
     mnpayments.FillBlockPayee(txNew, nBlockHeight, blockReward, txoutMasternodeRet, vSinType);
 	for (auto txoutMasternode : txoutMasternodeRet) {
 		LogPrint(BCLog::MNPAYMENTS, "FillBlockPayments -- nBlockHeight %d blockReward %lld txoutMasternodeRet %s txNew %s\n",
@@ -284,7 +284,7 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int nBlockH
     CScript payee;
 	for (auto& sintype : vSinType) {
 		if (sintype.second == 1) {
-			LogPrintf("CMasternodePayments::FillBlockPayee -- SIN type: %d", sintype.first);
+			LogPrintf("CMasternodePayments::FillBlockPayee -- SIN type: %d\n", sintype.first);
 			if(!mnpayments.GetBlockPayee(nBlockHeight, sintype.first, payee)) {
 				// no masternode detected/voted from network...
 				int nCount = 0;
