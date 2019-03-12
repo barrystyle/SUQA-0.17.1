@@ -59,7 +59,7 @@
 #include <testnet_notaries.h>
 #include <key_io.h>
 
-char ASSETCHAINS_SYMBOL[65] = { "SUQA" };
+char ASSETCHAINS_SYMBOL[65] = { "SIN" };
 
 #define SATOSHIDEN ((uint64_t)100000000L)
 #define dstr(x) ((double)(x) / SATOSHIDEN)
