@@ -209,10 +209,7 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
     coinbaseTx.vout.push_back(CTxOut(GetDevCoin(blockReward), devScript));
     LogPrintf("Miner -- Payout: %d. Dev fee: %d\n",blockReward, GetDevCoin(blockReward));
 	//sinnode reward
-	int fSINNODE_1 = 0; int fSINNODE_5 = 0; int fSINNODE_10 = 0;
-	mnpayments.NetworkDiagnostic(chainActive.Height(), fSINNODE_1, fSINNODE_5, fSINNODE_10);
-	LogPrintf("Miner -- SIN type in network, height: %d, LILSIN: %d MIDSIN: %d BIGSIN:  %d\n", chainActive.Height(), fSINNODE_1, fSINNODE_5, fSINNODE_10);
-    FillBlockPayments(coinbaseTx, nHeight, coinbaseTx.vout[0].nValue, pblock->txoutMasternode, pblock->voutSuperblock, fSINNODE_1, fSINNODE_5, fSINNODE_10);
+    FillBlockPayments(coinbaseTx, nHeight, coinbaseTx.vout[0].nValue, pblock->txoutMasternode, pblock->voutSuperblock);
 	// Burn Tx Fee
 	coinbaseTx.vout[0].nValue -= nFees;
 	CTxDestination burnDestination =  DecodeDestination(Params().GetConsensus().cBurnAddress);

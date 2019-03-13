@@ -215,8 +215,7 @@ bool IsBlockPayeeValid(const CTransactionRef txNew, int nBlockHeight, CAmount bl
     return true;
 }
 
-void FillBlockPayments(CMutableTransaction& txNew, int nBlockHeight, CAmount blockReward, std::vector<CTxOut>& txoutMasternodeRet, std::vector<CTxOut>& voutSuperblockRet,
-					int fSINNODE_1, int fSINNODE_5, int fSINNODE_10)
+void FillBlockPayments(CMutableTransaction& txNew, int nBlockHeight, CAmount blockReward, std::vector<CTxOut>& txoutMasternodeRet, std::vector<CTxOut>& voutSuperblockRet)
 {
     // only create superblocks if spork is enabled AND if superblock is actually triggered
     // (height should be validated inside)
@@ -226,6 +225,11 @@ void FillBlockPayments(CMutableTransaction& txNew, int nBlockHeight, CAmount blo
             CSuperblockManager::CreateSuperblock(txNew, nBlockHeight, voutSuperblockRet);
             return;
     }
+
+	int fSINNODE_1 = 0; int fSINNODE_5 = 0; int fSINNODE_10 = 0;
+	mnpayments.NetworkDiagnostic(chainActive.Height(), fSINNODE_1, fSINNODE_5, fSINNODE_10);
+	LogPrintf("FillBlockPayments -- SIN type in network, height: %d, LILSIN: %d MIDSIN: %d BIGSIN:  %d\n", chainActive.Height(), fSINNODE_1, fSINNODE_5, fSINNODE_10);
+
 
     // FILL BLOCK PAYEE WITH MASTERNODE PAYMENT OTHERWISE
 	sintype_pair_vec_t vSinType;
@@ -283,6 +287,7 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int nBlockH
 
     CScript payee;
 	for (auto& sintype : vSinType) {
+		CAmount masternodePayment = GetMasternodePayment(nBlockHeight, sintype.first);
 		if (sintype.second == 1) {
 			LogPrintf("CMasternodePayments::FillBlockPayee -- SIN type: %d\n", sintype.first);
 			if(!mnpayments.GetBlockPayee(nBlockHeight, sintype.first, payee)) {
@@ -299,7 +304,7 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int nBlockH
 			}
 
 			// GET MASTERNODE PAYMENT VARIABLES SETUP
-			CAmount masternodePayment = GetMasternodePayment(nBlockHeight, sintype.first);
+			//CAmount masternodePayment = GetMasternodePayment(nBlockHeight, sintype.first);
 
 			// split reward between miner ...
 			txNew.vout[0].nValue -= masternodePayment;
@@ -312,6 +317,12 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int nBlockH
 			std::string address2 = EncodeDestination(address1);
 
 			LogPrintf("CMasternodePayments::FillBlockPayee -- Masternode payment %lld to %s with SIN type %d\n", masternodePayment, address2, sintype.first);
+		}else{
+			txNew.vout[0].nValue -= masternodePayment;
+			CTxDestination burnDestination =  DecodeDestination(Params().GetConsensus().cBurnAddress);
+			CScript burnAddressScript = GetScriptForDestination(burnDestination);
+			txNew.vout.push_back(CTxOut(masternodePayment, burnAddressScript));
+			LogPrintf("CMasternodePayments::FillBlockPayee -- Burn coin %lld for SIN type %d\n", masternodePayment, sintype.first);
 		}
 	}
 	return;

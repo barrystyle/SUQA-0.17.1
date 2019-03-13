@@ -1228,9 +1228,6 @@ double ConvertBitsToDouble(unsigned int nBits)
 
 CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
 {
-	int fSINNODE_1 = 0; int fSINNODE_5 = 0; int fSINNODE_10 = 0;
-	mnpayments.NetworkDiagnostic(chainActive.Height(), fSINNODE_1, fSINNODE_5, fSINNODE_10);
-	LogPrintf("GetBlockSubsidy -- SIN type in network, height: %d, LILSIN: %d MIDSIN: %d BIGSIN:  %d\n", chainActive.Height(), fSINNODE_1, fSINNODE_5, fSINNODE_10);
 
 	CAmount reward = 0;
 
@@ -1241,7 +1238,7 @@ CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
     if (200000 <= nHeight && nHeight < 400000) reward =  625 * COIN;
     if (400000 <= nHeight && nHeight < 1500000) reward =  312 * COIN;
 
-	reward += GetMasternodePayment(nHeight, fSINNODE_1) + GetMasternodePayment(nHeight, fSINNODE_5) + GetMasternodePayment(nHeight, fSINNODE_10);
+	reward += GetMasternodePayment(nHeight, 1) + GetMasternodePayment(nHeight, 5) + GetMasternodePayment(nHeight, 10);
 
     return reward;
 }
