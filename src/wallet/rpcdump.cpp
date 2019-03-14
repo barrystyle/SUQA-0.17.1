@@ -251,6 +251,34 @@ static void ImportAddress(CWallet* const pwallet, const CTxDestination& dest, co
         pwallet->SetAddressBook(dest, strLabel, "receive");
 }
 
+int32_t komodo_importaddress(std::string addr)
+{
+    const CTxDestination& address = DecodeDestination(addr);
+    std::shared_ptr<CWallet> const wallet = GetWallets()[0];
+    CWallet* const pwallet = wallet.get();
+    if ( pwallet != 0 )
+    {
+        LOCK2(cs_main, pwallet->cs_wallet);
+        if ( IsValidDestination(address) )
+        {
+            isminetype mine = IsMine(*pwallet, address);
+            if ( (mine & ISMINE_SPENDABLE) != 0 || (mine & ISMINE_WATCH_ONLY) != 0 )
+            {
+                //printf("komodo_importaddress %s already there\n",EncodeDestination(address).c_str());
+                return(0);
+            }
+            else
+            {
+                //printf("komodo_importaddress %s\n",addr.c_str());
+                ImportAddress(pwallet, address, addr);
+                return(1);
+            }
+        }
+        fprintf(stderr,"%s -> komodo_importaddress failed valid.%d\n",addr.c_str(),IsValidDestination(address));
+    }
+    return(-1);
+}
+
 UniValue importaddress(const JSONRPCRequest& request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
