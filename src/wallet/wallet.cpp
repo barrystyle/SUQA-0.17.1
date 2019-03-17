@@ -3927,7 +3927,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CTransac
 
                     // Dash
                     if (fUseInstantSend && nValueIn > sporkManager.GetSporkValue(SPORK_5_INSTANTSEND_MAX_VALUE)*COIN) {
-                        strFailReason += " " + strprintf(_("InstantSend doesn't support sending values that high yet. Transactions are currently limited to %1 DASH."), sporkManager.GetSporkValue(SPORK_5_INSTANTSEND_MAX_VALUE));
+                        strFailReason += " " + strprintf(_("InstantSend doesn't support sending values %lld that high yet (selected values %lld). Transactions are currently limited to %1 SIN."),nValueIn, nValueToSelect, sporkManager.GetSporkValue(SPORK_5_INSTANTSEND_MAX_VALUE));
                         return false;
                     }
 
