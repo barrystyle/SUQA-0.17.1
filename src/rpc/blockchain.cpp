@@ -38,6 +38,8 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/thread/thread.hpp> // boost::thread::interrupt
+/*SIN*/
+#include <instantx.h>
 
 #include <memory>
 #include <mutex>
@@ -381,6 +383,8 @@ static std::string EntryDescriptionString()
            "    \"depends\" : [           (array) unconfirmed transactions used as inputs for this transaction\n"
            "        \"transactionid\",    (string) parent transaction id\n"
            "       ... ]\n"
+           "    \"instantsend\" : true|false, (boolean) True if this transaction was sent as an InstantSend one\n"
+           "    \"instantlock\" : true|false  (boolean) True if this transaction was locked via InstantSend\n"
            "    \"spentby\" : [           (array) unconfirmed transactions spending outputs from this transaction\n"
            "        \"transactionid\",    (string) child transaction id\n"
            "       ... ]\n";
@@ -424,6 +428,8 @@ static void entryToJSON(UniValue &info, const CTxMemPoolEntry &e) EXCLUSIVE_LOCK
     }
 
     info.pushKV("depends", depends);
+    info.pushKV("instantsend", instantsend.HasTxLockRequest(tx.GetHash()));
+    info.pushKV("instantlock", instantsend.IsLockedInstantSendTransaction(tx.GetHash()));
 
     UniValue spent(UniValue::VARR);
     const CTxMemPool::txiter &it = mempool.mapTx.find(tx.GetHash());

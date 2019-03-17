@@ -142,6 +142,8 @@ bool parseBitcoinURI(const QUrl &uri, SendCoinsRecipient *out)
 
     QUrlQuery uriQuery(uri);
     QList<QPair<QString, QString> > items = uriQuery.queryItems();
+
+    rv.fUseInstantSend = false;
     for (QList<QPair<QString, QString> >::iterator i = items.begin(); i != items.end(); i++)
     {
         bool fShouldReturnFalse = false;
@@ -154,6 +156,13 @@ bool parseBitcoinURI(const QUrl &uri, SendCoinsRecipient *out)
         if (i->first == "label")
         {
             rv.label = i->second;
+            fShouldReturnFalse = false;
+        }
+        if (i->first == "IS")
+        {
+            if(i->second.compare(QString("1")) == 0)
+                rv.fUseInstantSend = true;
+
             fShouldReturnFalse = false;
         }
         if (i->first == "message")
@@ -211,6 +220,12 @@ QString formatBitcoinURI(const SendCoinsRecipient &info)
     {
         QString msg(QUrl::toPercentEncoding(info.message));
         ret += QString("%1message=%2").arg(paramCount == 0 ? "?" : "&").arg(msg);
+        paramCount++;
+    }
+
+    if(info.fUseInstantSend)
+    {
+        ret += QString("%1IS=1").arg(paramCount == 0 ? "?" : "&");
         paramCount++;
     }
 

@@ -20,6 +20,8 @@
 #include <util.h>
 #include <utilmoneystr.h>
 #include <utiltime.h>
+/*SIN*/
+#include <instantx.h>
 
 CTxMemPoolEntry::CTxMemPoolEntry(const CTransactionRef& _tx, const CAmount& _nFee,
                                  int64_t _nTime, unsigned int _entryHeight,
@@ -982,6 +984,12 @@ int CTxMemPool::Expire(int64_t time) {
     indexed_transaction_set::index<entry_time>::type::iterator it = mapTx.get<entry_time>().begin();
     setEntries toremove;
     while (it != mapTx.get<entry_time>().end() && it->GetTime() < time) {
+        /*SIN*/
+        // locked txes do not expire until mined and have sufficient confirmations
+        if (instantsend.IsLockedInstantSendTransaction(it->GetTx().GetHash())) {
+            it++;
+            continue;
+        }
         toremove.insert(mapTx.project<0>(it));
         it++;
     }

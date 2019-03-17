@@ -41,11 +41,11 @@ public:
     bool commit(WalletValueMap value_map,
         WalletOrderForm order_form,
         std::string from_account,
-        std::string& reject_reason) override
+        std::string& reject_reason, std::string strCommand) override
     {
         LOCK2(cs_main, m_wallet.cs_wallet);
         CValidationState state;
-        if (!m_wallet.CommitTransaction(m_tx, std::move(value_map), std::move(order_form), std::move(from_account), m_key, g_connman.get(), state)) {
+        if (!m_wallet.CommitTransaction(m_tx, std::move(value_map), std::move(order_form), std::move(from_account), m_key, g_connman.get(), state, strCommand)) {
             reject_reason = state.GetRejectReason();
             return false;
         }

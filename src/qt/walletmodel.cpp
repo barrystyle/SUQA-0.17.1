@@ -23,6 +23,10 @@
 #include <validation.h>
 
 #include <stdint.h>
+/*SIN*/
+#include <instantx.h>
+#include <spork.h>
+#include <privatesend-client.h>
 
 #include <QDebug>
 #include <QMessageBox>
@@ -220,6 +224,12 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
     {
         return AmountExceedsBalance;
     }
+/*SIN*/
+    if(recipients[0].fUseInstantSend && total > sporkManager.GetSporkValue(SPORK_5_INSTANTSEND_MAX_VALUE)*COIN) {
+        Q_EMIT message(tr("Send Coins"), tr("InstantSend doesn't support sending values that high yet. Transactions are currently limited to %1 SIN.").arg(sporkManager.GetSporkValue(SPORK_5_INSTANTSEND_MAX_VALUE)),
+                     CClientUIInterface::MSG_ERROR);
+        return TransactionCreationFailed;
+    }
 
     {
         CAmount nFeeRequired = 0;
@@ -229,14 +239,24 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
         auto& newTx = transaction.getWtx();
 
         // Dash
-        // FXTC TODO: check
-        //newTx = m_wallet->createTransaction(vecSend, coinControl, true /* sign */, nChangePosRet, nFeeRequired, strFailReason);
-        newTx = m_wallet->createTransaction(vecSend, coinControl, true /* sign */, nChangePosRet, nFeeRequired, strFailReason, recipients[0].inputType, recipients[0].fUseInstantSend);
+        newTx = m_wallet->createTransaction(vecSend, coinControl, true , nChangePosRet, nFeeRequired, strFailReason, recipients[0].inputType, recipients[0].fUseInstantSend);
         //
 
         transaction.setTransactionFee(nFeeRequired);
         if (fSubtractFeeFromAmount && newTx)
             transaction.reassignAmounts(nChangePosRet);
+
+        if(recipients[0].fUseInstantSend) {
+            if(newTx->get().GetValueOut() > sporkManager.GetSporkValue(SPORK_5_INSTANTSEND_MAX_VALUE)*COIN) {
+                Q_EMIT message(tr("Send Coins"), tr("InstantSend doesn't support sending values that high yet. Transactions are currently limited to %1 DASH.").arg(sporkManager.GetSporkValue(SPORK_5_INSTANTSEND_MAX_VALUE)),
+                            CClientUIInterface::MSG_ERROR);
+                return TransactionCreationFailed;
+            }
+            if(newTx->get().vin.size() > CTxLockRequest::WARN_MANY_INPUTS) {
+                Q_EMIT message(tr("Send Coins"), tr("Used way too many inputs (>%1) for this InstantSend transaction, fees could be huge.").arg(CTxLockRequest::WARN_MANY_INPUTS),
+                            CClientUIInterface::MSG_WARNING);
+            }
+        }
 
         if(!newTx)
         {
@@ -255,7 +275,6 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
         if (nFeeRequired > m_node.getMaxTxFee())
             return AbsurdFee;
     }
-
     return SendCoinsReturn(OK);
 }
 
@@ -265,6 +284,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
 
     {
         std::vector<std::pair<std::string, std::string>> vOrderForm;
+
         for (const SendCoinsRecipient &rcp : transaction.getRecipients())
         {
             if (rcp.paymentRequest.IsInitialized())
@@ -285,7 +305,10 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
 
         auto& newTx = transaction.getWtx();
         std::string rejectReason;
-        if (!newTx->commit({} /* mapValue */, std::move(vOrderForm), {} /* fromAccount */, rejectReason))
+        
+        QList<SendCoinsRecipient> recipients = transaction.getRecipients();
+        
+        if (!newTx->commit({} /* mapValue */, std::move(vOrderForm), {} /* fromAccount */, rejectReason, recipients[0].fUseInstantSend ? NetMsgType::TXLOCKREQUEST : NetMsgType::TX))
             return SendCoinsReturn(TransactionCommitFailed, QString::fromStdString(rejectReason));
 
         CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);

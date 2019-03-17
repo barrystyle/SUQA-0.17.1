@@ -46,7 +46,8 @@
 #include <utilstrencodings.h>
 #include <validationinterface.h>
 #include <warnings.h>
-
+/*SIN*/
+#include <instantx.h>
 #include <masternodeman.h>
 #include <masternode-payments.h>
 
@@ -645,6 +646,22 @@ static bool AcceptToMemoryPoolWorker(const CChainParams& chainparams, CTxMemPool
         return state.Invalid(false, REJECT_DUPLICATE, "txn-already-in-mempool");
     }
 
+    // If this is a Transaction Lock Request check to see if it's valid
+    if(instantsend.HasTxLockRequest(hash) && !CTxLockRequest(tx).IsValid()) {
+        return state.DoS(10, false, REJECT_INVALID, "bad-txlockrequest");
+    }
+
+    /*SIN*/
+    // Check for conflicts with a completed Transaction Lock
+    for (const CTxIn &txin : tx.vin)
+    {
+        uint256 hashLocked;
+        if(instantsend.GetLockedOutPointTxHash(txin.prevout, hashLocked) && hash != hashLocked) {
+            return state.DoS(10, false, REJECT_INVALID, "tx-txlock-conflict");
+        }
+    }
+
+
     // Check for conflicts with in-memory transactions
     std::set<uint256> setConflicts;
     for (const CTxIn &txin : tx.vin)
@@ -655,6 +672,15 @@ static bool AcceptToMemoryPoolWorker(const CChainParams& chainparams, CTxMemPool
             const CTransaction *ptxConflicting = itConflicting->second;
             if (!setConflicts.count(ptxConflicting->GetHash()))
             {
+                /*SIN*/
+                // InstantSend txes are not replacable
+                if(instantsend.HasTxLockRequest(ptxConflicting->GetHash())) {
+                    // this tx conflicts with a Transaction Lock Request candidate
+                    return state.DoS(0, false, REJECT_INVALID, "tx-txlockreq-mempool-conflict");
+                } else if (instantsend.HasTxLockRequest(hash)) {
+                    // this tx is a tx lock request and it conflicts with a normal tx
+                    return state.DoS(0, false, REJECT_INVALID, "tx-txlockreq-mempool-conflict");
+                }
                 // Allow opt-out of transaction replacement by setting
                 // nSequence > MAX_BIP125_RBF_SEQUENCE (SEQUENCE_FINAL-2) on all inputs.
                 //
@@ -3323,6 +3349,34 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
     for (unsigned int i = 1; i < block.vtx.size(); i++)
         if (block.vtx[i]->IsCoinBase())
             return state.DoS(100, false, REJECT_INVALID, "bad-cb-multiple", false, "more than one coinbase");
+    /*SIN*/
+    // DASH : CHECK TRANSACTIONS FOR INSTANTSEND
+
+    if(sporkManager.IsSporkActive(SPORK_3_INSTANTSEND_BLOCK_FILTERING)) {
+        // We should never accept block which conflicts with completed transaction lock,
+        // that's why this is in CheckBlock unlike coinbase payee/amount.
+        // Require other nodes to comply, send them some data in case they are missing it.
+        for(const auto& tx : block.vtx) {
+            // skip coinbase, it has no inputs
+            if (tx->IsCoinBase()) continue;
+            // LOOK FOR TRANSACTION LOCK IN OUR MAP OF OUTPOINTS
+            for (const auto& txin : tx->vin) {
+                uint256 hashLocked;
+                if(instantsend.GetLockedOutPointTxHash(txin.prevout, hashLocked) && hashLocked != tx->GetHash()) {
+                    // The node which relayed this will have to switch later,
+                    // relaying instantsend data won't help it.
+                    LOCK(cs_main);
+                    mapRejectedBlocks.insert(std::make_pair(block.GetHash(), GetTime()));
+                    return state.DoS(100, false, REJECT_INVALID, "conflict-tx-lock", false, 
+                                     strprintf("transaction %s conflicts with transaction lock %s", tx->GetHash().ToString(), hashLocked.ToString()));
+                }
+            }
+        }
+    } else {
+        LogPrintf("CheckBlock(DASH): spork is off, skipping transaction locking checks\n");
+    }
+
+    // END DASH
 
     // Check transactions
     for (const auto& tx : block.vtx)

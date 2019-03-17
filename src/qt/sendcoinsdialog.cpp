@@ -80,6 +80,33 @@ SendCoinsDialog::SendCoinsDialog(const PlatformStyle *_platformStyle, QWidget *p
     connect(ui->checkBoxCoinControlChange, SIGNAL(stateChanged(int)), this, SLOT(coinControlChangeChecked(int)));
     connect(ui->lineEditCoinControlChange, SIGNAL(textEdited(const QString &)), this, SLOT(coinControlChangeEdited(const QString &)));
 
+    /*SIN*/
+    // Dash specific
+    QSettings settings;
+    if (!settings.contains("bUseDarkSend"))
+        settings.setValue("bUseDarkSend", false);
+    if (!settings.contains("bUseInstantX"))
+        settings.setValue("bUseInstantX", false);
+
+    bool fUsePrivateSend = settings.value("bUseDarkSend").toBool();
+    bool fUseInstantSend = settings.value("bUseInstantX").toBool();
+    if(fLiteMode) {
+        ui->checkUsePrivateSend->setChecked(false);
+        ui->checkUsePrivateSend->setVisible(false);
+        ui->checkUseInstantSend->setVisible(false);
+        CoinControlDialog::coinControl()->fUsePrivateSend = false;
+        CoinControlDialog::coinControl()->fUseInstantSend = false;
+    }
+    else{
+        ui->checkUsePrivateSend->setChecked(fUsePrivateSend);
+        ui->checkUseInstantSend->setChecked(fUseInstantSend);
+        CoinControlDialog::coinControl()->fUsePrivateSend = fUsePrivateSend;
+        CoinControlDialog::coinControl()->fUseInstantSend = fUseInstantSend;
+    }
+
+    connect(ui->checkUsePrivateSend, SIGNAL(stateChanged ( int )), this, SLOT(updateDisplayUnit()));
+    connect(ui->checkUseInstantSend, SIGNAL(stateChanged ( int )), this, SLOT(updateInstantSend()));
+
     // Coin Control: clipboard actions
     QAction *clipboardQuantityAction = new QAction(tr("Copy quantity"), this);
     QAction *clipboardAmountAction = new QAction(tr("Copy amount"), this);
@@ -104,7 +131,7 @@ SendCoinsDialog::SendCoinsDialog(const PlatformStyle *_platformStyle, QWidget *p
     ui->labelCoinControlChange->addAction(clipboardChangeAction);
 
     // init transaction fee section
-    QSettings settings;
+    //QSettings settings;
     if (!settings.contains("fFeeSectionMinimized"))
         settings.setValue("fFeeSectionMinimized", true);
     if (!settings.contains("nFeeRadio") && settings.contains("nTransactionFee") && settings.value("nTransactionFee").toLongLong() > 0) // compatibility
@@ -244,8 +271,9 @@ void SendCoinsDialog::on_sendButton_clicked()
     // FXTC TODO: privatesend and instantsend checkbox must be added to GUI! next two rows are just temporary placeholder!
     recipients[0].inputType = ALL_COINS;
     recipients[0].fUseInstantSend = false;
-    /*
+
     QString strFunds = tr("using") + " <b>" + tr("anonymous funds") + "</b>";
+    /*
     QString strFee = "";
     recipients[0].inputType = ONLY_DENOMINATED;
 
@@ -262,14 +290,14 @@ void SendCoinsDialog::on_sendButton_clicked()
         recipients[0].inputType = ALL_COINS;
         strFunds = tr("using") + " <b>" + tr("any available funds (not anonymous)") + "</b>";
     }
-
+    */
     if(ui->checkUseInstantSend->isChecked()) {
         recipients[0].fUseInstantSend = true;
         strFunds += " ";
         strFunds += tr("and InstantSend");
     } else {
         recipients[0].fUseInstantSend = false;
-    }*/
+    }
     //
 
     fNewRecipientAllowed = false;
@@ -584,6 +612,15 @@ void SendCoinsDialog::updateDisplayUnit()
     ui->customFee->setDisplayUnit(model->getOptionsModel()->getDisplayUnit());
     updateMinFeeLabel();
     updateSmartFeeLabel();
+}
+
+/*SIN*/
+void SendCoinsDialog::updateInstantSend()
+{
+    QSettings settings;
+    settings.setValue("bUseInstantX", ui->checkUseInstantSend->isChecked());
+    CoinControlDialog::coinControl()->fUseInstantSend = ui->checkUseInstantSend->isChecked();
+    coinControlUpdateLabels();
 }
 
 void SendCoinsDialog::processSendCoinsReturn(const WalletModel::SendCoinsReturn &sendCoinsReturn, const QString &msgArg)

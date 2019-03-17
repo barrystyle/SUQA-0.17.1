@@ -322,7 +322,7 @@ public:
     virtual bool commit(WalletValueMap value_map,
         WalletOrderForm order_form,
         std::string from_account,
-        std::string& reject_reason) = 0;
+        std::string& reject_reason, std::string strCommand = NetMsgType::TX) = 0;
 };
 
 //! Information about one wallet address.

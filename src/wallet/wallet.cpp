@@ -2089,7 +2089,11 @@ bool CWalletTx::RelayWalletTransaction(CConnman* connman, std::string strCommand
             pwallet->WalletLogPrintf("Relaying wtx %s\n", GetHash().ToString());
             // Dash
             if(strCommand == NetMsgType::TXLOCKREQUEST) {
-                instantsend.ProcessTxLockRequest(((CTxLockRequest)*this->tx), *connman);
+                if (instantsend.ProcessTxLockRequest(((CTxLockRequest)*this->tx), *connman) ) {
+                    instantsend.AcceptLockRequest((CTxLockRequest)*this);
+                } else {
+                    instantsend.RejectLockRequest((CTxLockRequest)*this);
+                }
             }
             //
             if (connman) {

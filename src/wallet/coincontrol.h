@@ -18,6 +18,8 @@ class CCoinControl
 public:
     //! Custom change destination, if not set an address is generated
     CTxDestination destChange;
+    bool fUsePrivateSend;
+    bool fUseInstantSend;
     //! Override the default change type if set, ignored if destChange is set
     boost::optional<OutputType> m_change_type;
     //! If false, allows unselected inputs, but requires all selected inputs be used

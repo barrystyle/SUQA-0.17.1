@@ -115,6 +115,8 @@ void EnsureWalletIsUnlocked(CWallet * const pwallet)
 static void WalletTxToJSON(const CWalletTx& wtx, UniValue& entry)
 {
     int confirms = wtx.GetDepthInMainChain();
+    bool fLocked = instantsend.IsLockedInstantSendTransaction(wtx.GetHash());
+    entry.push_back(Pair("instantlock", fLocked));
     if (wtx.IsCoinBase())
         entry.pushKV("generated", true);
     if (confirms > 0)
