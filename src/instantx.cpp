@@ -93,7 +93,7 @@ bool CInstantSend::ProcessTxLockRequest(const CTxLockRequest& txLockRequest, CCo
     uint256 txHash = txLockRequest.GetHash();
 
     // Check to see if we conflict with existing completed lock
-    for (const auto& txin : txLockRequest.vin) {
+    for (const auto& txin : txLockRequest.tx->vin) {
         std::map<COutPoint, uint256>::iterator it = mapLockedOutpoints.find(txin.prevout);
         if(it != mapLockedOutpoints.end() && it->second != txLockRequest.GetHash()) {
             // Conflicting with complete lock, proceed to see if we should cancel them both
@@ -104,7 +104,7 @@ bool CInstantSend::ProcessTxLockRequest(const CTxLockRequest& txLockRequest, CCo
 
     // Check to see if there are votes for conflicting request,
     // if so - do not fail, just warn user
-    for (const auto& txin : txLockRequest.vin) {
+    for (const auto& txin : txLockRequest.tx->vin) {
         std::map<COutPoint, std::set<uint256> >::iterator it = mapVotedOutpoints.find(txin.prevout);
         if(it != mapVotedOutpoints.end()) {
             for (const auto& hash : it->second) {
@@ -147,7 +147,7 @@ bool CInstantSend::CreateTxLockCandidate(const CTxLockRequest& txLockRequest)
 
         CTxLockCandidate txLockCandidate(txLockRequest);
         // all inputs should already be checked by txLockRequest.IsValid() above, just use them now
-        for (const auto& txin : reverse_iterate(txLockRequest.vin)) {
+        for (const auto& txin : reverse_iterate(txLockRequest.tx->vin)) {
             txLockCandidate.AddOutPointLock(txin.prevout);
         }
         mapTxLockCandidates.insert(std::make_pair(txHash, txLockCandidate));
@@ -161,7 +161,7 @@ bool CInstantSend::CreateTxLockCandidate(const CTxLockRequest& txLockRequest)
         LogPrintf("CInstantSend::CreateTxLockCandidate -- update empty, txid=%s\n", txHash.ToString());
 
         // all inputs should already be checked by txLockRequest.IsValid() above, just use them now
-        for (const auto& txin : reverse_iterate(txLockRequest.vin)) {
+        for (const auto& txin : reverse_iterate(txLockRequest.tx->vin)) {
             itLockCandidate->second.AddOutPointLock(txin.prevout);
         }
     } else {
@@ -452,7 +452,7 @@ bool CInstantSend::IsEnoughOrphanVotesForTx(const CTxLockRequest& txLockRequest)
     // There could be a situation when we already have quite a lot of votes
     // but tx lock request still wasn't received. Let's scan through
     // orphan votes to check if this is the case.
-    for (const auto& txin : txLockRequest.vin) {
+    for (const auto& txin : txLockRequest.tx->vin) {
         if(!IsEnoughOrphanVotesForTxAndOutPoint(txLockRequest.GetHash(), txin.prevout)) {
             return false;
         }
@@ -530,7 +530,7 @@ void CInstantSend::UpdateLockedTransaction(const CTxLockCandidate& txLockCandida
     }
 #endif
 
-    GetMainSignals().NotifyTransactionLock(txLockCandidate.txLockRequest);
+    GetMainSignals().NotifyTransactionLock(*txLockCandidate.txLockRequest.tx);
 
     LogPrint(BCLog::INSTANTSEND, "CInstantSend::UpdateLockedTransaction -- done, txid=%s\n", txHash.ToString());
 }
@@ -574,7 +574,7 @@ bool CInstantSend::ResolveConflicts(const CTxLockCandidate& txLockCandidate)
 
     LOCK(mempool.cs); // protect mempool.mapNextTx
 
-    for (const auto& txin : txLockCandidate.txLockRequest.vin) {
+    for (const auto& txin : txLockCandidate.txLockRequest.tx->vin) {
         uint256 hashConflicting;
         if(GetLockedOutPointTxHash(txin.prevout, hashConflicting) && txHash != hashConflicting) {
             // completed lock which conflicts with another completed one?
@@ -629,7 +629,7 @@ bool CInstantSend::ResolveConflicts(const CTxLockCandidate& txLockCandidate)
         return true;
     }
     // Not in block yet, make sure all its inputs are still unspent
-    for(const auto& txin : txLockCandidate.txLockRequest.vin) {
+    for(const auto& txin : txLockCandidate.txLockRequest.tx->vin) {
         Coin coin;
         if(!GetUTXOCoin(txin.prevout, coin)) {
             // Not in UTXO anymore? A conflicting tx was mined while we were waiting for votes.
@@ -952,21 +952,21 @@ std::string CInstantSend::ToString()
 
 bool CTxLockRequest::IsValid() const
 {
-    if(vout.size() < 1) return false;
+    if(tx->vout.size() < 1) return false;
 
-    if(vin.size() > WARN_MANY_INPUTS) {
+    if(tx->vin.size() > WARN_MANY_INPUTS) {
         LogPrint(BCLog::INSTANTSEND, "CTxLockRequest::IsValid -- WARNING: Too many inputs: tx=%s\n", ToString());
     }
 
     LOCK(cs_main);
-    if(!CheckFinalTx(*this)) {
+    if(!CheckFinalTx(*tx)) {
         LogPrint(BCLog::INSTANTSEND, "CTxLockRequest::IsValid -- Transaction is not final: tx=%s\n", ToString());
         return false;
     }
 
     CAmount nValueIn = 0;
 
-    for(const auto& txin : vin) {
+    for(const auto& txin : tx->vin) {
 
         Coin coin;
 
@@ -993,7 +993,7 @@ bool CTxLockRequest::IsValid() const
         return false;
     }
 
-    CAmount nValueOut = CTransaction(*this).GetValueOut();
+    CAmount nValueOut = tx->GetValueOut();
 
     if(nValueIn - nValueOut < GetMinFee()) {
         LogPrint(BCLog::INSTANTSEND, "CTxLockRequest::IsValid -- did not include enough fees in transaction: fees=%d, tx=%s\n", nValueOut - nValueIn, ToString());
@@ -1006,12 +1006,12 @@ bool CTxLockRequest::IsValid() const
 CAmount CTxLockRequest::GetMinFee() const
 {
     CAmount nMinFee = MIN_FEE;
-    return std::max(nMinFee, CAmount(vin.size() * nMinFee));
+    return std::max(nMinFee, CAmount(tx->vin.size() * nMinFee));
 }
 
 int CTxLockRequest::GetMaxSignatures() const
 {
-    return vin.size() * COutPointLock::SIGNATURES_TOTAL;
+    return tx->vin.size() * COutPointLock::SIGNATURES_TOTAL;
 }
 
 //
@@ -1229,7 +1229,7 @@ bool CTxLockCandidate::IsTimedOut() const
 
 void CTxLockCandidate::Relay(CConnman& connman) const
 {
-    connman.RelayTransaction(txLockRequest);
+    connman.RelayTransaction(*txLockRequest.tx);
     std::map<COutPoint, COutPointLock>::const_iterator itOutpointLock = mapOutPointLocks.begin();
     while(itOutpointLock != mapOutPointLocks.end()) {
         itOutpointLock->second.Relay(connman);

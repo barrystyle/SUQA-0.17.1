@@ -2466,7 +2466,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
     }
 
 
-    else if (strCommand == NetMsgType::TX)
+    else if (strCommand == NetMsgType::TX || strCommand == NetMsgType::DSTX || strCommand == NetMsgType::TXLOCKREQUEST)
     {
         // Stop processing the transaction early if
         // We are in blocks only mode and peer is either not whitelisted or whitelistrelay is off
@@ -2479,39 +2479,24 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         std::deque<COutPoint> vWorkQueue;
         std::vector<uint256> vEraseQueue;
         CTransactionRef ptx;
-        vRecv >> ptx;
-        const CTransaction& tx = *ptx;
-
-        CInv inv(MSG_TX, tx.GetHash());
-
-        // FXTC TODO: // remove after implementation
-        CTxLockRequest txLockRequest;
-        CDarksendBroadcastTx dstx;
-        /* FXTC TODO: !!!!!!!!
-        // FXTC TODO: Dash txs
-        vector<uint256> vEraseQueue;
-        CTransaction tx;
         CTxLockRequest txLockRequest;
         CDarksendBroadcastTx dstx;
         int nInvType = MSG_TX;
 
         // Read data and assign inv type
         if(strCommand == NetMsgType::TX) {
-            vRecv >> tx;
+            vRecv >> ptx;
         } else if(strCommand == NetMsgType::TXLOCKREQUEST) {
             vRecv >> txLockRequest;
-            tx = txLockRequest;
+            ptx = txLockRequest.tx;
             nInvType = MSG_TXLOCK_REQUEST;
         } else if (strCommand == NetMsgType::DSTX) {
-            vRecv >> dstx;
-            tx = dstx.tx;
+            //vRecv >> dstx;
+            //ptx = dstx.tx;
             nInvType = MSG_DSTX;
         }
-
+        const CTransaction& tx = *ptx;
         CInv inv(nInvType, tx.GetHash());
-        pfrom->AddInventoryKnown(inv);
-        //
-        */
         pfrom->AddInventoryKnown(inv);
 
         LOCK2(cs_main, g_cs_orphans);

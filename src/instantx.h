@@ -21,7 +21,7 @@ extern CInstantSend instantsend;
 
 /*
     At 15 signatures, 1/2 of the masternode network can be owned by
-    one party without comprimising the security of InstantSend
+    one party without compromising the security of InstantSend
     (1000/2150.0)**10 = 0.00047382219560689856
     (1000/2900.0)**10 = 2.3769498616783657e-05
 
@@ -126,27 +126,67 @@ public:
     std::string ToString();
 };
 
-class CTxLockRequest : public CTransaction
+/**
+ * An InstantSend transaction lock request.
+ */
+class CTxLockRequest
 {
 private:
-    static const CAmount MIN_FEE            = 0.0001 * COIN;
+    static const CAmount MIN_FEE            = 0.001 * COIN;
 
 public:
+    /// Warn for a large number of inputs to an IS tx - fees could be substantial
+    /// and the number txlvote responses requested large (10 * # of inputs)
     static const int WARN_MANY_INPUTS       = 100;
 
-    CTxLockRequest() = default;
-    CTxLockRequest(const CTransaction& tx) : CTransaction(tx) {};
+    CTransactionRef tx;
+
+    CTxLockRequest() : tx(MakeTransactionRef()) {}
+    CTxLockRequest(const CTransaction& _tx) : tx(MakeTransactionRef(_tx)) {};
+    CTxLockRequest(const CTransactionRef& _tx) : tx(_tx) {};
+
+    ADD_SERIALIZE_METHODS;
+
+    template <typename Stream, typename Operation>
+    inline void SerializationOp(Stream& s, Operation ser_action) {
+        READWRITE(tx);
+    }
 
     bool IsValid() const;
     CAmount GetMinFee() const;
     int GetMaxSignatures() const;
 
+    const uint256 &GetHash() const {
+        return tx->GetHash();
+    }
+
+    std::string ToString() const {
+        return tx->ToString();
+    }
+
+    friend bool operator==(const CTxLockRequest& a, const CTxLockRequest& b)
+    {
+        return *a.tx == *b.tx;
+    }
+
+    friend bool operator!=(const CTxLockRequest& a, const CTxLockRequest& b)
+    {
+        return *a.tx != *b.tx;
+    }
+
     explicit operator bool() const
     {
-        return CTransaction(*this) != CTransaction(CTxLockRequest());
+        return *this != CTxLockRequest();
     }
 };
 
+/**
+ * An InstantSend transaction lock vote. Sent by a masternode in response to a
+ * transaction lock request (ix message) to indicate the transaction input can
+ * be locked. Contains the proposed transaction's hash and the outpoint being
+ * locked along with the masternodes outpoint and signature.
+ * @see CTxLockRequest
+ */
 class CTxLockVote
 {
 private:
@@ -205,6 +245,9 @@ public:
     void Relay(CConnman& connman) const;
 };
 
+/**
+ * An InstantSend OutpointLock.
+ */
 class COutPointLock
 {
 private:
@@ -233,6 +276,9 @@ public:
     void Relay(CConnman& connman) const;
 };
 
+/**
+ * An InstantSend transaction lock candidate.
+ */
 class CTxLockCandidate
 {
 private:
