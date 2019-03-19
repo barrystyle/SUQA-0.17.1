@@ -2090,18 +2090,21 @@ bool CWalletTx::RelayWalletTransaction(CConnman* connman, std::string strCommand
             // Dash
             if(strCommand == NetMsgType::TXLOCKREQUEST) {
                 if (instantsend.ProcessTxLockRequest(((CTxLockRequest)*this->tx), *connman) ) {
-                    instantsend.AcceptLockRequest((CTxLockRequest)*this);
+                    instantsend.AcceptLockRequest((CTxLockRequest)*this->tx);
                 } else {
-                    instantsend.RejectLockRequest((CTxLockRequest)*this);
+                    instantsend.RejectLockRequest((CTxLockRequest)*this->tx);
                 }
             }
             //
             if (connman) {
+                /*
                 CInv inv(MSG_TX, GetHash());
                 connman->ForEachNode([&inv](CNode* pnode)
                 {
                     pnode->PushInventory(inv);
                 });
+                */
+                connman->RelayTransaction((CTransaction)*this->tx);
                 return true;
             }
         }

@@ -2789,14 +2789,19 @@ void CConnman::RelayTransaction(const CTransaction& tx)
     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
     ss.reserve(10000);
     uint256 hash = tx.GetHash();
-    CTxLockRequest txLockRequest;
+    
+    LogPrintf("Net::RelayTransaction -- tx %s\n", hash.ToString());
+    CTxLockRequest txLockRequestRet;
     CDarksendBroadcastTx dstx = CPrivateSend::GetDSTX(hash);
     if(dstx) { // MSG_DSTX
         ss << dstx;
-    } else if(instantsend.GetTxLockRequest(hash, txLockRequest)) { // MSG_TXLOCK_REQUEST
-        ss << txLockRequest;
+        LogPrintf("Net::RelayTransaction -- MSG_DSTX %s\n", hash.ToString());
+    } else if(instantsend.GetTxLockRequest(hash, txLockRequestRet)) { // MSG_TXLOCK_REQUEST
+        ss << txLockRequestRet;
+        LogPrintf("Net::RelayTransaction -- MSG_TXLOCK_REQUEST %s\n", hash.ToString());
     } else { // MSG_TX
         ss << tx;
+        LogPrintf("Net::RelayTransaction -- MSG_TX %s\n", hash.ToString());
     }
     RelayTransaction(tx, ss);
 }
@@ -2805,22 +2810,11 @@ void CConnman::RelayTransaction(const CTransaction& tx)
 void CConnman::RelayTransaction(const CTransaction& tx, const CDataStream& ss)
 {
     uint256 hash = tx.GetHash();
+    LogPrintf("Net::RelayTransaction -- tx hash %s\n", hash.ToString());
     int nInv = static_cast<bool>(CPrivateSend::GetDSTX(hash)) ? MSG_DSTX :
                 (instantsend.HasTxLockRequest(hash) ? MSG_TXLOCK_REQUEST : MSG_TX);
+    LogPrintf("Net::RelayTransaction -- Type in protocol CInv(%d-%s)\n", nInv, hash.ToString());
     CInv inv(nInv, hash);
-    {
-        LOCK(cs_mapRelayDash);
-        // Expire old relay messages
-        while (!vRelayExpirationDash.empty() && vRelayExpirationDash.front().first < GetTime())
-        {
-            mapRelayDash.erase(vRelayExpirationDash.front().second);
-            vRelayExpirationDash.pop_front();
-        }
-
-        // Save original serialized message so newer versions are preserved
-        mapRelayDash.insert(std::make_pair(inv, ss));
-        vRelayExpirationDash.push_back(std::make_pair(GetTime() + 15 * 60, inv));
-    }
     LOCK(cs_vNodes);
     for (auto* pnode : vNodes)
     {
@@ -2829,10 +2823,15 @@ void CConnman::RelayTransaction(const CTransaction& tx, const CDataStream& ss)
         LOCK(pnode->cs_filter);
         if (pnode->pfilter)
         {
-            if (pnode->pfilter->IsRelevantAndUpdate(tx))
+            if (pnode->pfilter->IsRelevantAndUpdate(tx)) {
+                LogPrintf("Net::RelayTransaction -- in case filter\n");
                 pnode->PushInventory(inv);
-        } else
+            } else
+                continue;
+        } else {
+            LogPrintf("Net::RelayTransaction -- in case non filter\n");
             pnode->PushInventory(inv);
+        }
     }
 }
 

@@ -407,18 +407,18 @@ enum GetDataMsg
     MSG_CMPCT_BLOCK = 4,     //!< Defined in BIP152
     // Dash message types
     // NOTE: declare non-implmented here, we must keep this enum consistent and backwards compatible
-    MSG_TXLOCK_REQUEST,
-    MSG_TXLOCK_VOTE,
-    MSG_SPORK,
-    MSG_MASTERNODE_PAYMENT_VOTE,
-    MSG_MASTERNODE_PAYMENT_BLOCK, // reusing, was MSG_MASTERNODE_SCANNING_ERROR previousely, was NOT used in 12.0
-    MSG_MASTERNODE_QUORUM, // not implemented
-    MSG_MASTERNODE_ANNOUNCE,
-    MSG_MASTERNODE_PING,
-    MSG_DSTX,
-    MSG_GOVERNANCE_OBJECT,
-    MSG_GOVERNANCE_OBJECT_VOTE,
-    MSG_MASTERNODE_VERIFY,
+    MSG_TXLOCK_REQUEST = 5,
+    MSG_TXLOCK_VOTE = 6,
+    MSG_SPORK = 7,
+    MSG_MASTERNODE_PAYMENT_VOTE = 8,
+    MSG_MASTERNODE_PAYMENT_BLOCK = 9, // reusing, was MSG_MASTERNODE_SCANNING_ERROR previousely, was NOT used in 12.0
+    MSG_MASTERNODE_QUORUM = 10, // not implemented
+    MSG_MASTERNODE_ANNOUNCE = 11,
+    MSG_MASTERNODE_PING = 12,
+    MSG_DSTX = 13,
+    MSG_GOVERNANCE_OBJECT = 14,
+    MSG_GOVERNANCE_OBJECT_VOTE = 15,
+    MSG_MASTERNODE_VERIFY = 16,
     // Witness flagged messages
     MSG_WITNESS_BLOCK = MSG_BLOCK | MSG_WITNESS_FLAG, //!< Defined in BIP144
     MSG_WITNESS_TX = MSG_TX | MSG_WITNESS_FLAG,       //!< Defined in BIP144

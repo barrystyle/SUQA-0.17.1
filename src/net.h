@@ -963,14 +963,14 @@ public:
         LOCK(cs_inventory);
         if (inv.type == MSG_TX) {
             if (!filterInventoryKnown.contains(inv.hash)) {
-                LogPrint(BCLog::NET, "PushInventory --  filtered inv: %s peer=%d\n", inv.ToString(), id);
+                LogPrint(BCLog::NET, "PushInventory setInventoryTxToSend --  filtered inv: %s peer=%d\n", inv.ToString(), id);
                 setInventoryTxToSend.insert(inv.hash);
             }
         } else if (inv.type == MSG_BLOCK) {
-            LogPrint(BCLog::NET, "PushInventory --  inv: %s peer=%d\n", inv.ToString(), id);
+            LogPrint(BCLog::NET, "PushInventory vInventoryBlockToSend --  inv: %s peer=%d\n", inv.ToString(), id);
             vInventoryBlockToSend.push_back(inv.hash);
         } else {
-            LogPrint(BCLog::NET, "PushInventory --  %s peer=%d\n", inv.ToString(), id);
+            LogPrint(BCLog::NET, "PushInventory vInventoryToSend --  %s peer=%d\n", inv.ToString(), id);
             vInventoryToSend.push_back(inv);
         }
     }

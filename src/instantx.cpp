@@ -748,6 +748,7 @@ bool CInstantSend::AlreadyHave(const uint256& hash)
 
 void CInstantSend::AcceptLockRequest(const CTxLockRequest& txLockRequest)
 {
+    LogPrintf("CInstantSend::AcceptLockRequest -- tx hash %s\n", txLockRequest.GetHash().ToString());
     LOCK(cs_instantsend);
     mapLockRequestAccepted.insert(make_pair(txLockRequest.GetHash(), txLockRequest));
 }
@@ -760,6 +761,7 @@ void CInstantSend::RejectLockRequest(const CTxLockRequest& txLockRequest)
 
 bool CInstantSend::HasTxLockRequest(const uint256& txHash)
 {
+    LogPrintf("CInstantSend::HasTxLockRequest -- find tx  %s\n", txHash.ToString());
     CTxLockRequest txLockRequestTmp;
     return GetTxLockRequest(txHash, txLockRequestTmp);
 }
@@ -771,6 +773,7 @@ bool CInstantSend::GetTxLockRequest(const uint256& txHash, CTxLockRequest& txLoc
     std::map<uint256, CTxLockCandidate>::iterator it = mapTxLockCandidates.find(txHash);
     if(it == mapTxLockCandidates.end()) return false;
     txLockRequestRet = it->second.txLockRequest;
+    LogPrintf("CInstantSend::GetTxLockRequest -- tx return %s\n", txHash.ToString());
 
     return true;
 }
