@@ -162,6 +162,14 @@ public:
         AvailableCoinsType nCoinType = ALL_COINS,
         bool fUseInstantSend = false) = 0;
 
+    //! GetOutpointPrivateSendRounds
+    virtual int GetOutpointPrivateSendRounds (const COutPoint& outpoint) = 0;
+    virtual CAmount GetAnonymizableBalance(bool fSkipDenominated = false, bool fSkipUnconfirmed = true) = 0;
+    virtual CAmount GetDenominatedBalance(bool unconfirmed=false) = 0;
+    virtual CAmount GetNormalizedAnonymizedBalance() = 0;
+    virtual float GetAverageAnonymizedRounds() = 0;
+    virtual int64_t getKeysLeftSinceAutoBackup() = 0;
+
     //! Return whether transaction can be abandoned.
     virtual bool transactionCanBeAbandoned(const uint256& txid) = 0;
 
@@ -345,6 +353,7 @@ struct WalletBalances
     CAmount balance = 0;
     CAmount unconfirmed_balance = 0;
     CAmount immature_balance = 0;
+    CAmount anonymized_balance = 0;
     bool have_watch_only = false;
     CAmount watch_only_balance = 0;
     CAmount unconfirmed_watch_only_balance = 0;
@@ -356,7 +365,7 @@ struct WalletBalances
         return balance != prev.balance || unconfirmed_balance != prev.unconfirmed_balance ||
                immature_balance != prev.immature_balance || watch_only_balance != prev.watch_only_balance ||
                unconfirmed_watch_only_balance != prev.unconfirmed_watch_only_balance ||
-               immature_watch_only_balance != prev.immature_watch_only_balance;
+               immature_watch_only_balance != prev.immature_watch_only_balance || anonymized_balance != prev.anonymized_balance;
     }
 };
 

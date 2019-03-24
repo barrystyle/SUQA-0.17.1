@@ -1,11 +1,9 @@
 // Copyright (c) 2014-2017 The Dash Core developers
-// Copyright (c) 2018 FXTC developers
-// Copyright (c) 2018-2019 SUQA developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef FXTC_PRIVATESEND_CLIENT_H
-#define FXTC_PRIVATESEND_CLIENT_H
+#ifndef PRIVATESENDCLIENT_H
+#define PRIVATESENDCLIENT_H
 
 #include <masternode.h>
 #include <privatesend.h>
@@ -17,10 +15,17 @@ class CConnman;
 
 static const int DENOMS_COUNT_MAX                   = 100;
 
+static const int MIN_PRIVATESEND_ROUNDS             = 2;
+static const int MIN_PRIVATESEND_AMOUNT             = 20;
+static const int MIN_PRIVATESEND_LIQUIDITY          = 0;
+static const int MAX_PRIVATESEND_ROUNDS             = 16;
+static const int MAX_PRIVATESEND_AMOUNT             = MAX_MONEY / COIN;
+static const int MAX_PRIVATESEND_LIQUIDITY          = 1000;
 static const int DEFAULT_PRIVATESEND_ROUNDS         = 2;
-static const int DEFAULT_PRIVATESEND_AMOUNT         = 1000;
+static const int DEFAULT_PRIVATESEND_AMOUNT         = 10000;
 static const int DEFAULT_PRIVATESEND_LIQUIDITY      = 0;
-static const bool DEFAULT_PRIVATESEND_MULTISESSION  = false;
+
+static const bool DEFAULT_PRIVATESEND_MULTISESSION  = true;
 
 // Warn user if mixing in gui or try to create backup if mixing in daemon mode
 // when we have only this many keys left
@@ -30,6 +35,45 @@ static const int PRIVATESEND_KEYS_THRESHOLD_STOP    = 50;
 
 // The main object for accessing mixing
 extern CPrivateSendClient privateSendClient;
+
+class CPendingDsaRequest
+{
+private:
+    static const int TIMEOUT = 15;
+
+    CService addr;
+    CDarksendAccept dsa;
+    int64_t nTimeCreated;
+
+public:
+    CPendingDsaRequest():
+        addr(CService()),
+        dsa(CDarksendAccept()),
+        nTimeCreated(0)
+    {};
+
+    CPendingDsaRequest(const CService& addr_, const CDarksendAccept& dsa_):
+        addr(addr_),
+        dsa(dsa_)
+    { nTimeCreated = GetTime(); }
+
+    CService GetAddr() { return addr; }
+    CDarksendAccept GetDSA() { return dsa; }
+    bool IsExpired() { return GetTime() - nTimeCreated > TIMEOUT; }
+
+    friend bool operator==(const CPendingDsaRequest& a, const CPendingDsaRequest& b)
+    {
+        return a.addr == b.addr && a.dsa == b.dsa;
+    }
+    friend bool operator!=(const CPendingDsaRequest& a, const CPendingDsaRequest& b)
+    {
+        return !(a == b);
+    }
+    explicit operator bool() const
+    {
+        return *this != CPendingDsaRequest();
+    }
+};
 
 /** Used to keep track of current status of mixing pool
  */
@@ -56,6 +100,7 @@ private:
 
     masternode_info_t infoMixingMasternode;
     CMutableTransaction txMyCollateral; // client side collateral
+    CPendingDsaRequest pendingDsaRequest;
 
     CKeyHolderStorage keyHolderStorage; // storage for keys used in PrepareDenominate
 
@@ -63,9 +108,7 @@ private:
     void CheckPool();
     void CompletedTransaction(PoolMessage nMessageID);
 
-    bool IsDenomSkipped(CAmount nDenomValue) {
-        return std::find(vecDenominationsSkipped.begin(), vecDenominationsSkipped.end(), nDenomValue) != vecDenominationsSkipped.end();
-    }
+    bool IsDenomSkipped(CAmount nDenomValue);
 
     bool WaitForAnotherBlock();
 
@@ -95,7 +138,7 @@ private:
     void SetState(PoolState nStateNew);
 
     /// As a client, check and sign the final transaction
-    bool SignFinalTransaction(const CMutableTransaction& finalTransactionNew, CNode* pnode, CConnman& connman);
+    bool SignFinalTransaction(const CTransaction& finalTransactionNew, CNode* pnode, CConnman& connman);
 
     void RelayIn(const CDarkSendEntry& entry, CConnman& connman);
 
@@ -118,7 +161,7 @@ public:
         nPrivateSendRounds(DEFAULT_PRIVATESEND_ROUNDS),
         nPrivateSendAmount(DEFAULT_PRIVATESEND_AMOUNT),
         nLiquidityProvider(DEFAULT_PRIVATESEND_LIQUIDITY),
-        fEnablePrivateSend(false),
+        fEnablePrivateSend(true),
         fPrivateSendMultiSession(DEFAULT_PRIVATESEND_MULTISESSION),
         nCachedNumBlocks(std::numeric_limits<int>::max()),
         fCreateAutoBackups(true) { SetNull(); }
@@ -142,6 +185,8 @@ public:
     /// Passively run mixing in the background according to the configuration in settings
     bool DoAutomaticDenominating(CConnman& connman, bool fDryRun=false);
 
+    void ProcessPendingDsaRequest(CConnman& connman);
+
     void CheckTimeout();
 
     void UpdatedBlockTip(const CBlockIndex *pindex);
@@ -149,4 +194,4 @@ public:
 
 void ThreadCheckPrivateSendClient(CConnman& connman);
 
-#endif // FXTC_PRIVATESEND_CLIENT_H
+#endif

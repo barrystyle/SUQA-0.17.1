@@ -28,12 +28,9 @@ extern CInstantSend instantsend;
     ### getting 5 of 10 signatures w/ 1000 nodes of 2900
     (1000/2900.0)**5 = 0.004875397277841433
 */
-/*
+
 static const int INSTANTSEND_CONFIRMATIONS_REQUIRED = 6;
 static const int DEFAULT_INSTANTSEND_DEPTH          = 5;
-*/
-static const int INSTANTSEND_CONFIRMATIONS_REQUIRED = 3;
-static const int DEFAULT_INSTANTSEND_DEPTH          = 2;
 
 static const int MIN_INSTANTSEND_PROTO_VERSION      = 250000;
 
@@ -121,7 +118,7 @@ public:
     void Relay(const uint256& txHash, CConnman& connman);
 
     void UpdatedBlockTip(const CBlockIndex *pindex);
-    void SyncTransaction(const CTransaction& tx, const CBlock* pblock);
+    void SyncTransaction(const CTransaction& tx, const CBlockIndex *pindex, int posInBlock);
 
     std::string ToString();
 };
@@ -256,7 +253,7 @@ private:
     bool fAttacked = false;
 
 public:
-    static const int SIGNATURES_REQUIRED        = 3;  // 6
+    static const int SIGNATURES_REQUIRED        = 6;
     static const int SIGNATURES_TOTAL           = 10;
 
     COutPointLock(const COutPoint& outpointIn) :

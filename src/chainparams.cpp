@@ -272,7 +272,8 @@ public:
         vFixedSeeds.clear();
         vSeeds.clear();
 
-        vSeeds.emplace_back("109.11.151.81");
+        vSeeds.emplace_back("178.128.230.114");
+        vSeeds.emplace_back("178.62.226.114");
 		nDefaultPort = 20980;
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,63);

@@ -340,6 +340,22 @@
          </widget>
         </item>
         <item>
+         <widget class="QPushButton" name="pushButtonToggleLock">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>toggle lock state</string>
+          </property>
+          <property name="autoDefault">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QRadioButton" name="radioTreeMode">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
@@ -428,6 +444,11 @@
      <column>
       <property name="text">
        <string>Received with address</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Shadow Rounds</string>
       </property>
      </column>
      <column>

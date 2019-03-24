@@ -1,11 +1,9 @@
 // Copyright (c) 2014-2017 The Dash Core developers
-// Copyright (c) 2018 FXTC developers
-// Copyright (c) 2018-2019 SUQA developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef FXTC_PRIVATESEND_SERVER_H
-#define FXTC_PRIVATESEND_SERVER_H
+#ifndef PRIVATESENDSERVER_H
+#define PRIVATESENDSERVER_H
 
 #include <net.h>
 #include <privatesend.h>
@@ -22,7 +20,7 @@ class CPrivateSendServer : public CPrivateSendBase
 private:
     // Mixing uses collateral transactions to trust parties entering the pool
     // to behave honestly. If they don't it takes their money.
-    std::vector<CMutableTransaction> vecSessionCollaterals;
+    std::vector<CTransactionRef> vecSessionCollaterals;
 
     bool fUnitTest;
 
@@ -43,9 +41,9 @@ private:
     void CommitFinalTransaction(CConnman& connman);
 
     /// Is this nDenom and txCollateral acceptable?
-    bool IsAcceptableDenomAndCollateral(int nDenom, CMutableTransaction txCollateral, PoolMessage &nMessageIDRet);
-    bool CreateNewSession(int nDenom, CMutableTransaction txCollateral, PoolMessage &nMessageIDRet, CConnman& connman);
-    bool AddUserToExistingSession(int nDenom, CMutableTransaction txCollateral, PoolMessage &nMessageIDRet);
+    bool IsAcceptableDSA(const CDarksendAccept& dsa, PoolMessage &nMessageIDRet);
+    bool CreateNewSession(const CDarksendAccept& dsa, PoolMessage &nMessageIDRet, CConnman& connman);
+    bool AddUserToExistingSession(const CDarksendAccept& dsa, PoolMessage &nMessageIDRet);
     /// Do we have enough users to take entries?
     bool IsSessionReady() { return (int)vecSessionCollaterals.size() >= CPrivateSend::GetMaxPoolTransactions(); }
 
@@ -60,7 +58,7 @@ private:
     void SetState(PoolState nStateNew);
 
     /// Relay mixing Messages
-    void RelayFinalTransaction(const CMutableTransaction& txFinal, CConnman& connman);
+    void RelayFinalTransaction(const CTransaction& txFinal, CConnman& connman);
     void PushStatus(CNode* pnode, PoolStatusUpdate nStatusUpdate, PoolMessage nMessageID, CConnman& connman);
     void RelayStatus(PoolStatusUpdate nStatusUpdate, CConnman& connman, PoolMessage nMessageID = MSG_NOERR);
     void RelayCompletedTransaction(PoolMessage nMessageID, CConnman& connman);
@@ -79,4 +77,4 @@ public:
 
 void ThreadCheckPrivateSendServer(CConnman& connman);
 
-#endif // FXTC_PRIVATESEND_SERVER_H
+#endif

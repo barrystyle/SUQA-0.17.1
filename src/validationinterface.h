@@ -100,7 +100,8 @@ protected:
      */
 
     // Dash
-    virtual void SyncTransaction(const CTransaction &tx, const CBlock *pblock) {}
+    //virtual void SyncTransaction(const CTransaction &tx, const CBlock *pblock) {}
+    virtual void SyncTransaction(const CTransaction &tx, const CBlockIndex *pindex, int posInBlock) {}
     //
 
     virtual void TransactionAddedToMempool(const CTransactionRef &ptxn) {}
@@ -206,7 +207,7 @@ public:
 
     // Dash
     /** Notifies listeners of updated transaction data (transaction, and optionally the block it is found in. */
-    void SyncTransaction(const CTransaction &, const CBlock *);
+    void SyncTransaction(const CTransaction &, const CBlockIndex *, int posInBlock);
     //
 
     void TransactionAddedToMempool(const CTransactionRef &);

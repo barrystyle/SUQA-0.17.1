@@ -39,6 +39,7 @@ std::string FormatISO8601Date(int64_t nTime);
 std::string FormatISO8601Time(int64_t nTime);
 
 // Dash
+std::string DateTimeStrFormat(const char* pszFormat, int64_t nTime);
 std::string DurationToDHMS(int64_t nDurationTime);
 //
 

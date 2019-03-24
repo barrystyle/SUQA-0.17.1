@@ -41,6 +41,7 @@ public:
     std::vector<COutput> termDepositInfo;
 
 public Q_SLOTS:
+    void privateSendStatus();
     void setBalance(const interfaces::WalletBalances& balances);
 
 Q_SIGNALS:
@@ -48,16 +49,28 @@ Q_SIGNALS:
     void outOfSyncWarningClicked();
 
 private:
+    QTimer *timer;
     Ui::OverviewPage *ui;
     ClientModel *clientModel;
     WalletModel *walletModel;
     interfaces::WalletBalances m_balances;
+    int nDisplayUnit;
+    bool fShowAdvancedPSUI;
 
     TxViewDelegate *txdelegate;
     std::unique_ptr<TransactionFilterProxy> filter;
 
+    void SetupTransactionList(int nNumItems);
+    void DisablePrivateSendCompletely();
+
 private Q_SLOTS:
+    void togglePrivateSend();
+    void privateSendAuto();
+    void privateSendReset();
+    void privateSendInfo();
     void updateDisplayUnit();
+    void updatePrivateSendProgress();
+    void updateAdvancedPSUI(bool fShowAdvancedPSUI);
     void handleTransactionClicked(const QModelIndex &index);
     void updateAlerts(const QString &warnings);
     void updateWatchOnlyLabels(bool showWatchOnly);

@@ -30,7 +30,7 @@ struct MainSignalsInstance {
     boost::signals2::signal<void (const CBlockIndex *, const CBlockIndex *, bool fInitialDownload)> UpdatedBlockTip;
 
     // Dash
-    boost::signals2::signal<void (const CTransaction &, const CBlock *)> SyncTransaction;
+    boost::signals2::signal<void (const CTransaction &, const CBlockIndex *, int posInBlock)> SyncTransaction;
     //
 
     boost::signals2::signal<void (const CTransactionRef &)> TransactionAddedToMempool;
@@ -99,7 +99,7 @@ void RegisterValidationInterface(CValidationInterface* pwalletIn) {
     g_signals.m_internals->UpdatedBlockTip.connect(boost::bind(&CValidationInterface::UpdatedBlockTip, pwalletIn, _1, _2, _3));
 
     // Dash
-    g_signals.m_internals->SyncTransaction.connect(boost::bind(&CValidationInterface::SyncTransaction, pwalletIn, _1, _2));
+    g_signals.m_internals->SyncTransaction.connect(boost::bind(&CValidationInterface::SyncTransaction, pwalletIn, _1, _2, _3));
     //
 
     g_signals.m_internals->TransactionAddedToMempool.connect(boost::bind(&CValidationInterface::TransactionAddedToMempool, pwalletIn, _1));
@@ -133,7 +133,7 @@ void UnregisterValidationInterface(CValidationInterface* pwalletIn) {
     g_signals.m_internals->UpdatedBlockTip.disconnect(boost::bind(&CValidationInterface::UpdatedBlockTip, pwalletIn, _1, _2, _3));
 
     // Dash
-    g_signals.m_internals->SyncTransaction.disconnect(boost::bind(&CValidationInterface::SyncTransaction, pwalletIn, _1, _2));
+    g_signals.m_internals->SyncTransaction.disconnect(boost::bind(&CValidationInterface::SyncTransaction, pwalletIn, _1, _2, _3));
     //
 
     // Dash
@@ -222,9 +222,9 @@ void CMainSignals::UpdatedBlockTip(const CBlockIndex *pindexNew, const CBlockInd
 }
 
 // Dash
-void CMainSignals::SyncTransaction(const CTransaction &tx, const CBlock *pblock) {
-    m_internals->m_schedulerClient.AddToProcessQueue([tx, pblock, this] {
-        m_internals->SyncTransaction(tx, pblock);
+void CMainSignals::SyncTransaction(const CTransaction &tx, const CBlockIndex *pblock, int posInBlock) {
+    m_internals->m_schedulerClient.AddToProcessQueue([tx, pblock, posInBlock, this] {
+        m_internals->SyncTransaction(tx, pblock, posInBlock);
     });
 }
 //

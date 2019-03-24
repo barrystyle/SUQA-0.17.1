@@ -92,6 +92,8 @@ static const bool DEFAULT_DISABLE_WALLET = false;
 //! Pre-calculated constants for input size estimation in *virtual size*
 static constexpr size_t DUMMY_NESTED_P2WPKH_INPUT_SIZE = 91;
 
+bool AutoBackupWallet (std::shared_ptr<CWallet> wallet, const std::string& strWalletFile_, std::string& strBackupWarningRet, std::string& strBackupErrorRet);
+
 class CBlockIndex;
 class CCoinControl;
 class COutput;
@@ -875,10 +877,6 @@ private:
     const CBlockIndex* m_last_block_processed = nullptr;
 
 public:
-    // Dash
-    int64_t nKeysLeftSinceAutoBackup;
-    //
-
     /*
      * Main wallet lock.
      * This lock protects all the fields added by CWallet.
@@ -887,7 +885,7 @@ public:
 
     // Dash
     bool fFileBacked;
-    //-//const std::string strWalletFile;
+    const std::string strWalletFile;
     //
 
     /** Get database handle used by this wallet. Ideally this function would
@@ -953,6 +951,9 @@ public:
     std::map<CTxDestination, CAddressBookData> mapAddressBook;
 
     std::set<COutPoint> setLockedCoins;
+
+    int64_t nKeysLeftSinceAutoBackup;
+    int64_t getKeysLeftSinceAutoBackup() {return nKeysLeftSinceAutoBackup;}
 
     const CWalletTx* GetWalletTx(const uint256& hash) const;
 
@@ -1114,8 +1115,8 @@ public:
     // Dash
     CAmount GetAnonymizableBalance(bool fSkipDenominated = false, bool fSkipUnconfirmed = true) const;
     CAmount GetAnonymizedBalance() const;
-    //-//float GetAverageAnonymizedRounds() const;
-    //-//CAmount GetNormalizedAnonymizedBalance() const;
+    float GetAverageAnonymizedRounds() const;
+    CAmount GetNormalizedAnonymizedBalance() const;
     CAmount GetNeedsToBeAnonymizedBalance(CAmount nMinBalance = 0) const;
     CAmount GetDenominatedBalance(bool unconfirmed=false) const;
 
@@ -1322,6 +1323,9 @@ public:
      * Gives the wallet a chance to register repetitive tasks and complete post-init tasks
      */
     void postInitProcess();
+
+    /* Initialize AutoBackup functionality */
+    static bool InitAutoBackup();
 
     bool BackupWallet(const std::string& strDest);
 

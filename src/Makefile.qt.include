@@ -116,7 +116,8 @@ QT_FORMS_UI = \
 
 # Dash
 QT_FORMS_UI += \
-  qt/forms/masternodelist.ui
+  qt/forms/masternodelist.ui \
+  qt/forms/darksendconfig.ui
 #
 
 QT_MOC_CPP = \
@@ -170,7 +171,8 @@ QT_MOC_CPP = \
 
 # Dash
 QT_MOC_CPP += \
-  qt/moc_masternodelist.cpp
+  qt/moc_masternodelist.cpp \
+  qt/moc_darksendconfig.cpp
 #
 
 BITCOIN_MM = \
@@ -252,7 +254,8 @@ BITCOIN_QT_H = \
 
 # Dash
 BITCOIN_QT_H += \
-  qt/masternodelist.h
+  qt/masternodelist.h \
+  qt/darksendconfig.h
 #
 
 RES_ICONS = \
@@ -376,7 +379,8 @@ BITCOIN_QT_WALLET_CPP = \
 
 # Dash
 BITCOIN_QT_WALLET_CPP += \
-  qt/masternodelist.cpp
+  qt/masternodelist.cpp \
+  qt/darksendconfig.cpp
 #
 
 BITCOIN_QT_CPP = $(BITCOIN_QT_BASE_CPP)
