@@ -636,7 +636,9 @@ masternode_info_t CMasternodeMan::FindRandomNotInVec(const std::vector<COutPoint
 
     // loop through
     for (auto* pmn : vpMasternodesShuffled) {
-        if(pmn->nProtocolVersion < nProtocolVersion || !pmn->IsEnabled()) continue;
+        if(pmn->nProtocolVersion < nProtocolVersion || !pmn->IsEnabled()) {
+            continue;
+        }
         fExclude = false;
         for (const auto &outpointToExclude : vecToExclude) {
             if(pmn->vin.prevout == outpointToExclude) {

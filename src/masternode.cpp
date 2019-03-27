@@ -222,7 +222,6 @@ CMasternode::BurnFundStatus CMasternode::CheckBurnFund(const COutPoint& outpoint
         LogPrintf("CMasternode::BurnFundStatus -- Unknown destination of BurnFund tx\n");
         return BURNFUND_INPUTADDRES_KO;
     }
-    LogPrintf("CMasternode::BurnFundStatus -- destination:%s\n",EncodeDestination(address));
     
     if (EncodeDestination(address) != Params().GetConsensus().cBurnAddress) {
         LogPrintf("CMasternode::BurnFundStatus -- Unknown BurnAddress\n");
@@ -245,7 +244,6 @@ CMasternode::BurnFundStatus CMasternode::CheckBurnFund(const COutPoint& outpoint
         return BURNFUND_INVALID_AMOUNT;
     }
 
-	LogPrintf("CMasternode::BurnFundStatus -- BurnFund is checked: nHeight: %d & value: %d \n",nHeightRet, coin.out.nValue);
     nHeightRet = coin.nHeight;
     return BURNFUND_OK;
 }
@@ -268,8 +266,6 @@ bool CMasternode::CheckCollateralBurnFundRelation(const COutPoint& outpoint, con
         return false;
     }
 
-    LogPrintf("CMasternode::CheckCollateralBurnFundRelation -- Collateral address:%s.\n",EncodeDestination(addressCollateral));
-
     Coin BurnFundcoin;
     if(!GetUTXOCoin(outpointBurnFund, BurnFundcoin)) {
 		LogPrintf("CMasternode::CheckCollateralBurnFundRelation -- Check Collateral tx not found %s-%d\n", outpointBurnFund.hash.ToString(), outpointBurnFund.n);
@@ -283,8 +279,6 @@ bool CMasternode::CheckCollateralBurnFundRelation(const COutPoint& outpoint, con
         LogPrintf("CMasternode::CheckCollateralBurnFundRelation -- Unknown destination of BurnFund tx.\n");
         return false;
     }
-
-    LogPrintf("CMasternode::CheckCollateralBurnFundRelation -- BurnFund address:%s.\n",EncodeDestination(address));
 
     if (EncodeDestination(address) != Params().GetConsensus().cBurnAddress) {
         LogPrintf("CMasternode::CheckCollateralBurnFundRelation -- BurnFund address is diffrent with BurnAddress in consensus.\n");
@@ -318,7 +312,6 @@ bool CMasternode::CheckCollateralBurnFundRelation(const COutPoint& outpoint, con
                     //LogPrintf("CMasternode::BurnFundStatus -- Pubkey is correct\n");
                     OutputType output_type = OutputType::LEGACY;
                     CTxDestination dest = GetDestinationForKey(pubKey, output_type);
-                    LogPrintf("CMasternode::CheckCollateralBurnFundRelation -- Pubkey address of input BurnFund tx: %s.\n", EncodeDestination(dest));
                     if ( dest != addressCollateral ) {
                         LogPrintf("CMasternode::CheckCollateralBurnFundRelation -- Pubkey address of input BurnFund tx and Collateral address is different.\n");
                         return false;

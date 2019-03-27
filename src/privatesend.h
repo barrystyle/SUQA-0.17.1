@@ -23,7 +23,7 @@ static const int PRIVATESEND_QUEUE_TIMEOUT          = 30;
 static const int PRIVATESEND_SIGNING_TIMEOUT        = 15;
 
 //! minimum peer version accepted by mixing pool
-static const int MIN_PRIVATESEND_PEER_PROTO_VERSION = 70208;
+static const int MIN_PRIVATESEND_PEER_PROTO_VERSION = 250000;
 
 static const size_t PRIVATESEND_ENTRY_MAX_SIZE      = 9;
 
@@ -120,12 +120,7 @@ public:
     template <typename Stream, typename Operation>
     inline void SerializationOp(Stream& s, Operation ser_action) {
         READWRITE(nDenom);
-        int nVersion = s.GetVersion();
-        if (nVersion > 70208) {
-            READWRITE(nInputCount);
-        } else if (ser_action.ForRead()) {
-            nInputCount = 0;
-        }
+        READWRITE(nInputCount);
         READWRITE(txCollateral);
     }
 
@@ -212,31 +207,12 @@ public:
     template <typename Stream, typename Operation>
     inline void SerializationOp(Stream& s, Operation ser_action) {
         READWRITE(nDenom);
-        int nVersion = s.GetVersion();
-        if (nVersion > 70208) {
-            READWRITE(nInputCount);
-        } else if (ser_action.ForRead()) {
-            nInputCount = 0;
-        }
-        if (nVersion == 70208 && (s.GetType() & SER_NETWORK)) {
-            // converting from/to old format
-            CTxIn txin{};
-            if (ser_action.ForRead()) {
-                READWRITE(txin);
-                masternodeOutpoint = txin.prevout;
-            } else {
-                txin = CTxIn(masternodeOutpoint);
-                READWRITE(txin);
-            }
-        } else {
-            // using new format directly
-            READWRITE(masternodeOutpoint);
-        }
+        READWRITE(nInputCount);
+        // using new format directly
+        READWRITE(masternodeOutpoint);
         READWRITE(nTime);
         READWRITE(fReady);
-        if (!(s.GetType() & SER_GETHASH)) {
-            READWRITE(vchSig);
-        }
+        READWRITE(vchSig);
     }
 
     uint256 GetSignatureHash() const;
@@ -304,24 +280,9 @@ public:
     template <typename Stream, typename Operation>
     inline void SerializationOp(Stream& s, Operation ser_action) {
         READWRITE(tx);
-        int nVersion = s.GetVersion();
-        if (nVersion == 70208 && (s.GetType() & SER_NETWORK)) {
-            // converting from/to old format
-            CTxIn txin{};
-            if (ser_action.ForRead()) {
-                READWRITE(txin);
-                masternodeOutpoint = txin.prevout;
-            } else {
-                txin = CTxIn(masternodeOutpoint);
-                READWRITE(txin);
-            }
-        } else {
-            // using new format directly
-            READWRITE(masternodeOutpoint);
-        }
-        if (!(s.GetType() & SER_GETHASH)) {
-            READWRITE(vchSig);
-        }
+        // using new format directly
+        READWRITE(masternodeOutpoint);
+        READWRITE(vchSig);
         READWRITE(sigTime);
     }
 
@@ -391,7 +352,7 @@ private:
     CPrivateSend(CPrivateSend const&) = delete;
     CPrivateSend& operator= (CPrivateSend const&) = delete;
 
-    static const CAmount COLLATERAL = 0.001 * COIN;
+    static const CAmount COLLATERAL = 0.1 * COIN;
 
     // static members
     static std::vector<CAmount> vecStandardDenominations;

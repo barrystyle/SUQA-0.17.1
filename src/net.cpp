@@ -3241,10 +3241,6 @@ std::vector<CNode*> CConnman::CopyNodeVector()
     LOCK(cs_vNodes);
     for(size_t i = 0; i < vNodes.size(); ++i) {
         CNode* pnode = vNodes[i];
-        // FXTC BEGIN
-        LogPrint(BCLog::NET, "CConnman::CopyNodeVector -- adding node: peer=%d addr=%s nRefCount=%d fNetworkNode=%d fInbound=%d fMasternode=%d\n",
-                  pnode->id, pnode->addr.ToString(), pnode->GetRefCount(), pnode->fNetworkNode, pnode->fInbound, pnode->fMasternode);
-        // FXTC END
         pnode->AddRef();
         vecNodesCopy.push_back(pnode);
     }
@@ -3256,10 +3252,6 @@ void CConnman::ReleaseNodeVector(const std::vector<CNode*>& vecNodes)
     LOCK(cs_vNodes);
     for(size_t i = 0; i < vecNodes.size(); ++i) {
         CNode* pnode = vecNodes[i];
-        // FXTC BEGIN
-        LogPrint(BCLog::NET, "CConnman::ReleaseNodeVector -- releasing node: peer=%d addr=%s nRefCount=%d fNetworkNode=%d fInbound=%d fMasternode=%d\n",
-                  pnode->id, pnode->addr.ToString(), pnode->GetRefCount(), pnode->fNetworkNode, pnode->fInbound, pnode->fMasternode);
-        // FXTC END
         pnode->Release();
     }
 }

@@ -1018,91 +1018,40 @@ bool CPrivateSendClient::StartNewQueue(CAmount nValueMin, CAmount nBalanceNeedsA
             continue;
         }
 
-        /*
         if (connman.IsMasternodeOrDisconnectRequested(infoMn.addr)) {
             LogPrintf("CPrivateSendClient::StartNewQueue -- skipping masternode connection, addr=%s\n", infoMn.addr.ToString());
             nTries++;
             continue;
         }
-
         LogPrintf("CPrivateSendClient::StartNewQueue -- attempt %d connection to Masternode %s\n", nTries, infoMn.addr.ToString());
+        std::vector<CNode*> vNodesCopy = connman.CopyNodeVector();
+        for (auto* pnode : vNodesCopy)
+        {
+            CAddress add = CAddress(infoMn.addr, NODE_NETWORK);
+            if (pnode->addr == add) {
+                LogPrintf("CPrivateSendClient::StartNewQueue -- connected, addr=%s\n", infoMn.addr.ToString());
+                infoMixingMasternode = infoMn;
 
-        std::vector<CAmount> vecAmounts;
-        pwallet->ConvertList(vecTxIn, vecAmounts);
-        // try to get a single random denom out of vecAmounts
-        while(nSessionDenom == 0) {
-            nSessionDenom = CPrivateSend::GetDenominationsByAmounts(vecAmounts);
-        }
+                std::vector<CAmount> vecAmounts;
+                pwallet->ConvertList(vecTxIn, vecAmounts);
+                // try to get a single random denom out of vecAmounts
+                while(nSessionDenom == 0) {
+                    nSessionDenom = CPrivateSend::GetDenominationsByAmounts(vecAmounts);
+                }
 
-        // Count available denominations.
-        // Should never really fail after this point, since we just selected compatible inputs ourselves.
-        std::vector<int> vecBits;
-        if (!CPrivateSend::GetDenominationsBits(nSessionDenom, vecBits)) {
-            return false;
-        }
-
-        CAmount nValueInTmp = 0;
-        std::vector<CTxDSIn> vecTxDSInTmp;
-        std::vector<COutput> vCoinsTmp;
-        std::vector<CAmount> vecStandardDenoms = CPrivateSend::GetStandardDenominations();
-
-        bool fSelected = pwallet->SelectCoinsByDenominations(nSessionDenom, vecStandardDenoms[vecBits.front()], vecStandardDenoms[vecBits.front()] * PRIVATESEND_ENTRY_MAX_SIZE, vecTxDSInTmp, vCoinsTmp, nValueInTmp, 0, nPrivateSendRounds);
-        if (!fSelected) {
-            return false;
-        }
-
-        // nInputCount is not covered by legacy signature, require SPORK_6_NEW_SIGS to activate to use new algo
-        // (to make sure nInputCount wasn't modified by some intermediary node)
-        bool fNewAlgo = infoMn.nProtocolVersion > 70208 && sporkManager.IsSporkActive(SPORK_6_NEW_SIGS);
-        nSessionInputCount = fNewAlgo
-                ? std::min(vecTxDSInTmp.size(), size_t(5 + GetRand(PRIVATESEND_ENTRY_MAX_SIZE - 5 + 1)))
-                : 0;
-        infoMixingMasternode = infoMn;
-        connman.AddPendingMasternode(infoMn.addr);
-        pendingDsaRequest = CPendingDsaRequest(infoMn.addr, CDarksendAccept(nSessionDenom, nSessionInputCount, txMyCollateral));
-        // TODO: add new state POOL_STATE_CONNECTING and bump MIN_PRIVATESEND_PEER_PROTO_VERSION
-        SetState(POOL_STATE_QUEUE);
-        nTimeLastSuccessfulStep = GetTime();
-        LogPrintf("CPrivateSendClient::StartNewQueue -- pending connection, nSessionDenom: %d (%s), nSessionInputCount: %d, addr=%s\n",
-                nSessionDenom, CPrivateSend::GetDenominationsToString(nSessionDenom), nSessionInputCount, infoMn.addr.ToString());
-        strAutoDenomResult = _("Trying to connect...");
-        return true;
-        */
-        // FXTC TODO:
-        if (connman.ForNode(infoMn.addr, CConnman::AllNodesExceptMasternodes)) {
-            LogPrintf("CPrivateSendClient::StartNewQueue -- skipping masternode connection, addr=%s\n", infoMn.addr.ToString());
-            nTries++;
-            continue;
-        }
-
-        LogPrintf("CPrivateSendClient::StartNewQueue -- attempt %d connection to Masternode %s\n", nTries, infoMn.addr.ToString());
-        // FXTC BEGIN
-        //CNode* pnode = connman.ConnectNode(CAddress(infoMn.addr, NODE_NETWORK), NULL, false, true);
-        CNode *pnode = g_connman->OpenNetworkConnection(CAddress(infoMn.addr, NODE_NETWORK), false, nullptr, NULL, false, false, false, true);
-        // FXTC END
-        if(pnode) {
-            LogPrintf("CPrivateSendClient::StartNewQueue -- connected, addr=%s\n", infoMn.addr.ToString());
-            infoMixingMasternode = infoMn;
-
-            std::vector<CAmount> vecAmounts;
-            pwallet->ConvertList(vecTxIn, vecAmounts);
-            // try to get a single random denom out of vecAmounts
-            while(nSessionDenom == 0) {
-                nSessionDenom = CPrivateSend::GetDenominationsByAmounts(vecAmounts);
+                connman.PushMessage(pnode, CNetMsgMaker(pnode->GetSendVersion()).Make(NetMsgType::DSACCEPT, nSessionDenom, txMyCollateral));
+                LogPrintf("CPrivateSendClient::StartNewQueue -- connected, sending DSACCEPT, nSessionDenom: %d (%s)\n",
+                        nSessionDenom, CPrivateSend::GetDenominationsToString(nSessionDenom));
+                strAutoDenomResult = _("Mixing in progress...");
+                SetState(POOL_STATE_QUEUE);
+                nTimeLastSuccessfulStep = GetTimeMillis();
+                return true;
             }
-
-            connman.PushMessage(pnode, CNetMsgMaker(pnode->GetSendVersion()).Make(NetMsgType::DSACCEPT, nSessionDenom, txMyCollateral));
-            LogPrintf("CPrivateSendClient::StartNewQueue -- connected, sending DSACCEPT, nSessionDenom: %d (%s)\n",
-                    nSessionDenom, CPrivateSend::GetDenominationsToString(nSessionDenom));
-            strAutoDenomResult = _("Mixing in progress...");
-            SetState(POOL_STATE_QUEUE);
-            nTimeLastSuccessfulStep = GetTimeMillis();
-            return true;
-        } else {
-            LogPrintf("CPrivateSendClient::StartNewQueue -- can't connect, addr=%s\n", infoMn.addr.ToString());
-            nTries++;
-            continue;
         }
+
+        LogPrintf("CPrivateSendClient::StartNewQueue -- can't connect, addr=%s\n", infoMn.addr.ToString());
+        nTries++;
+        continue;
     }
     strAutoDenomResult = _("Failed to start a new mixing queue");
     return false;
