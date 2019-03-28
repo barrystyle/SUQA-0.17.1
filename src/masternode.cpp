@@ -194,7 +194,6 @@ CMasternode::CollateralStatus CMasternode::CheckCollateral(const COutPoint& outp
        return COLLATERAL_INVALID_AMOUNT;
     }
 
-	LogPrintf("CMasternode::CollateralStatus -- Collateral tx is valid %s-%d\n", outpoint.hash.ToString(), outpoint.n);
     nHeightRet = coin.nHeight;
     return COLLATERAL_OK;
 }
@@ -332,8 +331,6 @@ void CMasternode::Check(bool fForce)
 
     if(!fForce && (GetTime() - nTimeLastChecked < MASTERNODE_CHECK_SECONDS)) return;
     nTimeLastChecked = GetTime();
-
-    LogPrint(BCLog::MASTERNODE, "CMasternode::Check -- Masternode %s is in %s state\n", vin.prevout.ToStringShort(), GetStateString());
 
     //once spent, stop doing the checks
     if(IsOutpointSpent()) return;
