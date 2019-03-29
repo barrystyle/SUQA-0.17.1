@@ -758,7 +758,7 @@ bool CPrivateSendClient::DoAutomaticDenominating(CConnman& connman, bool fDryRun
     CAmount nBalanceNeedsAnonymized = pwallet->GetNeedsToBeAnonymizedBalance(nValueMin);
 
     // anonymizable balance > 0.1 but is way too small
-    if(nBalanceNeedsAnonymized < nValueMin) {
+    if(nBalanceNeedsAnonymized < nValueMin && nBalanceNeedsAnonymized > 0) {
         LogPrintf("CPrivateSendClient::DoAutomaticDenominating -- Not enough funds to anonymize nBalanceNeedsAnonymized: %llf, nValueMin: %llf \n", nBalanceNeedsAnonymized, nValueMin);
         strAutoDenomResult = _("Not enough funds to anonymize.");
         return false;
