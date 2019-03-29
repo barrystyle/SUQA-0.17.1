@@ -3359,7 +3359,7 @@ bool CWallet::SelectCoinsGrouppedByAddresses(std::vector<CompactTallyItem>& vecT
 bool CWallet::SelectCoinsDark(CAmount nValueMin, CAmount nValueMax, std::vector<CTxIn>& vecTxInRet, CAmount& nValueRet, int nPrivateSendRoundsMin, int nPrivateSendRoundsMax) const
 {
     LOCK2(cs_main, cs_wallet);
-
+LogPrintf("CPrivateSendClient::SelectCoinsDark -- 0\n");
     CCoinControl *coinControl=NULL;
 
     vecTxInRet.clear();
@@ -3373,26 +3373,31 @@ bool CWallet::SelectCoinsDark(CAmount nValueMin, CAmount nValueMax, std::vector<
 
     for (const auto& out : vCoins)
     {
+LogPrintf("CPrivateSendClient::SelectCoinsDark -- 1\n");
         //do not allow inputs less than 1/10th of minimum value
         if(out.tx->tx->vout[out.i].nValue < nValueMin/10) continue;
         //do not allow collaterals to be selected
+LogPrintf("CPrivateSendClient::SelectCoinsDark -- 2\n");
         if(CPrivateSend::IsCollateralAmount(out.tx->tx->vout[out.i].nValue)) continue;
         // FXTC BEGIN
+LogPrintf("CPrivateSendClient::SelectCoinsDark -- 3\n");
         //if(fMasterNode && out.tx->tx->vout[out.i].nValue == 1000*COIN) continue; //masternode input
         if(fMasterNode && CMasternode::CheckCollateral(COutPoint(out.tx->GetHash(),out.i)) == CMasternode::COLLATERAL_OK) continue; //masternode input
         // FXTC END
-
+LogPrintf("CPrivateSendClient::SelectCoinsDark -- 4\n");
         if(nValueRet + out.tx->tx->vout[out.i].nValue <= nValueMax){
             CTxIn txin = CTxIn(out.tx->GetHash(),out.i);
-
+LogPrintf("CPrivateSendClient::SelectCoinsDark -- 5\n");
             int nRounds = GetOutpointPrivateSendRounds(txin.prevout);
             if(nRounds >= nPrivateSendRoundsMax) continue;
+LogPrintf("CPrivateSendClient::SelectCoinsDark -- 6\n");
             if(nRounds < nPrivateSendRoundsMin) continue;
-
+LogPrintf("CPrivateSendClient::SelectCoinsDark -- 7\n");
             nValueRet += out.tx->tx->vout[out.i].nValue;
             vecTxInRet.push_back(txin);
         }
     }
+LogPrintf("CPrivateSendClient::SelectCoinsDark -- 8\n");
 
     return nValueRet >= nValueMin;
 }
