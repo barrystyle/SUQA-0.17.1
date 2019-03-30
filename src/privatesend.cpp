@@ -250,7 +250,7 @@ bool CPrivateSend::IsCollateralValid(const CTransaction& txCollateral)
             if (validationState.GetRejectCode() == REJECT_DUPLICATE) {
                 return true;
             } else {
-                LogPrint(BCLog::PRIVATESEND, "CPrivateSend::IsCollateralValid -- didn't pass AcceptToMemoryPool(): %s\n", FormatStateMessage(validationState)));
+                LogPrint(BCLog::PRIVATESEND, "CPrivateSend::IsCollateralValid -- didn't pass AcceptToMemoryPool(): %s\n", FormatStateMessage(validationState));
                 return false;
             }
         }
