@@ -290,7 +290,7 @@ public:
         fRequireStandard = false;
         fMineBlocksOnDemand = false;
 
-	nPoolMaxTransactions = 10;
+        nPoolMaxTransactions = 2;
 
         checkpointData = {
         };

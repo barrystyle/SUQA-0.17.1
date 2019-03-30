@@ -245,9 +245,14 @@ bool CPrivateSend::IsCollateralValid(const CTransaction& txCollateral)
         LOCK(cs_main);
         CValidationState validationState;
         //if(!AcceptToMemoryPool(mempool, validationState, MakeTransactionRef(txCollateral), false, NULL, NULL, false, maxTxFee, true)) {
-        if(!AcceptToMemoryPool(mempool, validationState, MakeTransactionRef(txCollateral), nullptr, NULL, false, maxTxFee)) {
-            LogPrint(BCLog::PRIVATESEND, "CPrivateSend::IsCollateralValid -- didn't pass AcceptToMemoryPool()\n");
-            return false;
+        if(!AcceptToMemoryPool(mempool, validationState, MakeTransactionRef(txCollateral), nullptr, /*NULL*/nullptr, false, maxTxFee)) {
+            //Collateral is in mempool. we are in case: user stop and restart
+            if (validationState.GetRejectCode() == REJECT_DUPLICATE) {
+                return true;
+            } else {
+                LogPrint(BCLog::PRIVATESEND, "CPrivateSend::IsCollateralValid -- didn't pass AcceptToMemoryPool(): %s\n", FormatStateMessage(validationState)));
+                return false;
+            }
         }
     }
 
