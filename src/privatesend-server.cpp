@@ -735,7 +735,7 @@ bool CPrivateSendServer::CreateNewSession(const CDarksendAccept& dsa, PoolMessag
     nSessionDenom = dsa.nDenom;
     // nInputCount is not covered by legacy signature, require SPORK_6_NEW_SIGS to activate to use new algo
     // (to make sure nInputCount wasn't modified by some intermediary node)
-    //nSessionInputCount = sporkManager.IsSporkActive(SPORK_6_NEW_SIGS) ? dsa.nInputCount : 0;
+    nSessionInputCount = dsa.nInputCount;
 
     SetState(POOL_STATE_QUEUE);
     nTimeLastSuccessfulStep = GetTime();
