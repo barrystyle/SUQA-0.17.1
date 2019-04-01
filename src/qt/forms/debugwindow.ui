@@ -7,17 +7,232 @@
     <x>0</x>
     <y>0</y>
     <width>740</width>
-    <height>430</height>
+    <height>466</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Debug window</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true"> QWidget#RPCConsole {
+background-color:#0d1827;
+
+}
+QTabWidget {
+    /* background-color: #f2f2f2; */
+    background-color:transparent;
+   color:#ffffff;
+
+}
+QTabWidget::pane {
+    /* background-color: #f2f2f2; */
+    background-color:transparent;
+    /* border: 1px solid #c2c2c2; */
+    border:0;
+}
+QTabBar {
+	background-color: transparent;;
+	color: #ffffff;
+}
+QTabBar::tab:hover:!selected {
+    color:#ffffff;
+}
+QTabBar::tab {
+  color:#747c83;
+  font-size:14px;
+  background-color:transparent;
+  padding-left: 4px;
+  padding-right: 4px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  min-width: 100px;
+  border-top-color:transparent;
+  border-left-color:transparent;
+  border-right-color:transparent;
+}
+
+QTabBar::tab:selected {
+    border-bottom: 3px solid #FF8204;
+    background-color:transparent;
+    }
+QTabBar::tab:pressed {
+    outline:0;
+}
+
+.QValidatedLineEdit, .QLineEdit { /* Text Entry Fields */
+border: 1px solid #FF8204;
+border-radius: 10px;
+font-size:14px;
+font-weight: bold;
+min-height:25px;
+outline:0;
+padding:3px;
+color: #ffffff;
+background-color:#364860;
+}
+
+QWidget#RPCConsole QTextEdit#messagesWidget {
+	/* Console Messages Window */
+	border: 0;
+	background-color: rgba(0,0,0,0.75);
+	color: #fff;
+}
+
+QWidget#RPCConsole QWidget#tab_peers QLabel#peerHeading {
+	/* Peers Info Header */
+	color: #FF8204;
+}
+
+QLabel {
+color:white;
+}
+
+QWidget#RPCConsole QTableView#peerWidget::item, QTableView#banlistWidget::ite  {
+	/* Peers Table Items */
+	color: #fff;
+}
+
+QWidget#RPCConsole QTableView#peerWidget, QTableView#banlistWidget {
+	/* Peers Table Items */
+   background-color: transparent;
+
+}
+
+QTableView::item:selected { /* Table Item Selected */
+	background: #313d4b;
+		color: #ffffff;
+}
+
+QWidget#RPCConsole QPushButton#openDebugLogfileButton { /* Open Debug File Button */
+  background-color: transparent;
+  border: 2px solid #707780;
+  color: #707780;
+  padding-left: 20px;
+  padding-right: 20px;
+font-size: 12px;
+	font-weight: bold;
+	border-radius: 19px;
+	text-transform: uppercase;
+}
+
+QWidget#RPCConsole QPushButton#openDebugLogfileButton:hover {
+  background-color: #707780;
+  color: #132232;
+}
+
+QWidget#RPCConsole QPushButton#openDebugLogfileButton:pressed {
+	border: 1px solid #9e9e9e;
+}
+
+QScrollBar {
+	/* Scroll Bar */
+}
+QScrollBar:vertical {
+	/* Vertical Scroll Bar Attributes */
+	border: 0;
+	background: transparent;
+	width: 12px;
+    margin: 0;
+    
+}
+QScrollBar:horizontal {
+	/* Horizontal Scroll Bar Attributes */
+	border: 0;
+	background: transparent;
+	height: 12px;
+    /* margin: 0px 18px 0px 18px; */
+    margin:0;
+    
+}
+QScrollBar::handle:vertical {
+	/* Scroll Bar Slider - vertical */
+	background: #333b46;
+    border-radius: 6px;
+    min-height:50px;
+    width:3px;
+    /* border:2px solid transparent; */
+    
+	
+}
+
+QScrollBar::handle:horizontal {
+	/* Scroll Bar Slider - horizontal */
+	background: #333b46;
+    min-width: 50px;
+    border-radius: 6px;
+}
+QScrollBar::add-page,
+QScrollBar::sub-page {
+	/* Scroll Bar Background */
+	background: transparent;
+}
+QScrollBar::add-line:vertical,
+QScrollBar::sub-line:vertical,
+QScrollBar::add-line:horizontal,
+QScrollBar::sub-line:horizontal {
+	/* Define Arrow Button Dimensions */
+	background: none;
+	border: 0;
+	width: 16px;
+	height: 16px;
+}
+QScrollBar::add-line:vertical:pressed,
+QScrollBar::sub-line:vertical:pressed,
+QScrollBar::add-line:horizontal:pressed,
+QScrollBar::sub-line:horizontal:pressed {
+	background-color: #e0e0e0;
+}
+QScrollBar::sub-line:vertical {
+	/* Vertical - top button position */
+	subcontrol-position: top;
+	subcontrol-origin: margin;
+}
+QScrollBar::add-line:vertical {
+	/* Vertical - bottom button position */
+	subcontrol-position: bottom;
+	subcontrol-origin: margin;
+}
+QScrollBar::sub-line:horizontal {
+	/* Vertical - left button position */
+	subcontrol-position: left;
+	subcontrol-origin: margin;
+}
+QScrollBar::add-line:horizontal {
+	/* Vertical - right button position */
+	subcontrol-position: right;
+	subcontrol-origin: margin;
+}
+QScrollBar:up-arrow,
+QScrollBar:down-arrow,
+QScrollBar:left-arrow,
+QScrollBar:right-arrow {
+	/* Arrows Icon */
+	width: 10px;
+	height: 10px;
+	display: none;
+	opacity: 0;
+}
+QScrollBar:up-arrow {
+	background: none;
+}
+QScrollBar:down-arrow {
+    /* background-image: url(':/images/downArrow_small'); */
+    background: none;
+}
+QScrollBar:left-arrow {
+    /* background-image: url(':/images/leftArrow_small'); */
+    background: none;
+}
+QScrollBar:right-arrow {
+    /* background-image: url(':/images/rightArrow_small'); */
+    background: none;
+}</string>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="tab_info">
       <attribute name="title">
@@ -165,17 +380,17 @@
         </widget>
        </item>
        <item row="6" column="0">
-           <widget class="QLabel" name="labelNetwork">
-               <property name="font">
-                   <font>
-                       <weight>75</weight>
-                       <bold>true</bold>
-                   </font>
-               </property>
-               <property name="text">
-                   <string>Network</string>
-               </property>
-           </widget>
+        <widget class="QLabel" name="labelNetwork">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Network</string>
+         </property>
+        </widget>
        </item>
        <item row="7" column="0">
         <widget class="QLabel" name="label_8">
@@ -341,7 +556,6 @@
          </property>
         </widget>
        </item>
-       <!-- Dash -->
        <item row="15" column="0">
         <widget class="QLabel" name="masternodesLabel">
          <property name="font">
@@ -369,7 +583,6 @@
          </property>
         </widget>
        </item>
-       <!--      -->
        <item row="12" column="2" rowspan="3">
         <layout class="QVBoxLayout" name="verticalLayoutDebugButton">
          <property name="spacing">
@@ -478,14 +691,14 @@
              <height>24</height>
             </size>
            </property>
-           <property name="text">
-            <string/>
-           </property>
            <property name="toolTip">
             <string>Decrease font size</string>
            </property>
+           <property name="text">
+            <string/>
+           </property>
            <property name="icon">
-            <iconset resource="../suqa.qrc">
+            <iconset>
              <normaloff>:/icons/fontsmaller</normaloff>:/icons/fontsmaller</iconset>
            </property>
            <property name="iconSize">
@@ -517,7 +730,7 @@
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="../suqa.qrc">
+            <iconset>
              <normaloff>:/icons/fontbigger</normaloff>:/icons/fontbigger</iconset>
            </property>
            <property name="iconSize">
@@ -552,7 +765,7 @@
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="../suqa.qrc">
+            <iconset>
              <normaloff>:/icons/remove</normaloff>:/icons/remove</iconset>
            </property>
            <property name="shortcut">
@@ -607,7 +820,7 @@
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="../suqa.qrc">
+            <iconset>
              <normaloff>:/icons/prompticon</normaloff>
              <disabledoff>:/icons/prompticon</disabledoff>:/icons/prompticon</iconset>
            </property>

@@ -46,8 +46,8 @@ SplashScreen::SplashScreen(interfaces::Node& node, Qt::WindowFlags f, const Netw
     QString font            = QApplication::font().toString();
 
     // create a bitmap according to device pixelratio
-    QSize splashSize(480,400);
-    pixmap = QPixmap(480,400);
+    QSize splashSize(480,540);
+    pixmap = QPixmap(480,540);
 
     QPainter pixPaint(&pixmap);
     pixPaint.setPen(QColor("#ffffff"));
@@ -57,7 +57,7 @@ SplashScreen::SplashScreen(interfaces::Node& node, Qt::WindowFlags f, const Netw
 
     // draw background
     QRect rectBg(QPoint(0, 0), QSize(splashSize.width(), splashSize.height()));
-    QPixmap bg(":/icons/suqa");
+    QPixmap bg(":/images/splash");
     pixPaint.drawPixmap(rectBg, bg);
 
     pixPaint.setFont(QFont(font, 32*fontFactor, QFont::Bold));

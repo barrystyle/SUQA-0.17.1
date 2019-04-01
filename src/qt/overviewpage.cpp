@@ -31,6 +31,8 @@
 #include <QPainter>
 #include <QSettings>
 #include <QTimer>
+#include <QDesktopServices>
+#include <QUrl>
 
 #define ICON_OFFSET 16
 #define DECORATION_SIZE 54
@@ -103,6 +105,7 @@ public:
             foreground = option.palette.color(QPalette::Text);
         }
         painter->setPen(foreground);
+
         QString amountText = BitcoinUnits::formatWithUnit(unit, amount, true, BitcoinUnits::separatorAlways);
         if(!confirmed)
         {
@@ -136,6 +139,13 @@ OverviewPage::OverviewPage(const PlatformStyle *platformStyle, QWidget *parent) 
     txdelegate(new TxViewDelegate(platformStyle, this))
 {
     ui->setupUi(this);
+    //ui->pushButton_Website->setIcon(QIcon(GUIUtil::getThemeImage(":/icons/website")));
+    ui->pushButton_Website->setStatusTip(tr("Sinovate Website"));
+    ui->pushButton_Discord->setStatusTip(tr("Sinovate Discord Channel"));
+    ui->pushButton_Telegram->setStatusTip(tr("Sinovate Telegram Channel"));
+    ui->pushButton_Twitter->setStatusTip(tr("Sinovate Twitter Channel"));
+    ui->pushButton_Explorer->setStatusTip(tr("Sinovate Block Explorer"));
+
 
     m_balances.balance = -1;
 
@@ -213,15 +223,15 @@ void OverviewPage::setBalance(const interfaces::WalletBalances& balances)
 {
     int unit = walletModel->getOptionsModel()->getDisplayUnit();
     m_balances = balances;
-    ui->labelBalance->setText(BitcoinUnits::formatWithUnit(unit, balances.balance, false, BitcoinUnits::separatorAlways));
-    ui->labelUnconfirmed->setText(BitcoinUnits::formatWithUnit(unit, balances.unconfirmed_balance, false, BitcoinUnits::separatorAlways));
-    ui->labelImmature->setText(BitcoinUnits::formatWithUnit(unit, balances.immature_balance, false, BitcoinUnits::separatorAlways));
-    ui->labelImmature->setText(BitcoinUnits::formatWithUnit(unit, balances.anonymized_balance, false, BitcoinUnits::separatorAlways));
-    ui->labelTotal->setText(BitcoinUnits::formatWithUnit(unit, balances.balance + balances.unconfirmed_balance + balances.immature_balance, false, BitcoinUnits::separatorAlways));
-    ui->labelWatchAvailable->setText(BitcoinUnits::formatWithUnit(unit, balances.watch_only_balance, false, BitcoinUnits::separatorAlways));
-    ui->labelWatchPending->setText(BitcoinUnits::formatWithUnit(unit, balances.unconfirmed_watch_only_balance, false, BitcoinUnits::separatorAlways));
-    ui->labelWatchImmature->setText(BitcoinUnits::formatWithUnit(unit, balances.immature_watch_only_balance, false, BitcoinUnits::separatorAlways));
-    ui->labelWatchTotal->setText(BitcoinUnits::formatWithUnit(unit, balances.watch_only_balance + balances.unconfirmed_watch_only_balance + balances.immature_watch_only_balance, false, BitcoinUnits::separatorAlways));
+    ui->labelBalance->setText(BitcoinUnits::floorHtmlWithUnit(unit, balances.balance, false, BitcoinUnits::separatorAlways));
+    ui->labelUnconfirmed->setText(BitcoinUnits::floorHtmlWithUnit(unit, balances.unconfirmed_balance, false, BitcoinUnits::separatorAlways));
+    ui->labelImmature->setText(BitcoinUnits::floorHtmlWithUnit(unit, balances.immature_balance, false, BitcoinUnits::separatorAlways));
+    ui->labelImmature->setText(BitcoinUnits::floorHtmlWithUnit(unit, balances.anonymized_balance, false, BitcoinUnits::separatorAlways));
+    ui->labelTotal->setText(BitcoinUnits::floorHtmlWithUnit(unit, balances.balance + balances.unconfirmed_balance + balances.immature_balance, false, BitcoinUnits::separatorAlways));
+    ui->labelWatchAvailable->setText(BitcoinUnits::floorHtmlWithUnit(unit, balances.watch_only_balance, false, BitcoinUnits::separatorAlways));
+    ui->labelWatchPending->setText(BitcoinUnits::floorHtmlWithUnit(unit, balances.unconfirmed_watch_only_balance, false, BitcoinUnits::separatorAlways));
+    ui->labelWatchImmature->setText(BitcoinUnits::floorHtmlWithUnit(unit, balances.immature_watch_only_balance, false, BitcoinUnits::separatorAlways));
+    ui->labelWatchTotal->setText(BitcoinUnits::floorHtmlWithUnit(unit, balances.watch_only_balance + balances.unconfirmed_watch_only_balance + balances.immature_watch_only_balance, false, BitcoinUnits::separatorAlways));
 
     // only show immature (newly mined) balance if it's non-zero, so as not to complicate things
     // for the non-mining users
@@ -701,7 +711,26 @@ void OverviewPage::DisablePrivateSendCompletely() {
     ui->privateSendReset->setText("(" + tr("Disabled") + ")");
     ui->framePrivateSend->setEnabled(false);
     if (nWalletBackups <= 0) {
-        ui->labelPrivateSendEnabled->setText("<span style='color:red;'>(" + tr("Disabled") + ")</span>");
+        ui->labelPrivateSendEnabled->setText("<span style='color:#FF8204;'>(" + tr("Disabled") + ")</span>");
     }
     privateSendClient.fEnablePrivateSend = false;
+}
+
+void OverviewPage::on_pushButton_Website_clicked() {
+    QDesktopServices::openUrl(QUrl("https://suqa.org/", QUrl::TolerantMode));
+}
+void OverviewPage::on_pushButton_Discord_clicked() {
+    QDesktopServices::openUrl(QUrl("https://discord.gg/qrtU7Y9", QUrl::TolerantMode));
+}
+void OverviewPage::on_pushButton_Telegram_clicked() {
+    QDesktopServices::openUrl(QUrl("https://t.me//Suqafoundation", QUrl::TolerantMode));
+}
+void OverviewPage::on_pushButton_Twitter_clicked() {
+    QDesktopServices::openUrl(QUrl("https://twitter.com/SUQAfoundation", QUrl::TolerantMode));
+}
+void OverviewPage::on_pushButton_Explorer_clicked() {
+    QDesktopServices::openUrl(QUrl("http://suqaexplorer.com", QUrl::TolerantMode));
+}
+void OverviewPage::on_pushButton_Btctalk_clicked() {
+    QDesktopServices::openUrl(QUrl("https://bitcointalk.org/index.php?topic=5038269.0", QUrl::TolerantMode));
 }

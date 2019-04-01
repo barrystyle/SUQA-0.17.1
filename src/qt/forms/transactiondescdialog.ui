@@ -13,6 +13,40 @@
   <property name="windowTitle">
    <string notr="true">Transaction details</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">QDialog#TransactionDescDialog {
+background-color: #0d1827;
+}
+QPushButton {
+	/* Global Button Style */
+	background-color: #FF8204;
+	padding: 0.85em 2em;
+	font-family: &quot;Montserrat&quot;;
+	letter-spacing: 1px;
+	border: 0;
+	color: #ffffff;
+	font-size: 12px;
+	font-weight: bold;
+	border-radius: 19px;
+	text-transform: uppercase;
+}
+QPushButton:hover {
+	background-color: #db7e20;
+}
+QPushButton:focus {
+	border: none;
+	outline: none;
+}
+QPushButton:pressed {
+	border: 1px solid #333;
+}
+
+QTextEdit#detailText {
+background-color: transparent;
+color: #fff;
+border:0;
+}</string>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QTextEdit" name="detailText">
