@@ -107,7 +107,7 @@
              <string notr="true"/>
             </property>
             <property name="text">
-             <string>Inputs...</string>
+             <string>Open Coin Control...</string>
             </property>
             <property name="autoDefault">
              <bool>false</bool>
@@ -588,7 +588,7 @@
         <x>0</x>
         <y>0</y>
         <width>830</width>
-        <height>104</height>
+        <height>102</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,1">
@@ -761,14 +761,14 @@
           </item>
           <item>
            <widget class="QLabel" name="fallbackFeeWarningLabel">
+            <property name="font">
+             <font>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
             <property name="toolTip">
              <string>Using the fallbackfee can result in sending a transaction that will take several hours or days (or never) to confirm. Consider choosing your fee manually or wait until you have validated the complete chain.</string>
-            </property>
-            <property name="font">
-            <font>
-                <weight>75</weight>
-                <bold>true</bold>
-            </font>
             </property>
             <property name="text">
              <string>Warning: Fee estimation is currently not possible.</string>
@@ -800,7 +800,7 @@
              <string>collapse fee-settings</string>
             </property>
             <property name="text">
-             <string>Hide</string>
+             <string>Minimize</string>
             </property>
            </widget>
           </item>
@@ -850,7 +850,7 @@
                    <property name="toolTip">
                     <string>Specify a custom fee per kB (1,000 bytes) of the transaction's virtual size.
 
-Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis per kB" for a transaction size of 500 bytes (half of 1 kB) would ultimately yield a fee of only 50 satoshis.</string>
+Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satoshis per kB&quot; for a transaction size of 500 bytes (half of 1 kB) would ultimately yield a fee of only 50 satoshis.</string>
                    </property>
                    <property name="text">
                     <string>per kilobyte</string>
@@ -922,8 +922,19 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
              </item>
              <item row="0" column="0">
               <layout class="QVBoxLayout" name="verticalLayoutFee4" stretch="0,1">
+               <property name="rightMargin">
+                <number>43</number>
+               </property>
                <item>
                 <widget class="QRadioButton" name="radioSmartFee">
+                 <property name="layoutDirection">
+                  <enum>Qt::LeftToRight</enum>
+                 </property>
+                 <property name="styleSheet">
+                  <string notr="true">color:rgb(255, 255, 255);
+
+</string>
+                 </property>
                  <property name="text">
                   <string>Recommended:</string>
                  </property>
@@ -952,8 +963,14 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
              </item>
              <item row="1" column="0">
               <layout class="QVBoxLayout" name="verticalLayoutFee9" stretch="0,1">
+               <property name="rightMargin">
+                <number>43</number>
+               </property>
                <item>
                 <widget class="QRadioButton" name="radioCustomFee">
+                 <property name="styleSheet">
+                  <string notr="true">color:rgb(255, 255, 255);</string>
+                 </property>
                  <property name="text">
                   <string>Custom:</string>
                  </property>
@@ -1109,11 +1126,11 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
            </item>
            <item>
             <widget class="QCheckBox" name="optInRBF">
-             <property name="text">
-              <string>Enable Replace-By-Fee</string>
-             </property>
              <property name="toolTip">
               <string>With Replace-By-Fee (BIP-125) you can increase a transaction's fee after it is sent. Without this, a higher fee may be recommended to compensate for increased transaction delay risk.</string>
+             </property>
+             <property name="text">
+              <string>Enable Replace-By-Fee</string>
              </property>
             </widget>
            </item>
@@ -1155,8 +1172,8 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
         <string>S&amp;end</string>
        </property>
        <property name="icon">
-        <iconset resource="../suqa.qrc">
-         <normaloff>:/icons/send</normaloff>:/icons/send</iconset>
+        <iconset>
+         <normaloff>../../../../../../Desktop/UI DarkBlue v01/Resources/icons/drkblue/send1.png</normaloff>../../../../../../Desktop/UI DarkBlue v01/Resources/icons/drkblue/send1.png</iconset>
        </property>
        <property name="autoDefault">
         <bool>false</bool>
@@ -1181,7 +1198,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
         <string>Clear &amp;All</string>
        </property>
        <property name="icon">
-        <iconset resource="../suqa.qrc">
+        <iconset>
          <normaloff>:/icons/remove</normaloff>:/icons/remove</iconset>
        </property>
        <property name="autoDefault">
@@ -1198,7 +1215,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
         <string>Add &amp;Recipient</string>
        </property>
        <property name="icon">
-        <iconset resource="../suqa.qrc">
+        <iconset>
          <normaloff>:/icons/add</normaloff>:/icons/add</iconset>
        </property>
        <property name="autoDefault">

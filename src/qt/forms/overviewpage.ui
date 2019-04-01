@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>596</width>
-    <height>342</height>
+    <width>680</width>
+    <height>650</height>
    </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>675</width>
+    <height>645</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>Form</string>
@@ -48,19 +54,6 @@
          <layout class="QVBoxLayout" name="verticalLayout_4">
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_4">
-            <item>
-             <widget class="QLabel" name="label_5">
-              <property name="font">
-               <font>
-                <weight>75</weight>
-                <bold>true</bold>
-               </font>
-              </property>
-              <property name="text">
-               <string>Balances</string>
-              </property>
-             </widget>
-            </item>
             <item>
              <widget class="QPushButton" name="labelWalletStatus">
               <property name="enabled">
@@ -218,7 +211,7 @@
             <item row="5" column="0">
              <widget class="QLabel" name="labelTotalText">
               <property name="text">
-               <string>Total:</string>
+               <string>Total</string>
               </property>
              </widget>
             </item>
@@ -263,7 +256,7 @@
             <item row="3" column="0">
              <widget class="QLabel" name="labelImmatureText">
               <property name="text">
-               <string>Immature:</string>
+               <string>Immature</string>
               </property>
              </widget>
             </item>
@@ -330,7 +323,7 @@
             <item row="1" column="0">
              <widget class="QLabel" name="labelBalanceText">
               <property name="text">
-               <string>Available:</string>
+               <string>Available</string>
               </property>
              </widget>
             </item>
@@ -387,14 +380,14 @@
             <item row="2" column="0">
              <widget class="QLabel" name="labelPendingText">
               <property name="text">
-               <string>Pending:</string>
+               <string>Pending</string>
               </property>
              </widget>
             </item>
             <item row="0" column="1">
              <widget class="QLabel" name="labelSpendable">
               <property name="text">
-               <string>Spendable:</string>
+               <string>Spendable</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -408,6 +401,12 @@
        </item>
        <item>
         <widget class="QFrame" name="framePrivateSend">
+         <property name="minimumSize">
+          <size>
+           <width>348</width>
+           <height>400</height>
+          </size>
+         </property>
          <property name="layoutDirection">
           <enum>Qt::LeftToRight</enum>
          </property>
@@ -418,8 +417,17 @@
           <enum>QFrame::Raised</enum>
          </property>
          <layout class="QVBoxLayout" name="VerticalLayout_PS1">
+          <property name="topMargin">
+           <number>9</number>
+          </property>
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_5">
+            <property name="spacing">
+             <number>6</number>
+            </property>
+            <property name="bottomMargin">
+             <number>5</number>
+            </property>
             <item>
              <widget class="QLabel" name="labelPrivateSendHeader">
               <property name="font">
@@ -475,13 +483,9 @@
             <property name="verticalSpacing">
              <number>12</number>
             </property>
-            <item row="0" column="0">
-             <widget class="QLabel" name="labelPrivateSendEnabledText">
-              <property name="text">
-               <string>Status:</string>
-              </property>
-             </widget>
-            </item>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
             <item row="0" column="1">
              <widget class="QLabel" name="labelPrivateSendEnabled">
               <property name="text">
@@ -492,7 +496,7 @@
             <item row="1" column="0">
              <widget class="QLabel" name="labelCompletitionText">
               <property name="text">
-               <string>Completion:</string>
+               <string>Completion</string>
               </property>
              </widget>
             </item>
@@ -512,7 +516,7 @@
             <item row="2" column="0">
              <widget class="QLabel" name="labelAnonymizedText">
               <property name="text">
-               <string>PrivateSend Balance:</string>
+               <string>PrivateSend Balance</string>
               </property>
              </widget>
             </item>
@@ -532,7 +536,7 @@
             <item row="3" column="0">
              <widget class="QLabel" name="labelAmountAndRoundsText">
               <property name="text">
-               <string>Amount and Rounds:</string>
+               <string>Amount and Rounds</string>
               </property>
              </widget>
             </item>
@@ -546,7 +550,7 @@
             <item row="4" column="0">
              <widget class="QLabel" name="labelSubmittedDenomText">
               <property name="text">
-               <string>Submitted Denom:</string>
+               <string>Submitted Denom</string>
               </property>
              </widget>
             </item>
@@ -560,10 +564,23 @@
               </property>
              </widget>
             </item>
+            <item row="0" column="0">
+             <widget class="QLabel" name="labelPrivateSendEnabledText">
+              <property name="styleSheet">
+               <string notr="true"/>
+              </property>
+              <property name="text">
+               <string>Status</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </item>
           <item>
            <layout class="QVBoxLayout" name="VerticalLayout_PS">
+            <property name="topMargin">
+             <number>5</number>
+            </property>
             <item>
              <widget class="QLabel" name="labelPrivateSendLastMessage">
               <property name="text">
@@ -773,6 +790,172 @@
           </size>
          </property>
         </spacer>
+       </item>
+       <item>
+        <widget class="QFrame" name="button_logo_horizontal">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_11">
+          <property name="bottomMargin">
+           <number>25</number>
+          </property>
+          <item>
+           <widget class="QPushButton" name="pushButton_Website">
+            <property name="minimumSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset>
+              <normaloff>:/icons/website</normaloff>:/icons/website</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_Discord">
+            <property name="minimumSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset>
+              <normaloff>:/icons/discord</normaloff>:/icons/discord</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_Telegram">
+            <property name="minimumSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset>
+              <normaloff>:/icons/telegram</normaloff>:/icons/telegram</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_Twitter">
+            <property name="minimumSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset>
+              <normaloff>:/icons/twitter</normaloff>:/icons/twitter</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_Explorer">
+            <property name="minimumSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset>
+              <normaloff>:/icons/explorer</normaloff>:/icons/explorer</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
        </item>
       </layout>
      </item>

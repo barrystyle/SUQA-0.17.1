@@ -195,6 +195,7 @@ SUQAAmountField::SUQAAmountField(QWidget *parent) :
     amount(0)
 {
     amount = new AmountSpinBox(this);
+	amount->setStyleSheet("background-color:transparent; border-color:#FF8204;	border-radius:10px;	font-size:12px;	font-weight:bold;	color:#ffffff;");
     amount->setLocale(QLocale::c());
     amount->installEventFilter(this);
     amount->setMaximumWidth(240);
@@ -223,7 +224,8 @@ SUQAAmountField::SUQAAmountField(QWidget *parent) :
 void SUQAAmountField::clear()
 {
     amount->clear();
-    unit->setCurrentIndex(0);
+	unit->setCurrentIndex(0);
+	
 }
 
 void SUQAAmountField::setEnabled(bool fEnabled)
@@ -243,7 +245,7 @@ bool SUQAAmountField::validate()
 void SUQAAmountField::setValid(bool valid)
 {
     if (valid)
-        amount->setStyleSheet("");
+        amount->setStyleSheet("background-color:transparent; border-color:#FF8204;	border-radius:10px;	font-size:12px;	font-weight:bold;	color:#ffffff;");
     else
         amount->setStyleSheet(STYLE_INVALID);
 }

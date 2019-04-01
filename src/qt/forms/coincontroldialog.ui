@@ -13,6 +13,313 @@
   <property name="windowTitle">
    <string>Coin Selection</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">QDialog#CoinControlDialog {
+background-color :#0d1827;
+color: #ffffff;
+}
+
+QDialog#CoinControlDialog .QLabel#labelCoinControlQuantityText {
+	/* Coin Control Quantity Label */
+	min-height: 30px;
+	padding-left: 15px;
+color : #fff;
+}
+QDialog#CoinControlDialog .QLabel#labelCoinControlQuantity {
+	/* Coin Control Quantity */
+	min-height: 30px;
+color : #fff;
+}
+QDialog#CoinControlDialog .QLabel#labelCoinControlBytesText {
+	/* Coin Control Bytes Label */
+	padding-left: 15px;
+color : #fff;
+}
+QDialog#CoinControlDialog .QLabel#labelCoinControlBytes {
+	/* Coin Control Bytes */
+color : #fff;
+}
+QDialog#CoinControlDialog .QLabel#labelCoinControlAmountText {
+	/* Coin Control Amount Label */
+	min-height: 30px;
+	padding-left: 15px;
+color : #fff;
+}
+QDialog#CoinControlDialog .QLabel#labelCoinControlAmount {
+	/* Coin Control Amount */
+	min-height: 30px;
+color : #fff;
+}
+QDialog#CoinControlDialog .QLabel#labelCoinControlPriorityText {
+	/* Coin Control Priority Label */
+	padding-left: 15px;
+color : #fff;
+}
+QDialog#CoinControlDialog .QLabel#labelCoinControlPriority {
+	/* Coin Control Priority */
+color : #fff;
+}
+QDialog#CoinControlDialog .QLabel#labelCoinControlFeeText {
+	/* Coin Control Fee Label */
+	min-height: 30px;
+	padding-left: 15px;
+color : #fff;
+}
+QDialog#CoinControlDialog .QLabel#labelCoinControlFee {
+	/* Coin Control Fee */
+	min-height: 30px;
+color : #fff;
+}
+QDialog#CoinControlDialog .QLabel#labelCoinControlLowOutputText {
+	/* Coin Control Low Output Label */
+	padding-left: 15px;
+color : #fff;
+}
+QDialog#CoinControlDialog .QLabel#labelCoinControlLowOutput {
+	/* Coin Control Low Output */
+
+color : #fff;
+}
+QDialog#CoinControlDialog .QLabel#labelCoinControlAfterFeeText {
+	/* Coin Control After Fee Label */
+	min-height: 30px;
+	padding-left: 15px;
+color : #fff;
+}
+QDialog#CoinControlDialog .QLabel#labelCoinControlAfterFee {
+	/* Coin Control After Fee */
+	min-height: 30px;
+color : #fff;
+}
+QDialog#CoinControlDialog .QLabel#labelCoinControlChangeText {
+	/* Coin Control Change Label */
+	padding-left: 15px;
+color : #fff;
+}
+QDialog#CoinControlDialog .QLabel#labelCoinControlChange {
+	/* Coin Control Change */
+color : #fff;
+}
+QDialog#CoinControlDialog .QFrame#frame .QRadioButton#radioTreeMode {
+	/* Coin Control Tree Mode Selector */
+	color: #818181;
+	background-color: transparent;
+}
+QDialog#CoinControlDialog .QFrame#frame .QRadioButton#radioListMode {
+	/* Coin Control List Mode Selector */
+	color: #818181;
+	background-color: transparent;
+}
+QDialog#CoinControlDialog QHeaderView::section:first {
+	/* Bug Fix: the number &quot;1&quot; displays in this table for some reason... */
+	color: transparent;
+}
+QDialog#CoinControlDialog .CoinControlTreeWidget#treeWidget {
+	/* Coin Control Widget Container */
+	outline: 0;
+	background-color: #1C3455;
+	border: 0;
+	alternate-background-color: transparent;
+}
+QDialog#CoinControlDialog .CoinControlTreeWidget#treeWidget::item {
+	background-color:transparent;
+	color:white;
+	padding-left:0;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+} 
+
+QDialog#CoinControlDialog .CoinControlTreeWidget#treeWidget::item:selected {
+	/* Coin Control Item (selected) */
+	background-color: #313d4b;
+	color: #fff;
+}
+QDialog#CoinControlDialog .CoinControlTreeWidget#treeWidget::item:checked {
+	/* Coin Control Item (checked) */
+	background-color: transparent;
+	color: #fff;
+}
+QDialog#CoinControlDialog .CoinControlTreeWidget#treeWidget::branch:selected {
+	/* Coin Control Branch Icon */
+	/* background-image: url(':/images/qtreeview_selected');
+	background-repeat: no-repeat;
+	background-position: center;
+	background-color: transparent; */
+	background:none;
+	color: #333;
+}
+QDialog#CoinControlDialog .CoinControlTreeWidget#treeWidget::branch:checked {
+	/* Coin Control Branch Icon */
+	/* background-image: url(':/images/qtreeview_selected');
+	background-repeat: no-repeat;
+	background-position: center;
+	background-color: #f7f7f7; */
+	background:none;
+	color: #333;
+}
+QDialog#CoinControlDialog .CoinControlTreeWidget#treeWidget::seperator {} QDialog#CoinControlDialog .CoinControlTreeWidget#treeWidget::indicator {
+	/* Coin Control Widget Checkbox */
+}
+
+QPushButton {
+	/* Global Button Style */
+	background-color: #FF8204;
+	padding: 0.85em 2em;
+	font-family: &quot;Montserrat&quot;;
+	letter-spacing: 1px;
+	border: 0;
+	color: #ffffff;
+	font-size: 12px;
+	font-weight: bold;
+	border-radius: 19px;
+	text-transform: uppercase;
+}
+QPushButton:hover {
+	background-color: #db7e20;
+}
+QPushButton:focus {
+	border: none;
+	outline: none;
+}
+QPushButton:pressed {
+	border: 1px solid #333;
+}
+
+QScrollBar {
+	/* Scroll Bar */
+}
+QScrollBar:vertical {
+	/* Vertical Scroll Bar Attributes */
+	border: 0;
+	background: transparent;
+	width: 12px;
+    margin: 0;
+    
+}
+QScrollBar:horizontal {
+	/* Horizontal Scroll Bar Attributes */
+	border: 0;
+	background: transparent;
+	height: 12px;
+    /* margin: 0px 18px 0px 18px; */
+    margin:0;
+    
+}
+QScrollBar::handle:vertical {
+	/* Scroll Bar Slider - vertical */
+	background: #333b46;
+    border-radius: 6px;
+    min-height:50px;
+    width:3px;
+    /* border:2px solid transparent; */
+    
+	
+}
+
+QScrollBar::handle:horizontal {
+	/* Scroll Bar Slider - horizontal */
+	background: #333b46;
+    min-width: 50px;
+    border-radius: 6px;
+}
+QScrollBar::add-page,
+QScrollBar::sub-page {
+	/* Scroll Bar Background */
+	background: transparent;
+}
+QScrollBar::add-line:vertical,
+QScrollBar::sub-line:vertical,
+QScrollBar::add-line:horizontal,
+QScrollBar::sub-line:horizontal {
+	/* Define Arrow Button Dimensions */
+	background: none;
+	border: 0;
+	width: 16px;
+	height: 16px;
+}
+QScrollBar::add-line:vertical:pressed,
+QScrollBar::sub-line:vertical:pressed,
+QScrollBar::add-line:horizontal:pressed,
+QScrollBar::sub-line:horizontal:pressed {
+	background-color: #e0e0e0;
+}
+QScrollBar::sub-line:vertical {
+	/* Vertical - top button position */
+	subcontrol-position: top;
+	subcontrol-origin: margin;
+}
+QScrollBar::add-line:vertical {
+	/* Vertical - bottom button position */
+	subcontrol-position: bottom;
+	subcontrol-origin: margin;
+}
+QScrollBar::sub-line:horizontal {
+	/* Vertical - left button position */
+	subcontrol-position: left;
+	subcontrol-origin: margin;
+}
+QScrollBar::add-line:horizontal {
+	/* Vertical - right button position */
+	subcontrol-position: right;
+	subcontrol-origin: margin;
+}
+QScrollBar:up-arrow,
+QScrollBar:down-arrow,
+QScrollBar:left-arrow,
+QScrollBar:right-arrow {
+	/* Arrows Icon */
+	width: 10px;
+	height: 10px;
+	display: none;
+	opacity: 0;
+}
+QScrollBar:up-arrow {
+	background: none;
+}
+QScrollBar:down-arrow {
+    /* background-image: url(':/images/downArrow_small'); */
+    background: none;
+}
+QScrollBar:left-arrow {
+    /* background-image: url(':/images/leftArrow_small'); */
+    background: none;
+}
+QScrollBar:right-arrow {
+    /* background-image: url(':/images/rightArrow_small'); */
+    background: none;
+}
+QSlider::handle:horizontal {
+	background-color: #8a8a8a;
+	border: 0;
+	border-radius: 6px;
+}
+QSlider::sub-page:horizontal {
+	background-color: #414a55;
+	border: 0;
+	border-radius: 6px;
+}
+QSlider::add-page:horizontal {
+	/* background-color:rgba(255, 255, 255, 0.08); */
+	background-color: #222d3a;
+	border: 0;
+	border-radius: 6px;
+}
+/**************************** HIDE ARROWS **********************************************/
+
+QScrollBar::add-line:vertical {
+	height: 0px;
+}
+QScrollBar::sub-line:vertical {
+	height: 0px;
+}
+QScrollBar::add-page:vertical,
+QScrollBar::sub-page:vertical {
+	height: 0px;
+}
+
+QFrame#frame {
+border:0;
+}</string>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <layout class="QHBoxLayout" name="horizontalLayoutTop" stretch="0,0,0,0">
@@ -319,7 +626,7 @@
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayoutPanel" stretch="0,0,0,0,0">
+       <layout class="QHBoxLayout" name="horizontalLayoutPanel" stretch="0,0,0,0,0,0">
         <property name="spacing">
          <number>14</number>
         </property>
@@ -418,7 +725,7 @@
       <bool>false</bool>
      </property>
      <property name="columnCount">
-      <number>10</number>
+      <number>11</number>
      </property>
      <attribute name="headerShowSortIndicator" stdset="0">
       <bool>true</bool>
