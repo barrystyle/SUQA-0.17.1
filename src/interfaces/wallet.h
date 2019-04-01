@@ -165,6 +165,7 @@ public:
     //! GetOutpointPrivateSendRounds
     virtual int GetOutpointPrivateSendRounds (const COutPoint& outpoint) = 0;
     virtual CAmount GetAnonymizableBalance(bool fSkipDenominated = false, bool fSkipUnconfirmed = true) = 0;
+    virtual CAmount GetAnonymizedBalance() = 0;
     virtual CAmount GetDenominatedBalance(bool unconfirmed=false) = 0;
     virtual CAmount GetNormalizedAnonymizedBalance() = 0;
     virtual float GetAverageAnonymizedRounds() = 0;

@@ -245,6 +245,7 @@ public:
     }
     int GetOutpointPrivateSendRounds (const COutPoint& outpoint) override { return m_wallet.GetOutpointPrivateSendRounds(outpoint); }
     CAmount GetAnonymizableBalance(bool fSkipDenominated, bool fSkipUnconfirmed ) override { return m_wallet.GetAnonymizableBalance(fSkipDenominated, fSkipUnconfirmed); }
+    CAmount GetAnonymizedBalance() override { return m_wallet.GetAnonymizedBalance(); }
     CAmount GetDenominatedBalance(bool unconfirmed ) override { return m_wallet.GetDenominatedBalance(unconfirmed); }
     CAmount GetNormalizedAnonymizedBalance() override { return m_wallet.GetNormalizedAnonymizedBalance(); }
     float GetAverageAnonymizedRounds() override { return m_wallet.GetAverageAnonymizedRounds(); }
@@ -361,7 +362,7 @@ public:
         result.balance = m_wallet.GetBalance();
         result.unconfirmed_balance = m_wallet.GetUnconfirmedBalance();
         result.immature_balance = m_wallet.GetImmatureBalance();
-        result.anonymized_balance = m_wallet.GetAnonymizableBalance(false, true);
+        result.anonymized_balance = m_wallet.GetAnonymizedBalance();
         result.have_watch_only = m_wallet.HaveWatchOnly();
         result.term_deposit_info = m_wallet.GetTermDepositInfo();
         if (result.have_watch_only) {
