@@ -3203,11 +3203,6 @@ bool CWallet::SelectCoinsByDenominations(int nDenom, CAmount nValueMin, CAmount 
     InsecureRand insecureRand;
     for (const COutput& out : vCoins)
     {
-        // masternode-like input should not be selected by AvailableCoins now anyway
-        //if(out.tx->vout[out.i].nValue == 1000*COIN) continue;
-        // FXTC BEGIN
-        //if(CMasternode::CheckCollateral(COutPoint(out.tx->GetHash(),i)) == COLLATERAL_OK) continue;
-        // FXTC END
         if(nValueRet + out.tx->tx->vout[out.i].nValue <= nValueMax){
 
             CTxIn txin = CTxIn(out.tx->tx->GetHash(), out.i);
@@ -3708,6 +3703,7 @@ OutputType CWallet::TransactionChangeType(OutputType change_type, const std::vec
 
 bool CWallet::SelectPSInOutPairsByDenominations(int nDenom, CAmount nValueMin, CAmount nValueMax, std::vector< std::pair<CTxDSIn, CTxOut> >& vecPSInOutPairsRet)
 {
+    LOCK2(cs_main, cs_wallet);
     CAmount nValueTotal{0};
     int nDenomResult{0};
 
@@ -3728,7 +3724,7 @@ bool CWallet::SelectPSInOutPairsByDenominations(int nDenom, CAmount nValueMin, C
 
     std::vector<CAmount> vecPrivateSendDenominations = CPrivateSend::GetStandardDenominations();
     for (const auto& out : vCoins) {
-        uint256 txHash = out.tx->GetHash();
+        uint256 txHash = out.tx->tx->GetHash();
         int nValue = out.tx->tx->vout[out.i].nValue;
         if (setRecentTxIds.find(txHash) != setRecentTxIds.end()) continue; // no duplicate txids
         if (nValueTotal + nValue > nValueMax) continue;
