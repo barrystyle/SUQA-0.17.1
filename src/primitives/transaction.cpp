@@ -54,7 +54,7 @@ CTxOut::CTxOut(const CAmount& nValueIn, CScript scriptPubKeyIn, int nRoundsIn)
 {
     nValue = nValueIn;
     scriptPubKey = scriptPubKeyIn;
-    nRounds = -10;
+    nRounds = nRoundsIn;
 }
 
 std::string CTxOut::ToString() const

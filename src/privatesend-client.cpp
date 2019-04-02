@@ -31,7 +31,6 @@ void CPrivateSendClient::ProcessMessage(CNode* pfrom, const std::string& strComm
     if(strCommand == NetMsgType::DSQUEUE) {
         TRY_LOCK(cs_darksend, lockRecv);
         if(!lockRecv) return;
-
         if(pfrom->nVersion < MIN_PRIVATESEND_PEER_PROTO_VERSION) {
             LogPrint(BCLog::PRIVATESEND, "DSQUEUE -- peer=%d using obsolete version %i\n", pfrom->GetId(), pfrom->nVersion);
             connman.PushMessage(pfrom, CNetMsgMaker(pfrom->GetSendVersion()).Make(NetMsgType::REJECT, strCommand, REJECT_OBSOLETE,
@@ -45,7 +44,7 @@ void CPrivateSendClient::ProcessMessage(CNode* pfrom, const std::string& strComm
         // process every dsq only once
         for (const auto& q : vecDarksendQueue) {
             if(q == dsq) {
-                // LogPrint(BCLog::PRIVATESEND, "DSQUEUE -- %s seen\n", dsq.ToString());
+                LogPrint(BCLog::PRIVATESEND, "DSQUEUE -- %s seen\n", dsq.ToString());
                 return;
             }
         }
@@ -70,7 +69,6 @@ void CPrivateSendClient::ProcessMessage(CNode* pfrom, const std::string& strComm
                 LogPrintf("DSQUEUE -- message doesn't match current Masternode: infoMixingMasternode=%s, addr=%s\n", infoMixingMasternode.addr.ToString(), infoMn.addr.ToString());
                 return;
             }
-
             if(nState == POOL_STATE_QUEUE) {
                 LogPrint(BCLog::PRIVATESEND, "DSQUEUE -- PrivateSend queue (%s) is ready on masternode %s\n", dsq.ToString(), infoMn.addr.ToString());
                 SubmitDenominate(connman);
@@ -1026,6 +1024,7 @@ bool CPrivateSendClient::StartNewQueue(CAmount nValueMin, CAmount nBalanceNeedsA
         for (auto* pnode : vNodesCopy)
         {
             if (pnode->addr == add) {
+                infoMixingMasternode = infoMn;
                 LogPrintf("CPrivateSendClient::StartNewQueue -- connected, addr=%s\n", infoMn.addr.ToString());
                 //connman.PushMessage(pnode, CNetMsgMaker(pnode->GetSendVersion()).Make(NetMsgType::DSACCEPT, nSessionDenom, txMyCollateral));
                 connman.PushMessage(pnode, CNetMsgMaker(pnode->GetSendVersion()).Make(NetMsgType::DSACCEPT, nSessionDenom, txMyCollateral));
@@ -1069,6 +1068,12 @@ void CPrivateSendClient::ProcessPendingDsaRequest(CConnman& connman)
     }
 }
 
+bool sortbyvalue(const pair<int,size_t> &a,
+              const pair<int,size_t> &b)
+{
+    return (a.second > b.second || (a.second == b.second && a.first < b.first));
+}
+
 bool CPrivateSendClient::SubmitDenominate(CConnman& connman)
 {
     std::vector<std::shared_ptr<CWallet>> wallets = GetWallets();
@@ -1096,20 +1101,18 @@ bool CPrivateSendClient::SubmitDenominate(CConnman& connman)
             }
             vecInputsByRounds.emplace_back(i, vecPSInOutPairsTmp.size());
         } else {
-            LogPrint(BCLog::PRIVATESEND, "CPrivateSendClientSession::SubmitDenominate -- Running PrivateSend denominate for %d rounds, error: %s\n", i, strError);
+            LogPrint(BCLog::PRIVATESEND, "CPrivateSendClient::SubmitDenominate -- Running PrivateSend denominate for %d rounds, error: %s\n", i, strError);
         }
     }
-
+/*
     // more inputs first, for equal input count prefer the one with less rounds
-    std::sort(vecInputsByRounds.begin(), vecInputsByRounds.end(), [](const std::pair<int, size_t> & a, const std::pair<int, size_t> & b) {
-        return a.second > b.second || (a.second == b.second && a.first < b.first);
-    });
+    std::sort(vecInputsByRounds.begin(), vecInputsByRounds.end(), sortbyvalue);
 
     LogPrint(BCLog::PRIVATESEND, "vecInputsByRounds for denom %d\n", nSessionDenom);
-    for (const auto& pair : vecInputsByRounds) {
+    for (const std::pair<int, size_t> &pair : vecInputsByRounds) {
         LogPrint(BCLog::PRIVATESEND, "vecInputsByRounds: rounds: %d, inputs: %d\n", pair.first, pair.second);
     }
-
+*/
     int nRounds = vecInputsByRounds.begin()->first;
     if (PrepareDenominate(nRounds, nRounds, strError, vecPSInOutPairs, vecPSInOutPairsTmp)) {
         LogPrintf("CPrivateSendClient::SubmitDenominate -- Running PrivateSend denominate for %d rounds, success\n", nRounds);
@@ -1191,7 +1194,6 @@ bool CPrivateSendClient::PrepareDenominate(int nMinRounds, int nMaxRounds, std::
     std::vector<CAmount> vecStandardDenoms = CPrivateSend::GetStandardDenominations();
     std::vector<int> vecSteps(vecStandardDenoms.size(), 0);
     vecPSInOutPairsRet.clear();
-
     // Try to add up to PRIVATESEND_ENTRY_MAX_SIZE of every needed denomination
     for (const auto& pair : vecPSInOutPairsIn) {
         if (pair.second.nRounds < nMinRounds || pair.second.nRounds > nMaxRounds) {
@@ -1231,7 +1233,6 @@ bool CPrivateSendClient::PrepareDenominate(int nMinRounds, int nMaxRounds, std::
             pwallet->UnlockCoin(pair.first.prevout);
         }
     }
-
     if (nDenomResult != nSessionDenom) {
         // unlock used coins on failure
         for (const auto& pair : vecPSInOutPairsRet) {
