@@ -161,6 +161,58 @@ void CMasternodeMan::Check()
     }
 }
 
+void CMasternodeMan::CheckAndRemoveBurnFundNotUniqueNode(CConnman& connman)
+{
+        if (masternodeSync.IsSynced())
+        {
+                // we test two scenarios here, first is checking if winner is
+                // unique (has one entry with burntx) in the masternode list.
+                // (we populate nBurnFundMap first time checking this)
+                std::map<COutPoint, CMasternode> nBurnFundMap;
+                std::map<COutPoint, CMasternode>::iterator it = mnodeman.GetFullMasternodeMap().begin();
+                std::vector<CMasternode*> vpMasternodesToBan; //list node will be banned
+                while (it != mnodeman.GetFullMasternodeMap().end()) {
+                        CMasternodeBroadcast mnb = CMasternodeBroadcast(it->second);
+                        nBurnFundMap.insert(std::pair<COutPoint, CMasternode>(mnb.vinBurnFund.prevout, mnb));
+                        // conflict situation with someone else, choose older sigtime
+                        if (nBurnFundMap.count(mnb.vinBurnFund.prevout) > 1) {
+                                CMasternode candidateOne = CMasternode();
+                                CMasternode candidateTwo = CMasternode();
+                                // find 2 candidats
+                                for (auto it2 = nBurnFundMap.find(mnb.vinBurnFund.prevout); it2 != nBurnFundMap.end(); it2++) {
+                                        if (it2->first == mnb.vinBurnFund.prevout) {
+                                                if (candidateOne == CMasternode())
+                                                        candidateOne = it2->second;
+                                                else
+                                                        candidateTwo = it2->second;
+                                        }
+                                }
+                                // someone will be remove from FullMapMasternode and ban the connection
+                                std::map<COutPoint, CMasternode>::iterator it2;
+                                if (candidateOne.sigTime > candidateTwo.sigTime) {
+                                    LogPrintf("candidateOne has newer sigTime; removing from list\n");
+                                    it2 = mnodeman.GetFullMasternodeMap().find(candidateOne.vin.prevout);
+                                    vpMasternodesToBan.push_back(&(it2->second));
+                                    mnodeman.GetFullMasternodeMap().erase(it2); //remove from local list, so cannot vote
+                                } else {
+                                    LogPrintf("candidateTwo has newer sigTime; removing from list\n");
+                                    it2 = mnodeman.GetFullMasternodeMap().find(candidateTwo.vin.prevout);
+                                    vpMasternodesToBan.push_back(&(it2->second));
+                                    mnodeman.GetFullMasternodeMap().erase(it2); //remove from local list, so cannot vote
+                                }
+                        }
+                }
+                //Ban node
+                std::vector<CNode*> vNodesCopy = connman.CopyNodeVector();
+                for (auto pmn : vpMasternodesToBan) {
+                    CAddress add = CAddress(pmn->addr, NODE_NETWORK);
+                    for (auto* pnode : vNodesCopy) {
+                        if (pnode->addr == add) { Misbehaving(pnode->GetId(), 100, "invalid sinnode"); }
+                    }
+                }
+        }
+}
+
 void CMasternodeMan::CheckAndRemove(CConnman& connman)
 {
     if(!masternodeSync.IsMasternodeListSynced()) return;
@@ -171,6 +223,7 @@ void CMasternodeMan::CheckAndRemove(CConnman& connman)
         // Need LOCK2 here to ensure consistent locking order because code below locks cs_main
         // in CheckMnbAndUpdateMasternodeList()
         LOCK2(cs_main, cs);
+        CheckAndRemoveBurnFundNotUniqueNode(connman);
 
         Check();
 

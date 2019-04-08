@@ -138,7 +138,7 @@ public:
 
     /// Check all Masternodes
     void Check();
-
+    void CheckAndRemoveBurnFundNotUniqueNode(CConnman& connman);
     /// Check all Masternodes and remove inactive
     void CheckAndRemove(CConnman& connman);
     /// This is dummy overload to be used for dumping/loading mncache.dat

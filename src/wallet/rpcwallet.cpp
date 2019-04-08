@@ -548,14 +548,15 @@ static UniValue burncoin(const JSONRPCRequest& request)
         return NullUniValue;
     }
 
-    if (request.fHelp || request.params.size() < 2 || request.params.size() > 8)
+    if (request.fHelp || request.params.size() != 1)
 		throw std::runtime_error(
             "sendtoaddress amount "
 			"\nSend an amount to BurnAddress.\n"
 			"\nArguments:\n"
 			"1. \"amount\"             (numeric or string, required) The amount in " + CURRENCY_UNIT + " to send. eg 0.1\n"
 		 	"\nResult:\n"
-            "\"txid\"                  (string) The transaction id.\n"
+            "\"BURNtxid\"                  (string) The Burn transaction id. Need to run infinity node\n"
+            "\"CollateralAddress\"         (string) Address of Collateral. Please send 10000 to this address.\n"
             "\nExamples:\n"
             + HelpExampleCli("burncoin", "1000000")
 		);
@@ -565,21 +566,75 @@ static UniValue burncoin(const JSONRPCRequest& request)
     pwallet->BlockUntilSyncedToCurrentChain();
 
     LOCK2(cs_main, pwallet->cs_wallet);
-	
+    std::vector<COutput> vPossibleCoins;
+    pwallet->AvailableCoins(vPossibleCoins, true, NULL, false, ONLY_MASTERNODE_COLLATERAL);
+
+    UniValue results(UniValue::VARR);
 	// Amount
-    CAmount nAmount = AmountFromValue(request.params[1]);
-    if (nAmount != 100000 && nAmount != 500000 && nAmount != 1000000)
-        throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount for send");
+    CAmount nAmount = AmountFromValue(request.params[0]);
+    if (nAmount != Params().GetConsensus().nMasternodeBurnSINNODE_1 * COIN &&
+        nAmount != Params().GetConsensus().nMasternodeBurnSINNODE_5 * COIN &&
+        nAmount != Params().GetConsensus().nMasternodeBurnSINNODE_10 * COIN)
+        throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount to burn and run Infinity node");
 	// BurnAddress
 	CTxDestination dest = DecodeDestination(Params().GetConsensus().cBurnAddress);
 	// Wallet comments
-    mapValue_t mapValue;
-	bool fSubtractFeeFromAmount = true;
-	CCoinControl coin_control;
-	// Send
-	CTransactionRef tx = SendMoney(pwallet, dest, nAmount, fSubtractFeeFromAmount, coin_control, std::move(mapValue), {} /* fromAccount */, 0);
-    return tx->GetHash().GetHex();
-	
+    std::set<CTxDestination> destinations;
+    LOCK(pwallet->cs_wallet);
+    for (COutput& out : vPossibleCoins) {
+        CTxDestination address;
+        const CScript& scriptPubKey = out.tx->tx->vout[out.i].scriptPubKey;
+        bool fValidAddress = ExtractDestination(scriptPubKey, address);
+
+        if (destinations.size() && (!fValidAddress || !destinations.count(address)))
+            continue;
+
+        UniValue entry(UniValue::VOBJ);
+        entry.pushKV("txid", out.tx->GetHash().GetHex());
+        entry.pushKV("vout", out.i);
+
+        if (fValidAddress) {
+            entry.pushKV("address", EncodeDestination(address));
+
+            auto i = pwallet->mapAddressBook.find(address);
+            if (i != pwallet->mapAddressBook.end()) {
+                entry.pushKV("label", i->second.name);
+                if (IsDeprecatedRPCEnabled("accounts")) {
+                    entry.pushKV("account", i->second.name);
+                }
+            }
+
+            if (scriptPubKey.IsPayToScriptHash()) {
+                const CScriptID& hash = boost::get<CScriptID>(address);
+                CScript redeemScript;
+                if (pwallet->GetCScript(hash, redeemScript)) {
+                    entry.pushKV("redeemScript", HexStr(redeemScript.begin(), redeemScript.end()));
+                }
+            }
+        }
+
+        entry.pushKV("scriptPubKey", HexStr(scriptPubKey.begin(), scriptPubKey.end()));
+        entry.pushKV("amount", ValueFromAmount(out.tx->tx->vout[out.i].nValue));
+        entry.pushKV("confirmations", komodo_dpowconfs((int32_t)mapBlockIndex[out.tx->hashBlock]->nHeight,out.nDepth));
+        entry.pushKV("rawconfirmations", out.nDepth);
+        entry.pushKV("spendable", out.fSpendable);
+        entry.pushKV("solvable", out.fSolvable);
+        entry.pushKV("safe", out.fSafe);
+        if (out.tx->tx->vout[out.i].nValue >= nAmount && out.nDepth >= 2 && out.tx->tx->vin.size() == 1) {
+            // Wallet comments
+            mapValue_t mapValue;
+            bool fSubtractFeeFromAmount = true;
+            CCoinControl coin_control;
+            coin_control.Select(COutPoint(out.tx->GetHash(), out.i));
+            CTransactionRef tx = SendMoney(pwallet, dest, nAmount, fSubtractFeeFromAmount, coin_control, std::move(mapValue), {} /* fromAccount */, 0);
+            entry.pushKV("BURNTX", tx->GetHash().GetHex());
+            entry.pushKV("COLLATERAL_ADDRESS",EncodeDestination(address));
+            //coins is good to burn
+            results.push_back(entry);
+            break; //immediat
+        }
+    }
+    return results;
 }
 
 static UniValue sendtoaddress(const JSONRPCRequest& request)
@@ -5233,6 +5288,7 @@ static const CRPCCommand commands[] =
     { "wallet",             "removeprunedfunds",                &removeprunedfunds,             {"txid"} },
     { "wallet",             "rescanblockchain",                 &rescanblockchain,              {"start_height", "stop_height"} },
     { "wallet",             "sethdseed",                        &sethdseed,                     {"newkeypool","seed"} },
+    { "wallet",             "burncoin",                         &burncoin,                      {"amount"} },
 
     /** Account functions (deprecated) */
     { "wallet",             "getaccountaddress",                &getaccountaddress,             {"account"} },
