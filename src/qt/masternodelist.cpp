@@ -442,10 +442,14 @@ void MasternodeList::on_startAutoSINButton_clicked()
       const uint256* txid = &(*it).first;
       const CWalletTx* pcoin = &(*it).second;
       for (unsigned int i = 0; i < pcoin->tx->vout.size(); i++) {
-        if ((strstr(pcoin->tx->vout[i].scriptPubKey.ToString().c_str(),Params().GetConsensus().cBurnAddressPubKey)!=NULL) &&
-          (pcoin->tx->vout[i].nValue == Params().GetConsensus().nMasternodeBurnSINNODE_1 * COIN ||
-           pcoin->tx->vout[i].nValue == Params().GetConsensus().nMasternodeBurnSINNODE_5 * COIN ||
-           pcoin->tx->vout[i].nValue == Params().GetConsensus().nMasternodeBurnSINNODE_10 * COIN)) {
+        if (
+            (strstr(pcoin->tx->vout[i].scriptPubKey.ToString().c_str(),Params().GetConsensus().cBurnAddressPubKey)!=NULL) &&
+            (
+                ((Params().GetConsensus().nMasternodeBurnSINNODE_1 - 1) * COIN < pcoin->tx->vout[i].nValue && pcoin->tx->vout[i].nValue <= Params().GetConsensus().nMasternodeBurnSINNODE_1 * COIN) ||
+                ((Params().GetConsensus().nMasternodeBurnSINNODE_5 - 1) < pcoin->tx->vout[i].nValue * COIN && pcoin->tx->vout[i].nValue <= Params().GetConsensus().nMasternodeBurnSINNODE_5 * COIN) ||
+                ((Params().GetConsensus().nMasternodeBurnSINNODE_10 - 1) * COIN < pcoin->tx->vout[i].nValue && pcoin->tx->vout[i].nValue == Params().GetConsensus().nMasternodeBurnSINNODE_10 * COIN)
+            )
+        ) {
            if (!foundBurn) {
              strcpy(burnTxid, txid->ToString().c_str());
              burnVout = i;
