@@ -14,151 +14,135 @@
    <string>Coin Selection</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">QDialog#CoinControlDialog {
-background-color :#0d1827;
-color: #ffffff;
-}
+   <string notr="true"> /*******   BGcolor #0d1827  Orange #FF8204 */
 
-QDialog#CoinControlDialog .QLabel#labelCoinControlQuantityText {
-	/* Coin Control Quantity Label */
-	min-height: 30px;
-	padding-left: 15px;
-color : #fff;
-}
-QDialog#CoinControlDialog .QLabel#labelCoinControlQuantity {
-	/* Coin Control Quantity */
-	min-height: 30px;
-color : #fff;
-}
-QDialog#CoinControlDialog .QLabel#labelCoinControlBytesText {
-	/* Coin Control Bytes Label */
-	padding-left: 15px;
-color : #fff;
-}
-QDialog#CoinControlDialog .QLabel#labelCoinControlBytes {
-	/* Coin Control Bytes */
-color : #fff;
-}
-QDialog#CoinControlDialog .QLabel#labelCoinControlAmountText {
-	/* Coin Control Amount Label */
-	min-height: 30px;
-	padding-left: 15px;
-color : #fff;
-}
-QDialog#CoinControlDialog .QLabel#labelCoinControlAmount {
-	/* Coin Control Amount */
-	min-height: 30px;
-color : #fff;
-}
-QDialog#CoinControlDialog .QLabel#labelCoinControlPriorityText {
-	/* Coin Control Priority Label */
-	padding-left: 15px;
-color : #fff;
-}
-QDialog#CoinControlDialog .QLabel#labelCoinControlPriority {
-	/* Coin Control Priority */
-color : #fff;
-}
-QDialog#CoinControlDialog .QLabel#labelCoinControlFeeText {
-	/* Coin Control Fee Label */
-	min-height: 30px;
-	padding-left: 15px;
-color : #fff;
-}
-QDialog#CoinControlDialog .QLabel#labelCoinControlFee {
-	/* Coin Control Fee */
-	min-height: 30px;
-color : #fff;
-}
-QDialog#CoinControlDialog .QLabel#labelCoinControlLowOutputText {
-	/* Coin Control Low Output Label */
-	padding-left: 15px;
-color : #fff;
-}
-QDialog#CoinControlDialog .QLabel#labelCoinControlLowOutput {
-	/* Coin Control Low Output */
+QDialog#CoinControlDialog { /* Coin Control Dialog Window */
+  background-color:#0d1827;
+  color:#ffffff;
+  }
+  
+  QDialog#CoinControlDialog .QLabel#labelCoinControlQuantityText { /* Coin Control Quantity Label */
+  min-height:30px;
+  padding-left:15px;
+  color:#ffffff;
+  }
+  
+  QDialog#CoinControlDialog .QLabel#labelCoinControlQuantity { /* Coin Control Quantity */
+    color:#ffffff;
+  min-height:30px;
+  }
+  
+  QDialog#CoinControlDialog .QLabel#labelCoinControlBytesText { /* Coin Control Bytes Label */
+  padding-left:15px;
+  color:#ffffff;
+  }
+  
+  QDialog#CoinControlDialog .QLabel#labelCoinControlBytes { /* Coin Control Bytes */
+    color:#ffffff;
+  }
+  
+  QDialog#CoinControlDialog .QLabel#labelCoinControlAmountText { /* Coin Control Amount Label */
+  min-height:30px;
+  padding-left:15px;
+  color:#ffffff;
+  }
+  
+  QDialog#CoinControlDialog .QLabel#labelCoinControlAmount { /* Coin Control Amount */
+  min-height:30px;
+  color:#ffffff;
+  }
+  
+  QDialog#CoinControlDialog .QLabel#labelCoinControlPriorityText { /* Coin Control Priority Label */
+  padding-left:15px;
+  color:#ffffff;
+  }
+  
+  QDialog#CoinControlDialog .QLabel#labelCoinControlPriority { /* Coin Control Priority */
+    color:#ffffff;
+  }
+  
+  QDialog#CoinControlDialog .QLabel#labelCoinControlFeeText { /* Coin Control Fee Label */
+  min-height:30px;
+  padding-left:15px;
+  color:#ffffff;
+  }
+  
+  QDialog#CoinControlDialog .QLabel#labelCoinControlFee { /* Coin Control Fee */
+  min-height:30px;
+  color:#ffffff;
+  }
+  
+  QDialog#CoinControlDialog .QLabel#labelCoinControlLowOutputText { /* Coin Control Low Output Label */
+  padding-left:15px;
+  color:#ffffff;
+  }
+  
+  QDialog#CoinControlDialog .QLabel#labelCoinControlLowOutput { /* Coin Control Low Output */
+    color:#ffffff;
+  }
+  
+  QDialog#CoinControlDialog .QLabel#labelCoinControlAfterFeeText { /* Coin Control After Fee Label */
+  min-height:30px;
+  padding-left:15px;
+  color:#ffffff;
+  }
+  
+  QDialog#CoinControlDialog .QLabel#labelCoinControlAfterFee { /* Coin Control After Fee */
+  min-height:30px;
+  color:#ffffff;
+  }
+  
+  QDialog#CoinControlDialog .QLabel#labelCoinControlChangeText { /* Coin Control Change Label */
+  padding-left:15px;
+  color:#ffffff;
+  }
+  
+  QDialog#CoinControlDialog .QLabel#labelCoinControlChange { /* Coin Control Change */
+    color:#ffffff;
+  }
+ 
 
-color : #fff;
-}
-QDialog#CoinControlDialog .QLabel#labelCoinControlAfterFeeText {
-	/* Coin Control After Fee Label */
-	min-height: 30px;
-	padding-left: 15px;
-color : #fff;
-}
-QDialog#CoinControlDialog .QLabel#labelCoinControlAfterFee {
-	/* Coin Control After Fee */
-	min-height: 30px;
-color : #fff;
-}
-QDialog#CoinControlDialog .QLabel#labelCoinControlChangeText {
-	/* Coin Control Change Label */
-	padding-left: 15px;
-color : #fff;
-}
-QDialog#CoinControlDialog .QLabel#labelCoinControlChange {
-	/* Coin Control Change */
-color : #fff;
-}
-QDialog#CoinControlDialog .QFrame#frame .QRadioButton#radioTreeMode {
-	/* Coin Control Tree Mode Selector */
-	color: #818181;
-	background-color: transparent;
-}
-QDialog#CoinControlDialog .QFrame#frame .QRadioButton#radioListMode {
-	/* Coin Control List Mode Selector */
-	color: #818181;
-	background-color: transparent;
-}
-QDialog#CoinControlDialog QHeaderView::section:first {
-	/* Bug Fix: the number &quot;1&quot; displays in this table for some reason... */
-	color: transparent;
-}
-QDialog#CoinControlDialog .CoinControlTreeWidget#treeWidget {
-	/* Coin Control Widget Container */
-	outline: 0;
-	background-color: #1C3455;
-	border: 0;
-	alternate-background-color: transparent;
-}
-QDialog#CoinControlDialog .CoinControlTreeWidget#treeWidget::item {
-	background-color:transparent;
-	color:white;
-	padding-left:0;
-	border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-} 
+QDialog#CoinControlDialog .QLabel#labelLocked { /* Coin Control Change */
+    color:#ffffff;
+  }
 
-QDialog#CoinControlDialog .CoinControlTreeWidget#treeWidget::item:selected {
-	/* Coin Control Item (selected) */
-	background-color: #313d4b;
-	color: #fff;
-}
-QDialog#CoinControlDialog .CoinControlTreeWidget#treeWidget::item:checked {
-	/* Coin Control Item (checked) */
-	background-color: transparent;
-	color: #fff;
-}
-QDialog#CoinControlDialog .CoinControlTreeWidget#treeWidget::branch:selected {
-	/* Coin Control Branch Icon */
-	/* background-image: url(':/images/qtreeview_selected');
-	background-repeat: no-repeat;
-	background-position: center;
-	background-color: transparent; */
-	background:none;
-	color: #333;
-}
-QDialog#CoinControlDialog .CoinControlTreeWidget#treeWidget::branch:checked {
-	/* Coin Control Branch Icon */
-	/* background-image: url(':/images/qtreeview_selected');
-	background-repeat: no-repeat;
-	background-position: center;
-	background-color: #f7f7f7; */
-	background:none;
-	color: #333;
-}
-QDialog#CoinControlDialog .CoinControlTreeWidget#treeWidget::seperator {} QDialog#CoinControlDialog .CoinControlTreeWidget#treeWidget::indicator {
-	/* Coin Control Widget Checkbox */
-}
+
+  QDialog#CoinControlDialog .QFrame#frame .QPushButton#pushButtonSelectAll { /* (un)select all button */
+  padding-left:10px;
+  padding-right:10px;
+  min-height:25px;
+  }
+  
+  QDialog#CoinControlDialog .QFrame#frame .QPushButton#pushButtonToggleLock { /* Toggle lock state button */
+  padding-left:10px;
+  padding-right:10px;
+  min-height:25px;
+  }
+  
+  QDialog#CoinControlDialog .QDialogButtonBox#buttonBox QPushButton { /* Coin Control 'OK' button */
+  }
+  
+  QDialog#CoinControlDialog .QFrame#frame .QRadioButton#radioTreeMode { /* Coin Control Tree Mode Selector */
+  color:#ffffff;
+  background-color:transparent;
+  }
+  
+  QDialog#CoinControlDialog .QFrame#frame .QRadioButton#radioListMode { /* Coin Control List Mode Selector */
+  color:#ffffff;
+  background-color:transparent;
+  }
+  
+  QDialog#CoinControlDialog QHeaderView::section:first { /* Bug Fix: the number &quot;1&quot; displays in this table for some reason... */
+  color:transparent;
+  }
+  
+  QDialog#CoinControlDialog .CoinControlTreeWidget#treeWidget { /* Coin Control Widget Container */
+  outline:0;
+  background-color:#0d1827;
+  border:0px solid #ffffff;
+  color: #ffffff;
+  }
+  
 
 QPushButton {
 	/* Global Button Style */
@@ -184,6 +168,46 @@ QPushButton:pressed {
 	border: 1px solid #333;
 }
 
+
+
+QTreeView::indicator:unchecked {
+image:url(':/images/unchecked');
+}
+
+QTreeView::indicator:checked {
+image:url(':/images/checked');
+}
+
+QTreeView::branch {
+    background-color: transparent;
+}
+QTreeView::branch:open {
+image:url(':/images/downArrow_small');
+}
+QTreeView::branch:closed:has-children {
+image:url(':/images/rightArrow_small'); 
+
+}
+
+QFrame#frame  {
+border : none;
+}
+
+QHeaderView { /* Table Header */
+background-color:transparent;
+}
+
+QHeaderView::section { /* Table Header Sections */
+background-color: transparent;
+color: #fff;
+min-height:30px;
+font-weight: bold;
+font-size: 14px;
+border: 0;
+padding-left: 5px;
+padding-right: 5px;
+}
+
 QScrollBar {
 	/* Scroll Bar */
 }
@@ -193,7 +217,7 @@ QScrollBar:vertical {
 	background: transparent;
 	width: 12px;
     margin: 0;
-    
+
 }
 QScrollBar:horizontal {
 	/* Horizontal Scroll Bar Attributes */
@@ -202,7 +226,7 @@ QScrollBar:horizontal {
 	height: 12px;
     /* margin: 0px 18px 0px 18px; */
     margin:0;
-    
+
 }
 QScrollBar::handle:vertical {
 	/* Scroll Bar Slider - vertical */
@@ -211,8 +235,8 @@ QScrollBar::handle:vertical {
     min-height:50px;
     width:3px;
     /* border:2px solid transparent; */
-    
-	
+
+
 }
 
 QScrollBar::handle:horizontal {
@@ -287,38 +311,7 @@ QScrollBar:right-arrow {
     /* background-image: url(':/images/rightArrow_small'); */
     background: none;
 }
-QSlider::handle:horizontal {
-	background-color: #8a8a8a;
-	border: 0;
-	border-radius: 6px;
-}
-QSlider::sub-page:horizontal {
-	background-color: #414a55;
-	border: 0;
-	border-radius: 6px;
-}
-QSlider::add-page:horizontal {
-	/* background-color:rgba(255, 255, 255, 0.08); */
-	background-color: #222d3a;
-	border: 0;
-	border-radius: 6px;
-}
-/**************************** HIDE ARROWS **********************************************/
-
-QScrollBar::add-line:vertical {
-	height: 0px;
-}
-QScrollBar::sub-line:vertical {
-	height: 0px;
-}
-QScrollBar::add-page:vertical,
-QScrollBar::sub-page:vertical {
-	height: 0px;
-}
-
-QFrame#frame {
-border:0;
-}</string>
+</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>

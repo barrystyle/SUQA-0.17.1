@@ -32,7 +32,11 @@
    <item>
     <widget class="QWidget" name="bgWidget" native="true">
      <property name="styleSheet">
-      <string notr="true">#bgWidget { background: rgba(0,0,0,220); }</string>
+      <string notr="true">QWidget#bgWidget {
+background-color: #0d1827 ;
+color: #ffffff;
+} 
+</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayoutMain" stretch="1">
       <property name="leftMargin">
@@ -50,9 +54,13 @@
       <item>
        <widget class="QWidget" name="contentWidget" native="true">
         <property name="styleSheet">
-         <string notr="true">#contentWidget { background: rgba(255,255,255,240); border-radius: 6px; }
+         <string notr="true">QLabel { color: rgb(255,255,255);  }
 
-QLabel { color: rgb(40,40,40);  }</string>
+#contentWidget {
+background-color: #0d1827 ; 
+ border-radius: 6px;
+color: #ffffff;
+} </string>
         </property>
         <layout class="QVBoxLayout" name="verticalLayoutSub" stretch="1,0,0,0">
          <property name="spacing">
@@ -348,11 +356,11 @@ QLabel { color: rgb(40,40,40);  }</string>
            </item>
            <item>
             <widget class="QPushButton" name="closeButton">
-             <property name="text">
-              <string>Hide</string>
-             </property>
              <property name="focusPolicy">
               <enum>Qt::StrongFocus</enum>
+             </property>
+             <property name="text">
+              <string>Hide</string>
              </property>
              <property name="default">
               <bool>true</bool>
