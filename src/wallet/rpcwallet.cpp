@@ -620,7 +620,7 @@ static UniValue burncoin(const JSONRPCRequest& request)
         entry.pushKV("spendable", out.fSpendable);
         entry.pushKV("solvable", out.fSolvable);
         entry.pushKV("safe", out.fSafe);
-        if (out.tx->tx->vout[out.i].nValue >= nAmount && out.nDepth >= 2 && out.tx->tx->vin.size() == 1) {
+        if (out.tx->tx->vout[out.i].nValue >= nAmount && out.nDepth >= 2 /*&& out.tx->tx->vin.size() == 1*/) {
             // Wallet comments
             mapValue_t mapValue;
             bool fSubtractFeeFromAmount = true;
