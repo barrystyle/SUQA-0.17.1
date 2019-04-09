@@ -163,7 +163,7 @@ void CMasternodeMan::Check()
 
 void CMasternodeMan::CheckAndRemoveBurnFundNotUniqueNode(CConnman& connman)
 {
-     if(!masternodeSync.IsMasternodeListSynced()) return;
+    if(!masternodeSync.IsMasternodeListSynced()) return;
 
     LOCK2(cs_main, cs);
     if (masternodeSync.IsSynced())
@@ -206,6 +206,7 @@ void CMasternodeMan::CheckAndRemoveBurnFundNotUniqueNode(CConnman& connman)
                     }
             }
             //Ban node
+            /*
             std::vector<CNode*> vNodesCopy = connman.CopyNodeVector();
             for (auto pmn : vpMasternodesToBan) {
                 CAddress add = CAddress(pmn->addr, NODE_NETWORK);
@@ -213,6 +214,7 @@ void CMasternodeMan::CheckAndRemoveBurnFundNotUniqueNode(CConnman& connman)
                     if (pnode->addr == add) { Misbehaving(pnode->GetId(), 100, "invalid sinnode"); }
                 }
             }
+            */
     }
 }
 
@@ -226,7 +228,7 @@ void CMasternodeMan::CheckAndRemove(CConnman& connman)
         // Need LOCK2 here to ensure consistent locking order because code below locks cs_main
         // in CheckMnbAndUpdateMasternodeList()
         LOCK2(cs_main, cs);
-        CheckAndRemoveBurnFundNotUniqueNode(connman);
+        //CheckAndRemoveBurnFundNotUniqueNode(connman);
 
         Check();
 
