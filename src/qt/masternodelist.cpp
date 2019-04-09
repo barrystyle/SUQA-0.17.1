@@ -13,6 +13,7 @@
 #include <qt/guiutil.h>
 #include <init.h>
 #include <key_io.h>
+#include <core_io.h>
 #include <masternode-sync.h>
 #include <masternodeconfig.h>
 #include <masternodeman.h>
@@ -417,21 +418,10 @@ void MasternodeList::on_startAutoSINButton_clicked()
     CKey secret;
     secret.MakeNewKey(false);
 
-    // find suitable collateral outputs
-    std::vector<COutput> vPossibleCoins;
-    LOCK2(cs_main, pwallet->cs_wallet);
-    pwallet->AvailableCoins(vPossibleCoins, true, NULL, false, ONLY_MASTERNODE_COLLATERAL);
-
     int nCollatVout;
     char nCollatHash[65];
     bool foundCollat = false;
-    for (COutput& out : vPossibleCoins) {
-      if (!foundCollat) {
-        strcpy(nCollatHash, out.tx->GetHash().ToString().c_str());
-        nCollatVout = out.i;
-        foundCollat = true;
-      }
-    }
+    CTxDestination collateralAddress = CTxDestination();
 
     // find suitable burntx
     int burnVout;
@@ -442,21 +432,73 @@ void MasternodeList::on_startAutoSINButton_clicked()
       const uint256* txid = &(*it).first;
       const CWalletTx* pcoin = &(*it).second;
       for (unsigned int i = 0; i < pcoin->tx->vout.size(); i++) {
+          CTxDestination address;
+          bool fValidAddress = ExtractDestination(pcoin->tx->vout[i].scriptPubKey, address);
+          CTxDestination BurnAddress = DecodeDestination(Params().GetConsensus().cBurnAddress);
         if (
-            (strstr(pcoin->tx->vout[i].scriptPubKey.ToString().c_str(),Params().GetConsensus().cBurnAddressPubKey)!=NULL) &&
+            (address == BurnAddress) &&
             (
                 ((Params().GetConsensus().nMasternodeBurnSINNODE_1 - 1) * COIN < pcoin->tx->vout[i].nValue && pcoin->tx->vout[i].nValue <= Params().GetConsensus().nMasternodeBurnSINNODE_1 * COIN) ||
                 ((Params().GetConsensus().nMasternodeBurnSINNODE_5 - 1) < pcoin->tx->vout[i].nValue * COIN && pcoin->tx->vout[i].nValue <= Params().GetConsensus().nMasternodeBurnSINNODE_5 * COIN) ||
-                ((Params().GetConsensus().nMasternodeBurnSINNODE_10 - 1) * COIN < pcoin->tx->vout[i].nValue && pcoin->tx->vout[i].nValue == Params().GetConsensus().nMasternodeBurnSINNODE_10 * COIN)
+                ((Params().GetConsensus().nMasternodeBurnSINNODE_10 - 1) * COIN < pcoin->tx->vout[i].nValue && pcoin->tx->vout[i].nValue <= Params().GetConsensus().nMasternodeBurnSINNODE_10 * COIN)
             )
         ) {
            if (!foundBurn) {
-             strcpy(burnTxid, txid->ToString().c_str());
-             burnVout = i;
-             foundBurn = true;
+                LogPrintf("MasternodeList::AutoSIN -- burntx Hash %s and address %s value %llf\n",pcoin->tx->GetHash().GetHex(), EncodeDestination(address), pcoin->tx->vout[i].nValue, i);
+                strcpy(burnTxid, txid->ToString().c_str());
+                burnVout = i;
+                foundBurn = true;
+                const CTxIn& txin = pcoin->tx->vin[0]; //Burn Input is only one address. So we can take the first without problem
+                string strAsm = ScriptToAsmStr(txin.scriptSig, true);
+                string s;
+                stringstream ss(strAsm);
+                int i=0;
+                while (getline(ss, s,' ')) {
+                    if (i==1) {
+                        std::vector<unsigned char> data(ParseHex(s));
+                        CPubKey pubKey(data.begin(), data.end());
+                        if (!pubKey.IsFullyValid()) {
+                            LogPrintf("MasternodeList::AutoSIN -- Can't not find Input Pubkey key.\n");
+                            return;
+                        } else {
+                            //LogPrintf("CMasternode::BurnFundStatus -- Pubkey is correct\n");
+                            OutputType output_type = OutputType::LEGACY;
+                            collateralAddress = GetDestinationForKey(pubKey, output_type);
+                            LogPrintf("MasternodeList::AutoSIN -- collateralAddress %s\n", EncodeDestination(collateralAddress));
+                        }
+                    }
+                    i++;
+                }
            }
         }
       }
+    }
+
+    // find suitable collateral outputs
+    std::vector<COutput> vPossibleCoins;
+    LOCK2(cs_main, pwallet->cs_wallet);
+    pwallet->AvailableCoins(vPossibleCoins, true, NULL, false, ONLY_MASTERNODE_COLLATERAL);
+
+
+    for (COutput& out : vPossibleCoins) {
+      CTxDestination address;
+      if (!foundCollat) {
+        const CScript& scriptPubKey = out.tx->tx->vout[out.i].scriptPubKey;
+        bool fValidAddress = ExtractDestination(scriptPubKey, address);
+        if (address == collateralAddress) {
+            strcpy(nCollatHash, out.tx->GetHash().ToString().c_str());
+            nCollatVout = out.i;
+            foundCollat = true;
+        }
+      }
+    }
+
+    if (!foundBurn) {
+        LogPrintf("MasternodeList::AutoSIN -- burnTx not found\n");
+    }
+
+    if (!foundCollat) {
+        LogPrintf("MasternodeList::AutoSIN -- collateral not found\n");
     }
 
     if (foundCollat && foundBurn) {
@@ -466,7 +508,7 @@ void MasternodeList::on_startAutoSINButton_clicked()
        sprintf(mnconfig,"mn01 %s:%d %s %s %d %s %d\n", vpsip.toUtf8().constData(), Params().GetDefaultPort(), EncodeSecret(secret).c_str(), nCollatHash, nCollatVout, burnTxid, burnVout);
 
        // debug
-       LogPrintf("wrote:\n%s\n", mnconfig);
+       LogPrintf("MasternodeList::AutoSIN -- %s\n", mnconfig);
 
        // parts taken from phore's masternode tool (https://github.com/phoreproject/Phore/pull/128)
        boost::filesystem::path pathMasternodeConfigFile = GetMasternodeConfigFile();
