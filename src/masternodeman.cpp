@@ -178,7 +178,9 @@ void CMasternodeMan::CheckAndRemoveBurnFundNotUniqueNode(CConnman& connman)
                     CMasternode mnb = mnpair.second;
                     nBurnFundMap.insert(std::pair<COutPoint, CMasternode>(mnb.vinBurnFund.prevout, mnb));
                     // conflict situation with someone else, choose older sigtime
+                    LogPrint(BCLog::MASTERNODE, "CMasternodeMan::CheckAndRemoveBurnFundNotUniqueNode -- burntx %s\n", mnb.vinBurnFund.prevout.ToString());
                     if (nBurnFundMap.count(mnb.vinBurnFund.prevout) > 1) {
+                            LogPrint(BCLog::MASTERNODE, "CMasternodeMan::CheckAndRemoveBurnFundNotUniqueNode -- burntx detected\n");
                             CMasternode candidateOne = CMasternode();
                             CMasternode candidateTwo = CMasternode();
                             // find 2 candidats
@@ -206,7 +208,9 @@ void CMasternodeMan::CheckAndRemoveBurnFundNotUniqueNode(CConnman& connman)
                     }
             }
             //Ban node
+            LogPrint(BCLog::MASTERNODE, "CMasternodeMan::CheckAndRemoveBurnFundNotUniqueNode -- ban vector %d\n",(int)vpMasternodesToBan.size());
             if ((int)vpMasternodesToBan.size() > 0) {
+                LogPrint(BCLog::MASTERNODE, "CMasternodeMan::CheckAndRemoveBurnFundNotUniqueNode -- remove \n");
                 std::vector<CNode*> vNodesCopy = connman.CopyNodeVector();
                 for (auto* pmn : vpMasternodesToBan) {
                     CAddress add = CAddress(pmn->addr, NODE_NETWORK);
