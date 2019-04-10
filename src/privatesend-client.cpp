@@ -927,9 +927,12 @@ bool CPrivateSendClient::JoinExistingQueue(CAmount nBalanceNeedsAnonymized, CCon
                 strAutoDenomResult = _("Mixing in progress...");
                 SetState(POOL_STATE_QUEUE);
                 nTimeLastSuccessfulStep = GetTime();
+                connman.ReleaseNodeVector(vNodesCopy);
                 return true;
             }
         }
+        // looped through all nodes, release them
+        connman.ReleaseNodeVector(vNodesCopy);
         LogPrintf("CPrivateSendClient::JoinExistingQueue -- can't connect, addr=%s\n", infoMn.addr.ToString());
         strAutoDenomResult = _("Error connecting to Masternode.");
         continue;
@@ -1006,19 +1009,7 @@ bool CPrivateSendClient::StartNewQueue(CAmount nValueMin, CAmount nBalanceNeedsA
         if (!CPrivateSend::GetDenominationsBits(nSessionDenom, vecBits)) {
             return false;
         }
-        /*
-        CAmount nValueInTmp = 0;
-        std::vector<CTxDSIn> vecTxDSInTmp;
-        std::vector<COutput> vCoinsTmp;
-        std::vector<CAmount> vecStandardDenoms = CPrivateSend::GetStandardDenominations();
 
-        bool fSelected = pwallet->SelectCoinsByDenominations(nSessionDenom, vecStandardDenoms[vecBits.front()], vecStandardDenoms[vecBits.front()] * PRIVATESEND_ENTRY_MAX_SIZE, vecTxDSInTmp, vCoinsTmp, nValueInTmp, 0, nPrivateSendRounds);
-        if (!fSelected) {
-            return false;
-        }
-
-        nSessionInputCount = std::min(vecTxDSInTmp.size(), size_t(5 + GetRand(PRIVATESEND_ENTRY_MAX_SIZE - 5 + 1)));
-        */
         CAddress add = CAddress(infoMn.addr, NODE_NETWORK);
         std::vector<CNode*> vNodesCopy = connman.CopyNodeVector();
         for (auto* pnode : vNodesCopy)
@@ -1033,9 +1024,12 @@ bool CPrivateSendClient::StartNewQueue(CAmount nValueMin, CAmount nBalanceNeedsA
                 strAutoDenomResult = _("Mixing in progress...");
                 SetState(POOL_STATE_QUEUE);
                 nTimeLastSuccessfulStep = GetTime();
+                connman.ReleaseNodeVector(vNodesCopy);
                 return true;
             }
         }
+        // looped through all nodes, release them
+        connman.ReleaseNodeVector(vNodesCopy);
 
         LogPrintf("CPrivateSendClient::StartNewQueue -- can't connect, addr=%s\n", infoMn.addr.ToString());
         nTries++;

@@ -172,10 +172,10 @@ void CMasternodeMan::CheckAndRemoveBurnFundNotUniqueNode(CConnman& connman)
             // unique (has one entry with burntx) in the masternode list.
             // (we populate nBurnFundMap first time checking this)
             std::map<COutPoint, CMasternode> nBurnFundMap;
-            std::map<COutPoint, CMasternode>::iterator it = mnodeman.GetFullMasternodeMap().begin();
             std::vector<CMasternode*> vpMasternodesToBan; //list node will be banned
-            while (it != mnodeman.GetFullMasternodeMap().end()) {
-                    CMasternodeBroadcast mnb = CMasternodeBroadcast(it->second);
+            std::map<COutPoint, CMasternode> mapMasternodes = mnodeman.GetFullMasternodeMap();
+            for (auto& mnpair : mapMasternodes) {
+                    CMasternode mnb = mnpair.second;
                     nBurnFundMap.insert(std::pair<COutPoint, CMasternode>(mnb.vinBurnFund.prevout, mnb));
                     // conflict situation with someone else, choose older sigtime
                     if (nBurnFundMap.count(mnb.vinBurnFund.prevout) > 1) {
@@ -206,15 +206,17 @@ void CMasternodeMan::CheckAndRemoveBurnFundNotUniqueNode(CConnman& connman)
                     }
             }
             //Ban node
-            /*
-            std::vector<CNode*> vNodesCopy = connman.CopyNodeVector();
-            for (auto pmn : vpMasternodesToBan) {
-                CAddress add = CAddress(pmn->addr, NODE_NETWORK);
-                for (auto* pnode : vNodesCopy) {
-                    if (pnode->addr == add) { Misbehaving(pnode->GetId(), 100, "invalid sinnode"); }
+            if ((int)vpMasternodesToBan.size() > 0) {
+                std::vector<CNode*> vNodesCopy = connman.CopyNodeVector();
+                for (auto* pmn : vpMasternodesToBan) {
+                    CAddress add = CAddress(pmn->addr, NODE_NETWORK);
+                    for (auto* pnode : vNodesCopy) {
+                        if (pnode->addr == add) { Misbehaving(pnode->GetId(), 100, "invalid sinnode"); }
+                    }
                 }
+                // looped through all nodes, release them
+                connman.ReleaseNodeVector(vNodesCopy);
             }
-            */
     }
 }
 
@@ -228,7 +230,7 @@ void CMasternodeMan::CheckAndRemove(CConnman& connman)
         // Need LOCK2 here to ensure consistent locking order because code below locks cs_main
         // in CheckMnbAndUpdateMasternodeList()
         LOCK2(cs_main, cs);
-        //CheckAndRemoveBurnFundNotUniqueNode(connman);
+        CheckAndRemoveBurnFundNotUniqueNode(connman);
 
         Check();
 
