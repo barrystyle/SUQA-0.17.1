@@ -136,13 +136,32 @@ QDialog#CoinControlDialog .QLabel#labelLocked { /* Coin Control Change */
   color:transparent;
   }
   
-  QDialog#CoinControlDialog .CoinControlTreeWidget#treeWidget { /* Coin Control Widget Container */
-  outline:0;
-  background-color:#0d1827;
-  border:0px solid #ffffff;
-  color: #ffffff;
-  }
+  QDialog#CoinControlDialog .CoinControlTreeWidget#treeWidget {
+	/* Coin Control Widget Container */
+	outline: 0;
+	background-color: transparent;
+	border: 0;
+	alternate-background-color: transparent;
+}
   
+
+QDialog#CoinControlDialog .CoinControlTreeWidget#treeWidget::item {
+	background-color:transparent;
+	color:white;
+	padding-left:0;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+} 
+
+QDialog#CoinControlDialog .CoinControlTreeWidget#treeWidget::item:selected {
+	/* Coin Control Item (selected) */
+	background-color: #313d4b;
+	color: #fff;
+}
+QDialog#CoinControlDialog .CoinControlTreeWidget#treeWidget::item:checked {
+	/* Coin Control Item (checked) */
+	background-color: transparent;
+	color: #fff;
+}
 
 QPushButton {
 	/* Global Button Style */
