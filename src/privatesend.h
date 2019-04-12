@@ -342,7 +342,7 @@ private:
     CPrivateSend(CPrivateSend const&) = delete;
     CPrivateSend& operator= (CPrivateSend const&) = delete;
 
-    static const CAmount COLLATERAL = 0.001 * COIN;
+    static const CAmount COLLATERAL = 0.01 * COIN;
 
     // static members
     static std::vector<CAmount> vecStandardDenominations;
