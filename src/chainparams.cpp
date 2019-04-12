@@ -84,10 +84,10 @@ public:
 	    consensus.nMasternodePaymentsStartBlock = 50;
         consensus.nMasternodePaymentsIncreaseBlock = 50;
         consensus.nMasternodePaymentsIncreasePeriod = 365 * 1440; // 1 common year
-        consensus.nMasternodeCollateralMinimum = 10;
-		consensus.nMasternodeBurnSINNODE_1 = 1;
-		consensus.nMasternodeBurnSINNODE_5 = 5;
-		consensus.nMasternodeBurnSINNODE_10 = 15;
+        consensus.nMasternodeCollateralMinimum = 10000;
+		consensus.nMasternodeBurnSINNODE_1 = 100000;
+		consensus.nMasternodeBurnSINNODE_5 = 500000;
+		consensus.nMasternodeBurnSINNODE_10 = 1000000;
 		
         consensus.nInstantSendKeepLock = 24;
 
@@ -209,9 +209,9 @@ public:
         consensus.nMasternodePaymentsIncreaseBlock = 50;
         consensus.nMasternodePaymentsIncreasePeriod = 365 * 1440; // 1 common year
         consensus.nMasternodeCollateralMinimum = 10;
-		consensus.nMasternodeBurnSINNODE_1 = 1;
-		consensus.nMasternodeBurnSINNODE_5 = 5;
-		consensus.nMasternodeBurnSINNODE_10 = 15;
+		consensus.nMasternodeBurnSINNODE_1 = 100;
+		consensus.nMasternodeBurnSINNODE_5 = 500;
+		consensus.nMasternodeBurnSINNODE_10 = 1000;
         consensus.nInstantSendKeepLock = 24;
         consensus.nBudgetPaymentsStartBlock = 365 * 1440; // 1 common year
         consensus.nBudgetPaymentsCycleBlocks = 10958; // weekly
@@ -292,7 +292,7 @@ public:
         fRequireStandard = false;
         fMineBlocksOnDemand = false;
 
-        nPoolMaxTransactions = 2;
+        nPoolMaxTransactions = 3;
 
         checkpointData = {
         };
