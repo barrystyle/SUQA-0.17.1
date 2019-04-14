@@ -543,6 +543,100 @@ static CTransactionRef SendMoney(CWallet * const pwallet, const CTxDestination &
 
 /**
  * @xtdevcoin
+ * this function notify that user has a data message
+ */
+static UniValue infinitynodenotifydata(const JSONRPCRequest& request)
+{
+	std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    CWallet* const pwallet = wallet.get();
+
+    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+        return NullUniValue;
+    }
+
+    if (request.fHelp || request.params.size() != 2)
+		throw std::runtime_error(
+            "sendtoaddress amount "
+			"\nSend an amount to BurnAddress.\n"
+			"\nArguments:\n"
+            "1. \"SINaddress\"  (string, required) The SIN address to send to.\n"
+            "2. \"amount\"             (numeric or string, required) The amount in " + CURRENCY_UNIT + " to send. eg 0.1\n"
+            "\nResult:\n"
+            "\"BURNtxid\"                  (string) The Burn transaction id. Need to run infinity node\n"
+            "\"CollateralAddress\"         (string) Address of Collateral. Please send 10000 to this address.\n"
+            "\nExamples:\n"
+            + HelpExampleCli("infinitynodenotifydata", "1000000")
+		);
+
+	// Make sure the results are valid at least up to the most recent block
+    // the user could have gotten from another RPC command prior to now
+    pwallet->BlockUntilSyncedToCurrentChain();
+
+    LOCK2(cs_main, pwallet->cs_wallet);
+    std::vector<COutput> vPossibleCoins;
+    pwallet->AvailableCoins(vPossibleCoins, true, NULL, false, ONLY_MASTERNODE_COLLATERAL);
+
+    UniValue results(UniValue::VARR);
+    UniValue entry(UniValue::VOBJ);
+
+    CTxDestination address = DecodeDestination(request.params[0].get_str());
+    if (!IsValidDestination(address))
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid SUQA address");
+
+	// Amount
+    CAmount nAmount = AmountFromValue(request.params[1]);
+
+    // Notify to Address
+    CScript scriptPubKey = GetScriptForDestination(address);
+    std::vector<std::vector<unsigned char> > vSolutions;
+    txnouttype whichType;
+    if (!Solver(scriptPubKey, whichType, vSolutions))
+        return false;
+    CKeyID keyid = CKeyID(uint160(vSolutions[0]));
+
+    // Wallet comments
+    mapValue_t mapValue;
+    bool fSubtractFeeFromAmount = true;
+    bool fUseInstantSend=false;
+    bool fUsePrivateSend=false;
+    CCoinControl coin_control;
+    //coin_control.Select(COutPoint(out.tx->GetHash(), out.i));
+    //CTransactionRef tx = SendMoney(pwallet, dest, nAmount, fSubtractFeeFromAmount, coin_control, std::move(mapValue), {} /* fromAccount */, 0);
+    CScript script;
+    script = GetScriptForBurn(keyid, "burncoin");
+
+    CReserveKey reservekey(pwallet);
+    CAmount nFeeRequired;
+    CAmount curBalance = pwallet->GetBalance();
+    std::string strError;
+    std::vector<CRecipient> vecSend;
+    int nChangePosRet = -1;
+    CRecipient recipient = {script, nAmount, fSubtractFeeFromAmount};
+    vecSend.push_back(recipient);
+    CTransactionRef tx;
+    if (!pwallet->CreateTransaction(vecSend, tx, reservekey, nFeeRequired, nChangePosRet, strError, coin_control, true, fUsePrivateSend ? ONLY_DENOMINATED : ALL_COINS, fUseInstantSend)) {
+        if (!fSubtractFeeFromAmount && nAmount + nFeeRequired > curBalance)
+            strError = strprintf("Error: This transaction requires a transaction fee of at least %s", FormatMoney(nFeeRequired));
+        throw JSONRPCError(RPC_WALLET_ERROR, strError);
+    }
+    CValidationState state;
+    if (!pwallet->CommitTransaction(tx, std::move(mapValue), {} /* orderForm */, {}/*fromAccount*/, reservekey, g_connman.get(),
+                    state, fUseInstantSend ? NetMsgType::TXLOCKREQUEST : NetMsgType::TX)) {
+        strError = strprintf("Error: The transaction was rejected! Reason given: %s", FormatStateMessage(state));
+        throw JSONRPCError(RPC_WALLET_ERROR, strError);
+    }
+    entry.pushKV("NOTIFYTOADDRESS", EncodeDestination(address));
+    entry.pushKV("PUBLICKEY", HexStr(keyid.begin(), keyid.end()));
+    entry.pushKV("SCRIPT", HexStr(scriptPubKey.begin(), scriptPubKey.end()));
+    entry.pushKV("TX", tx->GetHash().GetHex());
+    //coins is good to burn
+    results.push_back(entry);
+
+    return results;
+}
+
+/**
+ * @xtdevcoin
  * this function help user burn correctly their funds to run infinity node 
  */
 static UniValue infinitynodeburnfund(const JSONRPCRequest& request)
@@ -564,7 +658,7 @@ static UniValue infinitynodeburnfund(const JSONRPCRequest& request)
             "\"BURNtxid\"                  (string) The Burn transaction id. Need to run infinity node\n"
             "\"CollateralAddress\"         (string) Address of Collateral. Please send 10000 to this address.\n"
             "\nExamples:\n"
-            + HelpExampleCli("burncoin", "1000000")
+            + HelpExampleCli("infinitynodeburnfund", "1000000")
 		);
 	
 	// Make sure the results are valid at least up to the most recent block
@@ -5329,7 +5423,8 @@ static const CRPCCommand commands[] =
     { "wallet",             "removeprunedfunds",                &removeprunedfunds,             {"txid"} },
     { "wallet",             "rescanblockchain",                 &rescanblockchain,              {"start_height", "stop_height"} },
     { "wallet",             "sethdseed",                        &sethdseed,                     {"newkeypool","seed"} },
-    { "wallet",             "infinitynodeburnfund",             &infinitynodeburnfund,                      {"amount"} },
+    { "wallet",             "infinitynodeburnfund",             &infinitynodeburnfund,          {"amount"} },
+    { "wallet",             "infinitynodenotifydata",           &infinitynodenotifydata,        {"amount"} },
 
     /** Account functions (deprecated) */
     { "wallet",             "getaccountaddress",                &getaccountaddress,             {"account"} },

@@ -113,8 +113,8 @@ public:
         consensus.fPowNoRetargeting = false;
         consensus.nRuleChangeActivationThreshold = 1916;
         consensus.nMinerConfirmationWindow = 2016;
-        consensus.devAddressPubKey = "841e6bf56b99a59545da932de2efb23ab93b4f44";
-        consensus.devAddress = "SZLafuDjnjqh2tAfTrG9ZAGzbP8HkzNXvB";
+        consensus.devAddressPubKey = "1c6d12e4f8e595d393f6cd4eac6d0c0de3f075f8";
+        consensus.devAddress = "SPtJco1H1yXhxNCmYk7ZVURXR7ZavYzPxS";
         consensus.cBurnAddress = "SinBurnAddress123456789SuqaXbx3AMC";
         consensus.cBurnAddressPubKey = "ebaf5ec74cb2e2342dfda0229111738ff4dc742d";
 		strSporkPubKey = "045EB51EB748C6EB7A53531DF71BE998F3E77F4AFF801978D4AED543F21E224E49E10D679E8A99A001E93ADE704F761F2B8822D967F19DC3B50603797F344CBB58";
@@ -233,10 +233,10 @@ public:
         consensus.fPowNoRetargeting = false;
         consensus.nRuleChangeActivationThreshold = 1916;
         consensus.nMinerConfirmationWindow = 2016;
-        consensus.devAddressPubKey = "841e6bf56b99a59545da932de2efb23ab93b4f44";
-        consensus.devAddress = "SZLafuDjnjqh2tAfTrG9ZAGzbP8HkzNXvB";
-        consensus.cBurnAddress = "ScK6eotHEke2CjU9XaJvXLCRhfa3qAUars";
-        consensus.cBurnAddressPubKey = "a4befe81854e3101ac29c71b462edaea3ba73f30";
+        consensus.devAddressPubKey = "1c6d12e4f8e595d393f6cd4eac6d0c0de3f075f8";
+        consensus.devAddress = "SPtJco1H1yXhxNCmYk7ZVURXR7ZavYzPxS";
+        consensus.cBurnAddress = "SinBurnAddress123456789SuqaXbx3AMC";
+        consensus.cBurnAddressPubKey = "ebaf5ec74cb2e2342dfda0229111738ff4dc742d";
         strSporkPubKey = "0454E1B43ECCAC17E50402370477455BE34593E272CA9AE0DF04F6F3D423D1366D017822C77990A3D8DD980C60D3692C9B6D7DFD75F683F7056C1E97E82BD94DBE";
 
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].bit = 28;
