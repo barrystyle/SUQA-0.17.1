@@ -717,20 +717,20 @@ void OverviewPage::DisablePrivateSendCompletely() {
 }
 
 void OverviewPage::on_pushButton_Website_clicked() {
-    QDesktopServices::openUrl(QUrl("https://suqa.org/", QUrl::TolerantMode));
+    QDesktopServices::openUrl(QUrl("https://sinovate.io/", QUrl::TolerantMode));
 }
 void OverviewPage::on_pushButton_Discord_clicked() {
-    QDesktopServices::openUrl(QUrl("https://discord.gg/qrtU7Y9", QUrl::TolerantMode));
+    QDesktopServices::openUrl(QUrl("https://sinovate.io/links/discord", QUrl::TolerantMode));
 }
 void OverviewPage::on_pushButton_Telegram_clicked() {
-    QDesktopServices::openUrl(QUrl("https://t.me//Suqafoundation", QUrl::TolerantMode));
+    QDesktopServices::openUrl(QUrl("https://sinovate.io/links/telegram", QUrl::TolerantMode));
 }
 void OverviewPage::on_pushButton_Twitter_clicked() {
-    QDesktopServices::openUrl(QUrl("https://twitter.com/SUQAfoundation", QUrl::TolerantMode));
+    QDesktopServices::openUrl(QUrl("https://sinovate.io/links/twitter", QUrl::TolerantMode));
 }
 void OverviewPage::on_pushButton_Explorer_clicked() {
-    QDesktopServices::openUrl(QUrl("http://suqaexplorer.com", QUrl::TolerantMode));
+    QDesktopServices::openUrl(QUrl("http://sinovate.io/links/explorer", QUrl::TolerantMode));
 }
 void OverviewPage::on_pushButton_Btctalk_clicked() {
-    QDesktopServices::openUrl(QUrl("https://bitcointalk.org/index.php?topic=5038269.0", QUrl::TolerantMode));
+    QDesktopServices::openUrl(QUrl("https://sinovate.io/links/btctalk", QUrl::TolerantMode));
 }

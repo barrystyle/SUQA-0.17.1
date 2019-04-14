@@ -42,9 +42,9 @@ QString BitcoinUnits::longName(int unit)
 {
     switch(unit)
     {
-    case SUQA: return QString("SUQA");
-    case mSUQA: return QString("mSUQA");
-    case uSUQA: return QString::fromUtf8("µSUQA (bits)");
+    case SUQA: return QString("SIN");
+    case mSUQA: return QString("mSIN");
+    case uSUQA: return QString::fromUtf8("µSIN (bits)");
     case SAT: return QString("Satoshi (sat)");
     default: return QString("???");
     }
