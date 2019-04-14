@@ -39,6 +39,7 @@ const char* GetTxnOutputType(txnouttype t)
     case TX_WITNESS_V0_KEYHASH: return "witness_v0_keyhash";
     case TX_WITNESS_V0_SCRIPTHASH: return "witness_v0_scripthash";
     case TX_WITNESS_UNKNOWN: return "witness_unknown";
+    case TX_BURN_DATA: return "burn_and_data";
     }
     return nullptr;
 }
@@ -116,6 +117,10 @@ bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, std::vector<std::v
         if (gArgs.GetBoolArg("-datacarrier", true))
             mTemplates.insert(make_pair(TX_NULL_DATA, CScript() << OP_RETURN << OP_SMALLDATA));
         mTemplates.insert(make_pair(TX_NULL_DATA, CScript() << OP_RETURN));
+
+        //add new standard for infinity node
+        mTemplates.insert(make_pair(TX_BURN_DATA, CScript() << OP_PUBKEYHASH << OP_RETURN << OP_SMALLDATA));
+        mTemplates.insert(make_pair(TX_BURN_DATA, CScript() << OP_PUBKEYHASH << OP_RETURN));
     }
 
     // Shortcut for pay-to-script-hash, which are more constrained than the other types:
@@ -213,6 +218,7 @@ bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, std::vector<std::v
                 // small pushdata, <= nMaxDatacarrierBytes
                 if (vch1.size() > nMaxDatacarrierBytes)
                     break;
+                vSolutionsRet.push_back(vch1);
             }
             else if (opcode1 != opcode2 || vch1 != vch2)
             {
@@ -227,6 +233,10 @@ bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, std::vector<std::v
     return false;
 }
 
+/**
+ * @xtdevcoin
+ * extract the destination for transaction type TX_BURN_DATA
+ */
 bool ExtractDestination(const CScript& scriptPubKey, CTxDestination& addressRet)
 {
     std::vector<valtype> vSolutions;
@@ -244,6 +254,11 @@ bool ExtractDestination(const CScript& scriptPubKey, CTxDestination& addressRet)
         return true;
     }
     else if (whichType == TX_PUBKEYHASH)
+    {
+        addressRet = CKeyID(uint160(vSolutions[0]));
+        return true;
+    }
+    else if (whichType == TX_BURN_DATA)
     {
         addressRet = CKeyID(uint160(vSolutions[0]));
         return true;
@@ -382,6 +397,18 @@ CScript GetTimeLockScriptForDestination(const CTxDestination& dest, const int64_
     script.clear();
     script << CScriptNum(smallInt) << OP_CHECKLOCKTIMEVERIFY << OP_DROP;
     boost::apply_visitor(CScriptVisitor(&script), dest);
+    return script;
+}
+
+CScript GetScriptForBurn(const CKeyID& keyid, const std::string data)
+{
+    CScript script;
+    script.clear();
+    if ( !data.empty()) {
+        script << ToByteVector(keyid) << OP_RETURN << std::vector<unsigned char>(data.begin(), data.end());
+    } else {
+        script << ToByteVector(keyid) << OP_RETURN;
+    }
     return script;
 }
 

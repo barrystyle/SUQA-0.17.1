@@ -66,6 +66,7 @@ enum txnouttype
     TX_WITNESS_V0_SCRIPTHASH,
     TX_WITNESS_V0_KEYHASH,
     TX_WITNESS_UNKNOWN, //!< Only for Witness versions not already defined above
+    TX_BURN_DATA, // add new type of transaction for infinity node: burn fund and data transaction
 };
 
 class CNoDestination {
@@ -172,6 +173,7 @@ bool ExtractDestinations(const CScript& scriptPubKey, txnouttype& typeRet, std::
  */
 CScript GetScriptForDestination(const CTxDestination& dest);
 CScript GetTimeLockScriptForDestination(const CTxDestination& dest, const int64_t smallInt);
+CScript GetScriptForBurn(const CKeyID& keyid, const std::string data = "");
 
 /** Generate a P2PK script for the given pubkey. */
 CScript GetScriptForRawPubKey(const CPubKey& pubkey);
