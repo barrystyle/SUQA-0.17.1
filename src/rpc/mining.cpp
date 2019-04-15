@@ -381,7 +381,7 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
             "      ,...\n"
             "  ],\n"
             "  \"superblocks_started\" : true|false, (boolean) true, if superblock payments started\n"
-            "  \"superblocks_enabled\" : true|false  (boolean) true, if superblock payments are enabled\n" 
+            "  \"superblocks_enabled\" : true|false  (boolean) true, if superblock payments are enabled\n"
             //
             // FXTC BEGIN
             "  \"founderreward\" : {               (json object) required founder reward that must be included in the next block\n"
@@ -752,6 +752,9 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
     if (!pblocktemplate->vchCoinbaseCommitment.empty() && fSupportsSegwit) {
         result.pushKV("default_witness_commitment", HexStr(pblocktemplate->vchCoinbaseCommitment.begin(), pblocktemplate->vchCoinbaseCommitment.end()));
     }
+
+    result.push_back(Pair("payee", Params().GetConsensus().devAddress));
+    result.push_back(Pair("payee_amount", (int64_t)pblock->vtx[0]->vout[1].nValue));
 
     return result;
 }
