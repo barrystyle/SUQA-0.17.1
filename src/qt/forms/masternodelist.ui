@@ -51,7 +51,7 @@
        </property>
        <widget class="QWidget" name="tabMyMasternodes">
         <attribute name="title">
-         <string>My Masternodes</string>
+         <string>My InfinityNodes</string>
         </attribute>
         <layout class="QGridLayout" name="gridLayout_2">
          <item row="0" column="0">
@@ -67,7 +67,7 @@
              <item>
               <widget class="QLabel" name="updateNote">
                <property name="text">
-                <string>Note: Status of your masternodes in local wallet can potentially be slightly incorrect.&lt;br /&gt;Always wait for wallet to sync additional data and then double check from another node&lt;br /&gt;if your masternode should be running but you still do not see "ENABLED" in "Status" field.</string>
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Note: Status of your InfinityNodes in local wallet can potentially be slightly incorrect.&lt;br/&gt;Always wait for wallet to sync additional data and then double check from another node&lt;br/&gt;if your InfinityNode should be running but you still do not see &amp;quot;ENABLED&amp;quot; in &amp;quot;Status&amp;quot; field.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
               </widget>
              </item>
@@ -98,9 +98,6 @@
              </property>
              <attribute name="horizontalHeaderStretchLastSection">
               <bool>true</bool>
-             </attribute>
-             <attribute name="ResizeMode">
-              <enum>QHeaderView::Interactive</enum>
              </attribute>
              <column>
               <property name="text">
@@ -207,7 +204,7 @@
        </widget>
        <widget class="QWidget" name="tabAllMasternodes">
         <attribute name="title">
-         <string>All Masternodes</string>
+         <string>All InfinityNodes</string>
         </attribute>
         <layout class="QGridLayout" name="gridLayout">
          <item row="1" column="0">
@@ -226,9 +223,6 @@
            </property>
            <attribute name="horizontalHeaderStretchLastSection">
             <bool>true</bool>
-           </attribute>
-           <attribute name="ResizeMode">
-            <enum>QHeaderView::Interactive</enum>
            </attribute>
            <column>
             <property name="text">
