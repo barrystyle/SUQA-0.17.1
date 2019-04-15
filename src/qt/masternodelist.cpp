@@ -123,12 +123,12 @@ void MasternodeList::StartAlias(std::string strAlias)
             bool fSuccess = CMasternodeBroadcast::Create(mne.getIp(), mne.getPrivKey(), mne.getTxHash(), mne.getOutputIndex(), mne.getTxHashBurnFund(), mne.getOutputIndexBurnFund(), strError, mnb);
 
             if(fSuccess) {
-                strStatusHtml += "<br>Successfully started masternode.";
+                strStatusHtml += "<br>Successfully started infinitynode.";
                 mnodeman.UpdateMasternodeList(mnb, *g_connman);
                 mnb.Relay(*g_connman);
                 mnodeman.NotifyMasternodeUpdates(*g_connman);
             } else {
-                strStatusHtml += "<br>Failed to start masternode.<br>Error: " + strError;
+                strStatusHtml += "<br>Failed to start infinitynode.<br>Error: " + strError;
             }
             break;
         }
@@ -178,7 +178,7 @@ void MasternodeList::StartAll(std::string strCommand)
     pwallet->Lock();
 
     std::string returnObj;
-    returnObj = strprintf("Successfully started %d masternodes, failed to start %d, total %d", nCountSuccessful, nCountFailed, nCountFailed + nCountSuccessful);
+    returnObj = strprintf("Successfully started %d infinitynodes, failed to start %d, total %d", nCountSuccessful, nCountFailed, nCountFailed + nCountSuccessful);
     if (nCountFailed > 0) {
         returnObj += strFailedHtml;
     }
@@ -349,8 +349,8 @@ void MasternodeList::on_startButton_clicked()
     }
 
     // Display message box
-    QMessageBox::StandardButton retval = QMessageBox::question(this, tr("Confirm masternode start"),
-        tr("Are you sure you want to start masternode %1?").arg(QString::fromStdString(strAlias)),
+    QMessageBox::StandardButton retval = QMessageBox::question(this, tr("Confirm infinitynode start"),
+        tr("Are you sure you want to start infinitynode %1?").arg(QString::fromStdString(strAlias)),
         QMessageBox::Yes | QMessageBox::Cancel,
         QMessageBox::Cancel);
 
@@ -373,8 +373,8 @@ void MasternodeList::on_startButton_clicked()
 void MasternodeList::on_startAllButton_clicked()
 {
     // Display message box
-    QMessageBox::StandardButton retval = QMessageBox::question(this, tr("Confirm all masternodes start"),
-        tr("Are you sure you want to start ALL masternodes?"),
+    QMessageBox::StandardButton retval = QMessageBox::question(this, tr("Confirm all Infinitynodes start"),
+        tr("Are you sure you want to start ALL InfinityNodes?"),
         QMessageBox::Yes | QMessageBox::Cancel,
         QMessageBox::Cancel);
 
