@@ -416,17 +416,17 @@ void MasternodeList::on_startAutoSINButton_clicked()
 
     // generate masternode key
     CKey secret;
+    std::vector<infinitynode_conf_t> listNode;
+    std::set<uint256> trackCollateralTx;
+
     secret.MakeNewKey(false);
 
-    int nCollatVout;
-    char nCollatHash[65];
     bool foundCollat = false;
     CTxDestination collateralAddress = CTxDestination();
 
     // find suitable burntx
-    int burnVout;
-    char burnTxid[65];
     bool foundBurn = false;
+    int counter = 0;
 
     for (map<uint256, CWalletTx>::const_iterator it = pwallet->mapWallet.begin(); it != pwallet->mapWallet.end(); ++it) {
       const uint256* txid = &(*it).first;
@@ -435,43 +435,50 @@ void MasternodeList::on_startAutoSINButton_clicked()
           CTxDestination address;
           bool fValidAddress = ExtractDestination(pcoin->tx->vout[i].scriptPubKey, address);
           CTxDestination BurnAddress = DecodeDestination(Params().GetConsensus().cBurnAddress);
-        if (
-            (address == BurnAddress) &&
-            (
-                ((Params().GetConsensus().nMasternodeBurnSINNODE_1 - 1) * COIN < pcoin->tx->vout[i].nValue && pcoin->tx->vout[i].nValue <= Params().GetConsensus().nMasternodeBurnSINNODE_1 * COIN) ||
-                ((Params().GetConsensus().nMasternodeBurnSINNODE_5 - 1) < pcoin->tx->vout[i].nValue * COIN && pcoin->tx->vout[i].nValue <= Params().GetConsensus().nMasternodeBurnSINNODE_5 * COIN) ||
-                ((Params().GetConsensus().nMasternodeBurnSINNODE_10 - 1) * COIN < pcoin->tx->vout[i].nValue && pcoin->tx->vout[i].nValue <= Params().GetConsensus().nMasternodeBurnSINNODE_10 * COIN)
-            )
-        ) {
-           if (!foundBurn) {
-                LogPrintf("MasternodeList::AutoSIN -- burntx Hash %s and address %s value %llf\n",pcoin->tx->GetHash().GetHex(), EncodeDestination(address), pcoin->tx->vout[i].nValue, i);
-                strcpy(burnTxid, txid->ToString().c_str());
-                burnVout = i;
-                foundBurn = true;
-                const CTxIn& txin = pcoin->tx->vin[0]; //Burn Input is only one address. So we can take the first without problem
-                string strAsm = ScriptToAsmStr(txin.scriptSig, true);
-                string s;
-                stringstream ss(strAsm);
-                int i=0;
-                while (getline(ss, s,' ')) {
-                    if (i==1) {
-                        std::vector<unsigned char> data(ParseHex(s));
-                        CPubKey pubKey(data.begin(), data.end());
-                        if (!pubKey.IsFullyValid()) {
-                            LogPrintf("MasternodeList::AutoSIN -- Can't not find Input Pubkey key.\n");
-                            return;
-                        } else {
-                            //LogPrintf("CMasternode::BurnFundStatus -- Pubkey is correct\n");
-                            OutputType output_type = OutputType::LEGACY;
-                            collateralAddress = GetDestinationForKey(pubKey, output_type);
-                            LogPrintf("MasternodeList::AutoSIN -- collateralAddress %s\n", EncodeDestination(collateralAddress));
+            if (
+                (address == BurnAddress) &&
+                (
+                    ((Params().GetConsensus().nMasternodeBurnSINNODE_1 - 1) * COIN < pcoin->tx->vout[i].nValue && pcoin->tx->vout[i].nValue <= Params().GetConsensus().nMasternodeBurnSINNODE_1 * COIN) ||
+                    ((Params().GetConsensus().nMasternodeBurnSINNODE_5 - 1) < pcoin->tx->vout[i].nValue * COIN && pcoin->tx->vout[i].nValue <= Params().GetConsensus().nMasternodeBurnSINNODE_5 * COIN) ||
+                    ((Params().GetConsensus().nMasternodeBurnSINNODE_10 - 1) * COIN < pcoin->tx->vout[i].nValue && pcoin->tx->vout[i].nValue <= Params().GetConsensus().nMasternodeBurnSINNODE_10 * COIN)
+                )
+            ) {
+                    //add dummy
+                    listNode.push_back(infinitynode_conf_t());
+                    foundBurn = true;
+
+                    //add to list
+                    listNode[counter].burnFundHash = txid->ToString();
+                    listNode[counter].burnFundIndex = i;
+
+                    const CTxIn& txin = pcoin->tx->vin[0]; //Burn Input is only one address. So we can take the first without problem
+                    string strAsm = ScriptToAsmStr(txin.scriptSig, true);
+                    string s;
+                    stringstream ss(strAsm);
+                    int i=0;
+                    while (getline(ss, s,' ')) {
+                        if (i==1) {
+                            std::vector<unsigned char> data(ParseHex(s));
+                            CPubKey pubKey(data.begin(), data.end());
+                            if (!pubKey.IsFullyValid()) {
+                                LogPrintf("MasternodeList::AutoSIN -- Can't not find Input Pubkey key.\n");
+                                return;
+                            } else {
+                                //LogPrintf("CMasternode::BurnFundStatus -- Pubkey is correct\n");
+                                OutputType output_type = OutputType::LEGACY;
+                                collateralAddress = GetDestinationForKey(pubKey, output_type);
+                                listNode[counter].collateralAddress = collateralAddress;
+                                secret.MakeNewKey(false);
+                                listNode[counter].infinitynodePrivateKey = EncodeSecret(secret);
+                                listNode[counter].IPaddress = vpsip.toUtf8().constData();
+                                listNode[counter].port = Params().GetDefaultPort();
+                            }
                         }
+                        i++;
                     }
-                    i++;
-                }
-           }
+                    counter++; //new item in list if found
+            }
         }
-      }
     }
 
     // find suitable collateral outputs
@@ -479,18 +486,18 @@ void MasternodeList::on_startAutoSINButton_clicked()
     LOCK2(cs_main, pwallet->cs_wallet);
     pwallet->AvailableCoins(vPossibleCoins, true, NULL, false, ONLY_MASTERNODE_COLLATERAL);
 
-
     for (COutput& out : vPossibleCoins) {
       CTxDestination address;
-      if (!foundCollat) {
         const CScript& scriptPubKey = out.tx->tx->vout[out.i].scriptPubKey;
         bool fValidAddress = ExtractDestination(scriptPubKey, address);
-        if (address == collateralAddress) {
-            strcpy(nCollatHash, out.tx->GetHash().ToString().c_str());
-            nCollatVout = out.i;
-            foundCollat = true;
+        for (unsigned int i = 0; i < listNode.size(); i++) {
+            if (address == listNode[i].collateralAddress && trackCollateralTx.count(out.tx->GetHash()) != 1) {
+                listNode[i].collateralHash = out.tx->GetHash().ToString();
+                listNode[i].collateralIndex = out.i;
+                trackCollateralTx.insert(out.tx->GetHash());
+                foundCollat = true;
+            }
         }
-      }
     }
 
     if (!foundBurn) {
@@ -502,23 +509,19 @@ void MasternodeList::on_startAutoSINButton_clicked()
     }
 
     if (foundCollat && foundBurn) {
-
-       char mnconfig[224];
-       memset(mnconfig,'\0',224);
-       sprintf(mnconfig,"mn01 %s:%d %s %s %d %s %d\n", vpsip.toUtf8().constData(), Params().GetDefaultPort(), EncodeSecret(secret).c_str(), nCollatHash, nCollatVout, burnTxid, burnVout);
-
-       // debug
-       LogPrintf("MasternodeList::AutoSIN -- %s\n", mnconfig);
-
-       // parts taken from phore's masternode tool (https://github.com/phoreproject/Phore/pull/128)
        boost::filesystem::path pathMasternodeConfigFile = GetMasternodeConfigFile();
        boost::filesystem::ifstream streamConfig(pathMasternodeConfigFile);
        FILE* configFile = fopen(pathMasternodeConfigFile.string().c_str(), "w");
-       std::string strHeader = "# Masternode config file\n"
-                               "# Format: alias IP:port masternodeprivkey collateral_output_txid collateral_output_index burnfund_output_txid burnfund_output_index\n"
-                               "# mn01 127.0.0.1:20980 7RVuQhi45vfazyVtskTRLBgNuSrYGecS5zj2xERaooFVnWKKjhS b7ed8c1396cf57ac78d756186b6022d3023fd2f1c338b7fbae42d342fdd7070a 0 563d9434e816b3e8ffc5347c6b8db07509de6068f6759f21a16be5d92b7e3111 1\n";
+       std::string strHeader = "# infinitynode config file\n"
+                               "# Format: alias IP:port infinitynodeprivkey collateral_output_txid collateral_output_index burnfund_output_txid burnfund_output_index\n"
+                               "# infinitynode1 127.0.0.1:20980 7RVuQhi45vfazyVtskTRLBgNuSrYGecS5zj2xERaooFVnWKKjhS b7ed8c1396cf57ac78d756186b6022d3023fd2f1c338b7fbae42d342fdd7070a 0 563d9434e816b3e8ffc5347c6b8db07509de6068f6759f21a16be5d92b7e3111 1\n";
        fwrite(strHeader.c_str(), std::strlen(strHeader.c_str()), 1, configFile);
-       fwrite(mnconfig, strlen(mnconfig), 1, configFile);
+       for (unsigned int i = 0; i < listNode.size(); i++) {
+           char inconfigline[300];
+           memset(inconfigline,'\0',300);
+           sprintf(inconfigline,"infinitynode%d %s:%d %s %s %d %s %d %s\n",i, listNode[i].IPaddress.c_str(), listNode[i].port, listNode[i].infinitynodePrivateKey.c_str(), listNode[i].collateralHash.c_str(), listNode[i].collateralIndex, listNode[i].burnFundHash.c_str(), listNode[i].burnFundIndex, EncodeDestination(listNode[i].collateralAddress).c_str());
+           fwrite(inconfigline, strlen(inconfigline), 1, configFile);
+       }
        fclose(configFile);
     }
 }

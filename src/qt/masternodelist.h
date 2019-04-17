@@ -11,7 +11,7 @@
 #include <qt/platformstyle.h>
 #include <sync.h>
 #include <util.h>
-
+#include <wallet/wallet.h>
 #include <QMenu>
 #include <QTimer>
 #include <QWidget>
@@ -30,6 +30,18 @@ class WalletModel;
 QT_BEGIN_NAMESPACE
 class QModelIndex;
 QT_END_NAMESPACE
+
+struct infinitynode_conf_t
+{
+    std::string IPaddress = "";
+    int port = 20970;
+    std::string infinitynodePrivateKey;
+    std::string collateralHash = "";
+    int collateralIndex = 0;
+    std::string burnFundHash = "";
+    int burnFundIndex = 0;
+    CTxDestination collateralAddress{};
+};
 
 /** Masternode Manager page widget */
 class MasternodeList : public QWidget
