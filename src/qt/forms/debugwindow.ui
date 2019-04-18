@@ -133,7 +133,7 @@ QScrollBar:vertical {
 	background: transparent;
 	width: 12px;
     margin: 0;
-    
+
 }
 QScrollBar:horizontal {
 	/* Horizontal Scroll Bar Attributes */
@@ -142,7 +142,7 @@ QScrollBar:horizontal {
 	height: 12px;
     /* margin: 0px 18px 0px 18px; */
     margin:0;
-    
+
 }
 QScrollBar::handle:vertical {
 	/* Scroll Bar Slider - vertical */
@@ -151,8 +151,8 @@ QScrollBar::handle:vertical {
     min-height:50px;
     width:3px;
     /* border:2px solid transparent; */
-    
-	
+
+
 }
 
 QScrollBar::handle:horizontal {
@@ -565,14 +565,14 @@ QScrollBar:right-arrow {
           </font>
          </property>
          <property name="text">
-          <string>Masternodes</string>
+          <string>Infinitynodes</string>
          </property>
         </widget>
        </item>
        <item row="16" column="0">
         <widget class="QLabel" name="masternodeCountLabel">
          <property name="text">
-          <string>Number of Masternodes</string>
+          <string>Number of InfinityNodes</string>
          </property>
         </widget>
        </item>
