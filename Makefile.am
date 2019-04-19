@@ -20,7 +20,6 @@ BITCOIND_BIN=$(top_builddir)/src/$(BITCOIN_DAEMON_NAME)$(EXEEXT)
 BITCOIN_QT_BIN=$(top_builddir)/src/qt/$(BITCOIN_GUI_NAME)$(EXEEXT)
 BITCOIN_CLI_BIN=$(top_builddir)/src/$(BITCOIN_CLI_NAME)$(EXEEXT)
 BITCOIN_TX_BIN=$(top_builddir)/src/$(BITCOIN_TX_NAME)$(EXEEXT)
-BITCOIN_WIN_INSTALLER=$(PACKAGE)-$(PACKAGE_VERSION)-win$(WINDOWS_BITS)-setup$(EXEEXT)
 
 empty :=
 space := $(empty) $(empty)
@@ -70,15 +69,36 @@ COVERAGE_INFO = baseline.info \
 dist-hook:
 	-$(GIT) archive --format=tar HEAD -- src/clientversion.cpp | $(AMTAR) -C $(top_distdir) -xf -
 
-$(BITCOIN_WIN_INSTALLER): all-recursive
-	$(MKDIR_P) $(top_builddir)/release
-	STRIPPROG="$(STRIP)" $(INSTALL_STRIP_PROGRAM) $(BITCOIND_BIN) $(top_builddir)/release
-	STRIPPROG="$(STRIP)" $(INSTALL_STRIP_PROGRAM) $(BITCOIN_QT_BIN) $(top_builddir)/release
-	STRIPPROG="$(STRIP)" $(INSTALL_STRIP_PROGRAM) $(BITCOIN_CLI_BIN) $(top_builddir)/release
-	STRIPPROG="$(STRIP)" $(INSTALL_STRIP_PROGRAM) $(BITCOIN_TX_BIN) $(top_builddir)/release
-	@test -f $(MAKENSIS) && $(MAKENSIS) -V2 $(top_builddir)/share/setup.nsi || \
-	  echo error: could not build $@
+PLATF ?= $(host)
+REL_DIR = $(top_srcdir)/release
+STG_DIR = $(REL_DIR)/$(PLATF)
+
+PACK_NAME = $(REL_DIR)/$(PACKAGE)-CORE-$(PACKAGE_VERSION)-$(PLATF)
+
+SIN-WIN-PACKAGE: all-recursive
+	$(MKDIR_P) $(STG_DIR)
+	STRIPPROG="$(STRIP)" $(INSTALL_STRIP_PROGRAM) $(BITCOIND_BIN) $(STG_DIR) | true
+	STRIPPROG="$(STRIP)" $(INSTALL_STRIP_PROGRAM) $(BITCOIN_QT_BIN) $(STG_DIR) | true
+	STRIPPROG="$(STRIP)" $(INSTALL_STRIP_PROGRAM) $(BITCOIN_CLI_BIN) $(STG_DIR) | true
+	STRIPPROG="$(STRIP)" $(INSTALL_STRIP_PROGRAM) $(BITCOIN_TX_BIN) $(STG_DIR) | true
+	@test -f $(SZA) && \
+		$(SZA) a -m0=lzma2 -mx=9 $(STG_DIR)/$(PACKAGE)-CORE.7z \
+            $(STG_DIR)/$(BITCOIN_GUI_NAME)$(EXEEXT) \
+            $(STG_DIR)/$(BITCOIN_DAEMON_NAME)$(EXEEXT) \
+            $(STG_DIR)/$(BITCOIN_CLI_NAME)$(EXEEXT) \
+            $(STG_DIR)/$(BITCOIN_TX_NAME)$(EXEEXT) && \
+		cat $(top_builddir)/share/7z.sfx $(STG_DIR)/$(PACKAGE)-CORE.7z > $(STG_DIR)/$(PACKAGE)-CORE$(EXEEXT) && \
+    		zip -1 -j $(PACK_NAME).zip $(STG_DIR)/$(PACKAGE)-CORE$(EXEEXT) || \
+	        echo error: could not build $@
 	@echo built $@
+
+SIN-LIN-PACKAGE: all-recursive
+	$(MKDIR_P) $(STG_DIR)
+	STRIPPROG="$(STRIP)" $(INSTALL_STRIP_PROGRAM) $(BITCOIN_QT_BIN) $(STG_DIR) | true
+	STRIPPROG="$(STRIP)" $(INSTALL_STRIP_PROGRAM) $(BITCOIND_BIN) $(STG_DIR) | true
+	STRIPPROG="$(STRIP)" $(INSTALL_STRIP_PROGRAM) $(BITCOIN_CLI_BIN) $(STG_DIR) | true
+	STRIPPROG="$(STRIP)" $(INSTALL_STRIP_PROGRAM) $(BITCOIN_TX_BIN) $(STG_DIR) | true
+	tar --ignore-failed-read -c --lzma -f $(PACK_NAME).tar.lzma -C $(STG_DIR) $(BITCOIN_DAEMON_NAME) $(BITCOIN_TX_NAME) $(BITCOIN_GUI_NAME) $(BITCOIN_TX_NAME) $(BITCOIN_CLI_NAME)
 
 $(OSX_APP)/Contents/PkgInfo:
 	$(MKDIR_P) $(@D)
@@ -86,7 +106,7 @@ $(OSX_APP)/Contents/PkgInfo:
 
 $(OSX_APP)/Contents/Resources/empty.lproj:
 	$(MKDIR_P) $(@D)
-	@touch $@ 
+	@touch $@
 
 $(OSX_APP)/Contents/Info.plist: $(OSX_PLIST)
 	$(MKDIR_P) $(@D)
@@ -155,9 +175,12 @@ endif
 if TARGET_DARWIN
 appbundle: $(OSX_APP_BUILT)
 deploy: $(OSX_DMG)
-endif
+else
 if TARGET_WINDOWS
-deploy: $(BITCOIN_WIN_INSTALLER)
+deploy: SIN-WIN-PACKAGE
+else
+deploy: SIN-LIN-PACKAGE
+endif
 endif
 
 $(BITCOIN_QT_BIN): FORCE
