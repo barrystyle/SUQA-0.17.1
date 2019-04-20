@@ -268,18 +268,17 @@ void SendCoinsDialog::on_sendButton_clicked()
     }
 
     // Dash
-    // FXTC TODO: privatesend and instantsend checkbox must be added to GUI! next two rows are just temporary placeholder!
     recipients[0].inputType = ALL_COINS;
     recipients[0].fUseInstantSend = false;
 
-    QString strFunds = tr("using") + " <b>" + tr("anonymous funds") + "</b>";
-    /*
+    QString strFunds = tr(": using") + " <b>" + tr("anonymous funds") + "</b>";
+
     QString strFee = "";
     recipients[0].inputType = ONLY_DENOMINATED;
 
     if(ui->checkUsePrivateSend->isChecked()) {
         recipients[0].inputType = ONLY_DENOMINATED;
-        strFunds = tr("using") + " <b>" + tr("anonymous funds") + "</b>";
+        strFunds = tr(": using") + " <b>" + tr("anonymous funds") + "</b>";
         QString strNearestAmount(
             BitcoinUnits::formatWithUnit(
                 model->getOptionsModel()->getDisplayUnit(), CPrivateSend::GetSmallestDenomination()));
@@ -288,13 +287,13 @@ void SendCoinsDialog::on_sendButton_clicked()
         ).arg(strNearestAmount));
     } else {
         recipients[0].inputType = ALL_COINS;
-        strFunds = tr("using") + " <b>" + tr("any available funds (not anonymous)") + "</b>";
+        strFunds = tr(": using") + " <b>" + tr("any available funds (not anonymous)") + "</b>";
     }
-    */
+
     if(ui->checkUseInstantSend->isChecked()) {
         recipients[0].fUseInstantSend = true;
         strFunds += " ";
-        strFunds += tr("and InstantSend");
+        strFunds += tr("and <b>FlashSend</b>");
     } else {
         recipients[0].fUseInstantSend = false;
     }
@@ -358,7 +357,7 @@ void SendCoinsDialog::on_sendButton_clicked()
         if (model->isMultiwallet()) {
             amount.append(" <u>"+tr("from wallet %1").arg(GUIUtil::HtmlEscape(model->getWalletName()))+"</u> ");
         }
-        amount.append("</b>");
+        amount.append("</b>").append(strFunds);;
         // generate monospace address string
         QString address = "<span style='font-family: monospace;'>" + rcp.address;
         address.append("</span>");
