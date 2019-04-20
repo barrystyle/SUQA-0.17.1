@@ -647,8 +647,10 @@ bool CMasternodeMan::GetNextMasternodeInQueueForPayment(int nBlockHeight, bool f
     nCountRet = (int)vecMasternodeLastPaid.size();
 
     //when the network is in the process of upgrading, don't penalize nodes that recently restarted
-    if(fFilterSigTime && nCountRet < nMnCount/3)
-        return GetNextMasternodeInQueueForPayment(nBlockHeight, false, nCountRet, mnInfoRet);
+    if(fFilterSigTime && nCountRet < nMnCount/3) {
+        LogPrintf("CMasternode::GetNextMasternodeInQueueForPayment -- change parameter\n");
+        return GetNextMasternodeInQueueForPayment(nBlockHeight, false, nCountRet, mnInfoRet, vSinType);
+    }
 
     // Sort them low to high
     sort(vecMasternodeLastPaid.begin(), vecMasternodeLastPaid.end(), CompareLastPaidBlock());
@@ -659,12 +661,10 @@ bool CMasternodeMan::GetNextMasternodeInQueueForPayment(int nBlockHeight, bool f
         return false;
     }
     // Look at 1/5 of the oldest nodes (by last payment), calculate their scores and pay the best one
-    //  -- This doesn't look at who is being paid in the +8-10 blocks, allowing for double payments very rarely
-    //  -- 1/100 payments should be a double payment on mainnet - (1/(3000/10))*2
-    //  -- (chance per block * chances before IsScheduled will fire)
     int nTenthNetwork = nMnCount/5;
     int nCountTenth = 0;
     arith_uint256 nHighest = 0;
+    LogPrintf("CMasternode::GetNextMasternodeInQueueForPayment -- find from %d nodes in network with limit %d\n", nCountRet, nTenthNetwork);
     CMasternode *pBestMasternode = NULL;
     for (std::pair<int, CMasternode*>& s : vecMasternodeLastPaid){
         arith_uint256 nScore = s.second->CalculateScore(blockHash);

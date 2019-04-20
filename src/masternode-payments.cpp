@@ -816,7 +816,6 @@ bool CMasternodePayments::ProcessBlock(int nBlockHeight, CConnman& connman)
         nBurnFundValue = coin.out.nValue;
     }
     CMasternode::SinType vSinType = GetSinType(nBurnFundValue); //find my sinType
-
     // LOCATE THE NEXT MASTERNODE WHICH SHOULD BE PAID
     // pay to the oldest MN that still had no payment but its input is old enough and it was active long enough
     int nCount = 0;
