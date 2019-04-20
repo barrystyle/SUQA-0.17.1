@@ -19,7 +19,7 @@ class CMasternodePaymentVote;
 class CMasternodeBlockPayees;
 
 static const int MNPAYMENTS_SIGNATURES_REQUIRED         = 6;
-static const int MNPAYMENTS_SIGNATURES_TOTAL            = 10;
+static const int MNPAYMENTS_SIGNATURES_TOTAL            = 30; // number of node will vote for block
 
 //! minimum peer version that can receive and send masternode payment messages,
 //  vote for masternode and be elected as a payment winner
@@ -204,7 +204,7 @@ public:
 
     bool AddPaymentVote(const CMasternodePaymentVote& vote);
     bool HasVerifiedPaymentVote(uint256 hashIn);
-    bool ProcessBlock(int nBlockHeight, CConnman& connman);
+    bool ProcessBlock(int nBlockHeight, CConnman& connman);//SIN: add check can vote or not
     void CheckPreviousBlockVotes(int nPrevBlockHeight);
 
     void Sync(CNode* node, CConnman& connman);
@@ -215,7 +215,7 @@ public:
     bool IsTransactionValid(const CTransactionRef txNew, int nBlockHeight);
     bool IsScheduled(CMasternode& mn, int nNotBlockHeight);
 
-    bool CanVote(COutPoint outMasternode, int nBlockHeight);
+    bool CanVote(COutPoint outMasternode, int nBlockHeight);//can vote for this MN or not
 
     int GetMinMasternodePaymentsProto();
     void ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStream& vRecv, CConnman& connman);

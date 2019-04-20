@@ -186,9 +186,6 @@ void CActiveMasternode::ManageStateInitial(CConnman& connman)
 
     LogPrintf("CActiveMasternode::ManageStateInitial -- Checking inbound connection to '%s'\n", service.ToString());
 
-    // FXTC BEGIN
-    //if(!connman.ConnectNode(CAddress(service, NODE_NETWORK), NULL, false, true)) {
-    //if(!connman.OpenNetworkConnection(CAddress(service, NODE_NETWORK), false, nullptr, NULL, false, false, false, true)) {
     bool fConnected = false;
     SOCKET hSocket = CreateSocket(service);
     if (hSocket != INVALID_SOCKET) {
@@ -197,7 +194,6 @@ void CActiveMasternode::ManageStateInitial(CConnman& connman)
     }
 
     if (!fConnected) {
-    // FXTC END
         nState = ACTIVE_MASTERNODE_NOT_CAPABLE;
         strNotCapableReason = "Could not connect to " + service.ToString();
         LogPrintf("CActiveMasternode::ManageStateInitial -- %s: %s\n", GetStateString(), strNotCapableReason);
@@ -239,6 +235,7 @@ void CActiveMasternode::ManageStateRemote()
         if(nState != ACTIVE_MASTERNODE_STARTED) {
             LogPrintf("CActiveMasternode::ManageStateRemote -- STARTED!\n");
             outpoint = infoMn.vin.prevout;
+            burntx = infoMn.vinBurnFund.prevout; //activemasternode initial value
             service = infoMn.addr;
             fPingerEnabled = true;
             nState = ACTIVE_MASTERNODE_STARTED;

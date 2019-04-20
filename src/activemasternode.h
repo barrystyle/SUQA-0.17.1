@@ -53,6 +53,7 @@ public:
 
     // Initialized while registering Masternode
     COutPoint outpoint;
+    COutPoint burntx;
     CService service;
 
     int nState; // should be one of ACTIVE_MASTERNODE_XXXX
@@ -65,6 +66,7 @@ public:
           pubKeyMasternode(),
           keyMasternode(),
           outpoint(),
+          burntx(),
           service(),
           nState(ACTIVE_MASTERNODE_INITIAL)
     {}

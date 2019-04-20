@@ -14,9 +14,9 @@
 #include <masternodeman.h>
 #include <messagesigner.h>
 #include <script/standard.h>
-// FXTC BEGIN
+
 #include <shutdown.h>
-// FXTC END
+
 #include <util.h>
 #ifdef ENABLE_WALLET
 #include <wallet/wallet.h>
@@ -151,6 +151,24 @@ CMasternode::SinType CMasternode::GetSinType()
     return SINNODE_UNKNOWN;
 }
 
+CMasternode::SinType CMasternode::GetSinType(CAmount burnValue)
+{
+
+    if ((Params().GetConsensus().nMasternodeBurnSINNODE_1 - 1) * COIN < burnValue && burnValue <= Params().GetConsensus().nMasternodeBurnSINNODE_1 * COIN) {
+        return SINNODE_1;
+    }
+
+    if ((Params().GetConsensus().nMasternodeBurnSINNODE_5 -1) * COIN < burnValue &&  burnValue <= Params().GetConsensus().nMasternodeBurnSINNODE_5 * COIN) {
+        return SINNODE_5;
+    }
+
+    if ((Params().GetConsensus().nMasternodeBurnSINNODE_10 - 1) * COIN < burnValue && burnValue <= Params().GetConsensus().nMasternodeBurnSINNODE_10 * COIN) {
+        return SINNODE_10;
+    }
+
+    return SINNODE_UNKNOWN;
+}
+
 int CMasternode::GetSinTypeInt()
 {
     CAmount nBurnFundValue = CheckOutPointValue(vinBurnFund.prevout);
@@ -168,6 +186,16 @@ int CMasternode::GetSinTypeInt()
     }
     
     return 0;
+}
+
+bool CMasternode::CanVoteForReward() {
+    for(std::vector<SinType>::iterator it = vSinTypeCanVote.begin(); it != vSinTypeCanVote.end(); ++it) {
+        if ( GetSinType() == *it ){
+            return true;
+        }
+    }
+
+    return false;
 }
     
 CMasternode::CollateralStatus CMasternode::CheckCollateral(const COutPoint& outpoint)
@@ -419,8 +447,8 @@ void CMasternode::Check(bool fForce)
         bool fWatchdogActive = masternodeSync.IsSynced() && mnodeman.IsWatchdogActive();
         bool fWatchdogExpired = (fWatchdogActive && ((GetAdjustedTime() - nTimeLastWatchdogVote) > MASTERNODE_WATCHDOG_MAX_SECONDS));
 
-        LogPrint(BCLog::MASTERNODE, "CMasternode::Check -- outpoint=%s, nTimeLastWatchdogVote=%d, GetAdjustedTime()=%d, fWatchdogExpired=%d\n",
-                vin.prevout.ToStringShort(), nTimeLastWatchdogVote, GetAdjustedTime(), fWatchdogExpired);
+        //LogPrint(BCLog::MASTERNODE, "CMasternode::Check -- outpoint=%s, nTimeLastWatchdogVote=%d, GetAdjustedTime()=%d, fWatchdogExpired=%d\n",
+        //        vin.prevout.ToStringShort(), nTimeLastWatchdogVote, GetAdjustedTime(), fWatchdogExpired);
 
         if(fWatchdogExpired) {
             nActiveState = MASTERNODE_WATCHDOG_EXPIRED;
@@ -461,12 +489,8 @@ bool CMasternode::IsInputAssociatedWithPubkey()
     CTransactionRef tx;
     uint256 hash;
     if(GetTransaction(vin.prevout.hash, tx, Params().GetConsensus(), hash, true)) {
-        // FXTC BEGIN
-        //for (auto out : tx->vout)
-        //    if(out.nValue == 1000*COIN && out.scriptPubKey == payee) return true;
         for(unsigned int i = 0; i < tx->vout.size(); ++i)
             if(CheckCollateral(COutPoint(tx->GetHash(),i)) == COLLATERAL_OK && tx->vout[i].scriptPubKey == payee) return true;
-        // FXTC END
     }
 
     return false;
@@ -585,7 +609,6 @@ bool CMasternodeBroadcast::Create(std::string strService, std::string strKeyMast
     if (!CMessageSigner::GetKeysFromSecret(strKeyMasternode, keyMasternodeNew, pubKeyMasternodeNew))
         return Log(strprintf("Invalid masternode key %s", strKeyMasternode));
 
-    // FXTC TODO: always using first wallet with MN
     std::vector<std::shared_ptr<CWallet>> wallets = GetWallets();
     CWallet * const pwallet = (wallets.size() > 0) ? wallets[0].get() : nullptr;
     if (!pwallet->GetMasternodeOutpointAndKeys(outpoint, pubKeyCollateralAddressNew, keyCollateralAddressNew, strTxHash, strOutputIndex))

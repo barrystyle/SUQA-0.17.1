@@ -596,14 +596,14 @@ void CMasternodeMan::LocalDiagnostic(int nBlockHeight, int& nSINNODE_1Ret, int& 
 }
 
 //
-// Deterministically select the oldest/best masternode to pay on the network
+// Deterministically select the oldest/best masternode to pay on the network [use by miner and Nodes to vote for payment]
 //
 bool CMasternodeMan::GetNextMasternodeInQueueForPayment(bool fFilterSigTime, int& nCountRet, masternode_info_t& mnInfoRet)
 {
     return GetNextMasternodeInQueueForPayment(nCachedBlockHeight, fFilterSigTime, nCountRet, mnInfoRet);
 }
 
-bool CMasternodeMan::GetNextMasternodeInQueueForPayment(int nBlockHeight, bool fFilterSigTime, int& nCountRet, masternode_info_t& mnInfoRet)
+bool CMasternodeMan::GetNextMasternodeInQueueForPayment(int nBlockHeight, bool fFilterSigTime, int& nCountRet, masternode_info_t& mnInfoRet, CMasternode::SinType vSinType)
 {
     mnInfoRet = masternode_info_t();
     nCountRet = 0;
@@ -612,6 +612,8 @@ bool CMasternodeMan::GetNextMasternodeInQueueForPayment(int nBlockHeight, bool f
         // without winner list we can't reliably find the next winner anyway
         return false;
     }
+
+    if ( vSinType == CMasternode::SinType::SINNODE_UNKNOWN ) { return false; }
 
     // Need LOCK2 here to ensure consistent locking order because the GetBlockHash call below locks cs_main
     LOCK2(cs_main,cs);
@@ -656,17 +658,17 @@ bool CMasternodeMan::GetNextMasternodeInQueueForPayment(int nBlockHeight, bool f
         LogPrintf("CMasternode::GetNextMasternodeInQueueForPayment -- ERROR: GetBlockHash() failed at nBlockHeight %d\n", nBlockHeight - 101);
         return false;
     }
-    // Look at 1/10 of the oldest nodes (by last payment), calculate their scores and pay the best one
+    // Look at 1/5 of the oldest nodes (by last payment), calculate their scores and pay the best one
     //  -- This doesn't look at who is being paid in the +8-10 blocks, allowing for double payments very rarely
     //  -- 1/100 payments should be a double payment on mainnet - (1/(3000/10))*2
     //  -- (chance per block * chances before IsScheduled will fire)
-    int nTenthNetwork = nMnCount/10;
+    int nTenthNetwork = nMnCount/5;
     int nCountTenth = 0;
     arith_uint256 nHighest = 0;
     CMasternode *pBestMasternode = NULL;
     for (std::pair<int, CMasternode*>& s : vecMasternodeLastPaid){
         arith_uint256 nScore = s.second->CalculateScore(blockHash);
-        if(nScore > nHighest){
+        if(nScore > nHighest && s.second->GetSinType() == vSinType){
             nHighest = nScore;
             pBestMasternode = s.second;
         }

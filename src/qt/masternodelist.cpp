@@ -500,30 +500,42 @@ void MasternodeList::on_startAutoSINButton_clicked()
         }
     }
 
+    //Write in file
+    boost::filesystem::path pathMasternodeConfigFile = GetMasternodeConfigFile();
+    boost::filesystem::ifstream streamConfig(pathMasternodeConfigFile);
+    FILE* configFile = fopen(pathMasternodeConfigFile.string().c_str(), "w");
+    std::string strHeader = "# infinitynode config file\n"
+                            "# Format: alias IP:port infinitynodeprivkey collateral_output_txid collateral_output_index burnfund_output_txid burnfund_output_index\n"
+                            "# infinitynode1 127.0.0.1:20980 7RVuQhi45vfazyVtskTRLBgNuSrYGecS5zj2xERaooFVnWKKjhS b7ed8c1396cf57ac78d756186b6022d3023fd2f1c338b7fbae42d342fdd7070a 0 563d9434e816b3e8ffc5347c6b8db07509de6068f6759f21a16be5d92b7e3111 1\n";
+    fwrite(strHeader.c_str(), std::strlen(strHeader.c_str()), 1, configFile);
+
     if (!foundBurn) {
         LogPrintf("MasternodeList::AutoSIN -- burnTx not found\n");
+        strHeader = "#BurnFund tx was not found\n";
+        fwrite(strHeader.c_str(), std::strlen(strHeader.c_str()), 1, configFile);
+    } else {
+        strHeader = "#BurnFund tx was found\n";
+        fwrite(strHeader.c_str(), std::strlen(strHeader.c_str()), 1, configFile);
     }
 
     if (!foundCollat) {
         LogPrintf("MasternodeList::AutoSIN -- collateral not found\n");
+        strHeader = "#Collateral tx was not found\n";
+        fwrite(strHeader.c_str(), std::strlen(strHeader.c_str()), 1, configFile);
+    } else {
+        strHeader = "#Collateral tx was found\n";
+        fwrite(strHeader.c_str(), std::strlen(strHeader.c_str()), 1, configFile);
     }
 
-    if (foundCollat && foundBurn) {
-       boost::filesystem::path pathMasternodeConfigFile = GetMasternodeConfigFile();
-       boost::filesystem::ifstream streamConfig(pathMasternodeConfigFile);
-       FILE* configFile = fopen(pathMasternodeConfigFile.string().c_str(), "w");
-       std::string strHeader = "# infinitynode config file\n"
-                               "# Format: alias IP:port infinitynodeprivkey collateral_output_txid collateral_output_index burnfund_output_txid burnfund_output_index\n"
-                               "# infinitynode1 127.0.0.1:20980 7RVuQhi45vfazyVtskTRLBgNuSrYGecS5zj2xERaooFVnWKKjhS b7ed8c1396cf57ac78d756186b6022d3023fd2f1c338b7fbae42d342fdd7070a 0 563d9434e816b3e8ffc5347c6b8db07509de6068f6759f21a16be5d92b7e3111 1\n";
-       fwrite(strHeader.c_str(), std::strlen(strHeader.c_str()), 1, configFile);
+    if (foundBurn) {
        for (unsigned int i = 0; i < listNode.size(); i++) {
            char inconfigline[300];
            memset(inconfigline,'\0',300);
            sprintf(inconfigline,"infinitynode%d %s:%d %s %s %d %s %d %s\n",i, listNode[i].IPaddress.c_str(), listNode[i].port, listNode[i].infinitynodePrivateKey.c_str(), listNode[i].collateralHash.c_str(), listNode[i].collateralIndex, listNode[i].burnFundHash.c_str(), listNode[i].burnFundIndex, EncodeDestination(listNode[i].collateralAddress).c_str());
            fwrite(inconfigline, strlen(inconfigline), 1, configFile);
        }
-       fclose(configFile);
     }
+    fclose(configFile);
 }
 
 void MasternodeList::on_tableWidgetMyMasternodes_itemSelectionChanged()

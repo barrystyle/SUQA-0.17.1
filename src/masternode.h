@@ -172,6 +172,7 @@ public:
 
     CMasternodePing lastPing{};
     std::vector<unsigned char> vchSig{};
+    std::vector<SinType> vSinTypeCanVote = {SINNODE_5, SINNODE_10};
 
     uint256 nCollateralMinConfBlockHash{};
     int nBlockLastPaid{};
@@ -229,9 +230,11 @@ public:
     static BurnFundStatus CheckBurnFund(const COutPoint& outpoint);
     static BurnFundStatus CheckBurnFund(const COutPoint& outpoint, int& nHeightRet);
 	bool CheckCollateralBurnFundRelation(const COutPoint& outpoint, const COutPoint& outpointBurnFund);
+    bool CanVoteForReward(); //I can vote or not
 
     void Check(bool fForce = false);
     SinType GetSinType();
+    SinType GetSinType(CAmount burnValue);
     int GetSinTypeInt();
 
     bool IsBroadcastedWithin(int nSeconds) { return GetAdjustedTime() - sigTime < nSeconds; }

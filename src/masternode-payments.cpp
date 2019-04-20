@@ -289,22 +289,17 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int nBlockH
 	for (auto& sintype : vSinType) {
 		CAmount masternodePayment = GetMasternodePayment(nBlockHeight, sintype.first);
 		if (sintype.second == 1) {
-			LogPrintf("CMasternodePayments::FillBlockPayee -- SIN type: %d\n", sintype.first);
 			if(!mnpayments.GetBlockPayee(nBlockHeight, sintype.first, payee)) {
 				// no masternode detected/voted from network...
 				int nCount = 0;
 				masternode_info_t mnInfo;
-				if(!mnodeman.GetNextMasternodeInQueueForPayment(nBlockHeight, true, nCount, mnInfo)) {
-					// ...and we can't calculate it on our own
+				if(!mnodeman.GetNextMasternodeInQueueForPayment(nBlockHeight, true, nCount, mnInfo)) { //this call is always false by SINNODE_UNKNOWN ==> no paid for local miner vote
 					LogPrintf("CMasternodePayments::FillBlockPayee -- Failed to detect masternode to pay\n");
 					continue;
 				}
 				// fill payee with locally calculated winner and hope for the best
 				payee = GetScriptForDestination(mnInfo.pubKeyCollateralAddress.GetID());
 			}
-
-			// GET MASTERNODE PAYMENT VARIABLES SETUP
-			//CAmount masternodePayment = GetMasternodePayment(nBlockHeight, sintype.first);
 
 			// split reward between miner ...
 			txNew.vout[0].nValue -= masternodePayment;
@@ -438,8 +433,8 @@ void CMasternodePayments::ProcessMessage(CNode* pfrom, const std::string& strCom
         ExtractDestination(vote.payee, address1);
         std::string address2 = EncodeDestination(address1);
 
-        LogPrint(BCLog::MNPAYMENTS, "MASTERNODEPAYMENTVOTE -- vote: address=%s, nBlockHeight=%d, nHeight=%d, prevout=%s, hash=%s new\n",
-                    address2, vote.nBlockHeight, nCachedBlockHeight, vote.vinMasternode.prevout.ToStringShort(), nHash.ToString());
+        //LogPrint(BCLog::MNPAYMENTS, "MASTERNODEPAYMENTVOTE -- vote: address=%s, nBlockHeight=%d, nHeight=%d, prevout=%s, hash=%s new\n",
+        //            address2, vote.nBlockHeight, nCachedBlockHeight, vote.vinMasternode.prevout.ToStringShort(), nHash.ToString());
 
         if(AddPaymentVote(vote)){
             vote.Relay(connman);
@@ -562,7 +557,7 @@ void CMasternodeBlockPayees::AddPayee(const CMasternodePaymentVote& vote)
         LogPrintf("MASTERNODEPAYMENTVOTE -- masternode is unknown %s\n", vote.vinMasternode.prevout.ToStringShort());
         return;
     }
-        
+      
     CMasternodePayee payeeNew(vote.payee, pmn->GetSinTypeInt(), vote.GetHash());
     vecPayees.push_back(payeeNew);
 }
@@ -642,7 +637,7 @@ bool CMasternodeBlockPayees::IsTransactionValid(const CTransactionRef txNew)
         }
     }
 
-    LogPrintf("CMasternodeBlockPayees::IsTransactionValid -- ERROR: Missing required payment, possible payees: '%s', amount: %f DASH\n", strPayeesPossible, (float)nMasternodePayment/COIN);
+    LogPrintf("CMasternodeBlockPayees::IsTransactionValid -- ERROR: Missing required payment, possible payees: '%s', amount: %f SIN\n", strPayeesPossible, (float)nMasternodePayment/COIN);
     return false;
 }
 
@@ -771,6 +766,24 @@ bool CMasternodePaymentVote::IsValid(CNode* pnode, int nValidationHeight, std::s
     return true;
 }
 
+CMasternode::SinType GetSinType(CAmount burnValue)
+{
+    
+    if ((Params().GetConsensus().nMasternodeBurnSINNODE_1 - 1) * COIN < burnValue && burnValue <= Params().GetConsensus().nMasternodeBurnSINNODE_1 * COIN) {
+        return CMasternode::SinType::SINNODE_1;
+    }
+    
+    if ((Params().GetConsensus().nMasternodeBurnSINNODE_5 -1) * COIN < burnValue &&  burnValue <= Params().GetConsensus().nMasternodeBurnSINNODE_5 * COIN) {
+        return CMasternode::SinType::SINNODE_5;
+    }
+    
+    if ((Params().GetConsensus().nMasternodeBurnSINNODE_10 - 1) * COIN < burnValue && burnValue <= Params().GetConsensus().nMasternodeBurnSINNODE_10 * COIN) {
+        return CMasternode::SinType::SINNODE_10;
+    }
+    
+    return CMasternode::SinType::SINNODE_UNKNOWN;
+}
+
 bool CMasternodePayments::ProcessBlock(int nBlockHeight, CConnman& connman)
 {
     // DETERMINE IF WE SHOULD BE VOTING FOR THE NEXT PAYEE
@@ -794,36 +807,43 @@ bool CMasternodePayments::ProcessBlock(int nBlockHeight, CConnman& connman)
         return false;
     }
 
+    AssertLockHeld(cs_main);
+    CAmount nBurnFundValue = 0;
+    Coin coin;
+    if(!GetUTXOCoin(activeMasternode.burntx, coin)) {
+        nBurnFundValue = 0;
+    } else {
+        nBurnFundValue = coin.out.nValue;
+    }
+    CMasternode::SinType vSinType = GetSinType(nBurnFundValue); //find my sinType
 
     // LOCATE THE NEXT MASTERNODE WHICH SHOULD BE PAID
-
-    LogPrintf("CMasternodePayments::ProcessBlock -- Start: nBlockHeight=%d, masternode=%s\n", nBlockHeight, activeMasternode.outpoint.ToStringShort());
-
     // pay to the oldest MN that still had no payment but its input is old enough and it was active long enough
     int nCount = 0;
     masternode_info_t mnInfo;
 
-    if (!mnodeman.GetNextMasternodeInQueueForPayment(nBlockHeight, true, nCount, mnInfo)) {
+    if (!mnodeman.GetNextMasternodeInQueueForPayment(nBlockHeight, true, nCount, mnInfo, vSinType)) { //vote for the same sintype
         LogPrintf("CMasternodePayments::ProcessBlock -- ERROR: Failed to find masternode to pay\n");
         return false;
     }
 
-    LogPrintf("CMasternodePayments::ProcessBlock -- Masternode found by GetNextMasternodeInQueueForPayment(): %s\n", mnInfo.vin.prevout.ToStringShort());
-
-
     CScript payee = GetScriptForDestination(mnInfo.pubKeyCollateralAddress.GetID());
-
     CMasternodePaymentVote voteNew(activeMasternode.outpoint, nBlockHeight, payee);
+    
+    if(!GetUTXOCoin(mnInfo.vinBurnFund.prevout, coin)) {
+        nBurnFundValue = 0;
+    } else {
+        nBurnFundValue = coin.out.nValue;
+    }
 
     CTxDestination address1;
     ExtractDestination(payee, address1);
     std::string address2 = EncodeDestination(address1);
 
-    LogPrintf("CMasternodePayments::ProcessBlock -- vote: payee=%s, nBlockHeight=%d\n", address2, nBlockHeight);
+    LogPrintf("CMasternodePayments::ProcessBlock -- Masternode found by GetNextMasternodeInQueueForPayment(): vote for %s, payee=%s, burnfund %llf, nBlockHeight=%d \n", mnInfo.vin.prevout.ToStringShort(), address2, nBurnFundValue, nBlockHeight);
 
     // SIGN MESSAGE TO NETWORK WITH OUR MASTERNODE KEYS
 
-    LogPrintf("CMasternodePayments::ProcessBlock -- Signing vote\n");
     if (voteNew.Sign()) {
         LogPrintf("CMasternodePayments::ProcessBlock -- AddPaymentVote()\n");
 
