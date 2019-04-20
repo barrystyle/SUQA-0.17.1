@@ -219,40 +219,40 @@
           <item>
            <widget class="QCheckBox" name="showMasternodesTab">
             <property name="toolTip">
-             <string>Show additional tab listing all your masternodes in first sub-tab&lt;br/&gt;and all masternodes on the network in second sub-tab.</string>
+             <string>Show additional tab listing all your InfinityNodes in first sub-tab&lt;br/&gt;and all InfinityNodes on the network in second sub-tab.</string>
             </property>
             <property name="text">
-             <string>Show Masternodes Tab</string>
+             <string>Show InfinityNodes Tab</string>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QCheckBox" name="showAdvancedPSUI">
             <property name="toolTip">
-             <string>Show additional information and buttons for PrivateSend on overview screen.</string>
+             <string>Show additional information and buttons for ShadowSend on overview screen.</string>
             </property>
             <property name="text">
-             <string>Enable advanced PrivateSend interface</string>
+             <string>Enable advanced ShadowSend interface</string>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QCheckBox" name="lowKeysWarning">
             <property name="toolTip">
-             <string>Show warning dialog when PrivateSend detects that wallet has very low number of keys left.</string>
+             <string>Show warning dialog when ShadowSend detects that wallet has very low number of keys left.</string>
             </property>
             <property name="text">
-             <string>Warn if PrivateSend is running out of keys</string>
+             <string>Warn if ShadowSend is running out of keys</string>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QCheckBox" name="privateSendMultiSession">
             <property name="toolTip">
-             <string>Whether to use experimental PrivateSend mode with multiple mixing sessions per block.&lt;br/&gt;Note: You must use this feature carefully.&lt;br/&gt;Make sure you always have recent wallet (auto)backup in a safe place!</string>
+             <string>Whether to use experimental ShadowSend mode with multiple mixing sessions per block.&lt;br/&gt;Note: You must use this feature carefully.&lt;br/&gt;Make sure you always have recent wallet (auto)backup in a safe place!</string>
             </property>
             <property name="text">
-             <string>Enable PrivateSend &amp;multi-session</string>
+             <string>Enable ShadowSend &amp;multi-session</string>
             </property>
            </widget>
           </item>
@@ -274,10 +274,10 @@
          <item>
           <widget class="QLabel" name="label">
            <property name="toolTip">
-            <string>This setting determines the amount of individual masternodes that an input will be anonymized through.&lt;br/&gt;More rounds of anonymization gives a higher degree of privacy, but also costs more in fees.</string>
+            <string>This setting determines the amount of individual InfinityNodes that an input will be anonymized through.&lt;br/&gt;More rounds of anonymization gives a higher degree of privacy, but also costs more in fees.</string>
            </property>
            <property name="text">
-            <string>PrivateSend rounds to use</string>
+            <string>ShadowSend rounds to use</string>
            </property>
           </widget>
          </item>
@@ -301,7 +301,7 @@
          <item>
           <widget class="QLabel" name="label_2">
            <property name="toolTip">
-            <string>This amount acts as a threshold to turn off PrivateSend once it's reached.</string>
+            <string>This amount acts as a threshold to turn off ShadowSend once it's reached.</string>
            </property>
            <property name="statusTip">
             <string notr="true"/>

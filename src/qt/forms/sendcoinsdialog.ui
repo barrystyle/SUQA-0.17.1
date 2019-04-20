@@ -1250,7 +1250,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
           </size>
          </property>
          <property name="text">
-          <string>PrivateSend</string>
+          <string>ShadowSend</string>
          </property>
          <property name="checked">
           <bool>false</bool>
@@ -1269,7 +1269,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of &quot;100 satos
           </size>
          </property>
          <property name="text">
-          <string>InstantSend</string>
+          <string>FlashSend</string>
          </property>
         </widget>
        </item>
