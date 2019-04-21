@@ -28,13 +28,11 @@ bool CMasternodeConfig::read(std::string& strErr) {
 
     if (!streamConfig.good()) {
 
-        LogPrintf("* masternode config bad or not found\n");
-
         FILE* configFile = fopen(pathMasternodeConfigFile.string().c_str(), "a");
         if (configFile != NULL) {
-            std::string strHeader = "# Masternode config file\n"
-                          "# Format: alias IP:port masternodeprivkey collateral_output_txid collateral_output_index\n"
-                          "# Example: mn1 127.0.0.2:9468 7y9mBodVbq5nytRyZNg169ABTeKffDNqekCPiXKWGP2ZYDRHYbk ddaa0ebeed10aef980adbf9579718aed85b533eb5816adde661221f656382dd6 0\n";
+            std::string strHeader = "# infinitynode config file\n"
+                          "# Format: alias IP:port infinitynodeprivkey collateral_output_txid collateral_output_index burnfund_output_txid burnfund_output_index\n"
+                          "# infinitynode1 127.0.0.1:20980 7RVuQhi45vfazyVtskTRLBgNuSrYGecS5zj2xERaooFVnWKKjhS b7ed8c1396cf57ac78d756186b6022d3023fd2f1c338b7fbae42d342fdd7070a 0 563d9434e816b3e8ffc5347c6b8db07509de6068f6759f21a16be5d92b7e3111 1\n";
             fwrite(strHeader.c_str(), std::strlen(strHeader.c_str()), 1, configFile);
             fclose(configFile);
         }
@@ -64,7 +62,7 @@ bool CMasternodeConfig::read(std::string& strErr) {
             iss.str(line);
             iss.clear();
             if (!(iss >> alias >> ip >> privKey >> txHash >> outputIndex >> txHashBurnFund >> outputIndexBurnFund)) {
-                strErr = _("Could not parse masternode.conf") + "\n" +
+                strErr = _("Could not parse infinitynode.conf") + "\n" +
                         strprintf(_("Line: %d"), linenumber) + "\n\"" + line + "\"";
                 streamConfig.close();
                 return false;
@@ -80,22 +78,32 @@ bool CMasternodeConfig::read(std::string& strErr) {
             streamConfig.close();
             return false;
         }
-        int nDefaultPort = Params().GetDefaultPort();
         if(Params().NetworkIDString() == CBaseChainParams::MAIN) {
-            if(port != nDefaultPort) {
-                strErr = _("Invalid port detected in masternode.conf") + "\n" +
+            if(port != Params().GetDefaultPort()) {
+                strErr = _("Invalid port detected in infinitynode.conf") + "\n" +
                         strprintf(_("Port: %d"), port) + "\n" +
                         strprintf(_("Line: %d"), linenumber) + "\n\"" + line + "\"" + "\n" +
-                        strprintf(_("(must be %d for mainnet)"), nDefaultPort);
+                        strprintf(_("(must be %d for mainnet)"), Params().GetDefaultPort());
                 streamConfig.close();
                 return false;
             }
         } else if(port == 20970) {
-            strErr = _("Invalid port detected in masternode.conf") + "\n" +
+            strErr = _("Invalid port detected in infinitynode.conf") + "\n" +
                     strprintf(_("Line: %d"), linenumber) + "\n\"" + line + "\"" + "\n" +
                     strprintf(_("(%d could be used only on mainnet)"), Params().GetDefaultPort());
             streamConfig.close();
             return false;
+        }
+
+        if(Params().NetworkIDString() == CBaseChainParams::TESTNET) {
+            if(port != Params().GetDefaultPort()) {
+                strErr = _("Invalid port detected in infinitynode.conf") + "\n" +
+                        strprintf(_("Port: %d"), port) + "\n" +
+                        strprintf(_("Line: %d"), linenumber) + "\n\"" + line + "\"" + "\n" +
+                        strprintf(_("(must be %d for mainnet)"), Params().GetDefaultPort());
+                streamConfig.close();
+                return false;
+            }
         }
 
 

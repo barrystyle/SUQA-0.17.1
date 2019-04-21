@@ -613,10 +613,17 @@ bool CMasternodeBroadcast::Create(std::string strService, std::string strKeyMast
     CService service;
     if (!Lookup(strService.c_str(), service, 0, false))
         return Log(strprintf("Invalid address %s for masternode.", strService));
-    int nDefaultPort = Params().GetDefaultPort();
-    if (Params().NetworkIDString() == CBaseChainParams::MAIN) {
-        if (service.GetPort() != nDefaultPort)
+
+    if (Params().NetworkIDString() == CBaseChainParams::MAIN) { //only work on port 20970 on mainnet
+        if (service.GetPort() != Params().GetDefaultPort())
+            return Log(strprintf("Invalid port %u for masternode %s, only %d is supported on mainnet.", service.GetPort(), strService, Params().GetDefaultPort()));
+    } else if (service.GetPort() == 20970) { //dont accept 20970 for other network
             return Log(strprintf("Invalid port %u for masternode %s, only %d is supported on the current network.", service.GetPort(), strService, Params().GetDefaultPort()));
+    }
+
+    if (Params().NetworkIDString() == CBaseChainParams::TESTNET) {
+        if (service.GetPort() != Params().GetDefaultPort())
+            return Log(strprintf("Invalid port %u for masternode %s, only %d is supported on testnet.", service.GetPort(), strService, Params().GetDefaultPort()));
     }
 
     return Create(outpoint, outpointBurnFund, service, keyCollateralAddressNew, pubKeyCollateralAddressNew, keyMasternodeNew, pubKeyMasternodeNew, strErrorRet, mnbRet);
@@ -663,6 +670,12 @@ bool CMasternodeBroadcast::SimpleCheck(int& nDos)
     // make sure addr is valid
     if(!IsValidNetAddr()) {
         LogPrintf("CMasternodeBroadcast::SimpleCheck -- Invalid addr, rejected: masternode=%s  addr=%s\n",
+                    vin.prevout.ToStringShort(), addr.ToString());
+        return false;
+    }
+
+    if(addr.GetPort() != Params().GetDefaultPort()) {
+        LogPrintf("CMasternodeBroadcast::SimpleCheck -- Invalid port, rejected: masternode=%s  addr=%s\n",
                     vin.prevout.ToStringShort(), addr.ToString());
         return false;
     }

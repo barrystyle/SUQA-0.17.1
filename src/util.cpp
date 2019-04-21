@@ -107,8 +107,8 @@ int nWalletBackups = 10;
 const char * const BITCOIN_CONF_FILENAME = "sin.conf";
 const char * const BITCOIN_PID_FILENAME = "sind.pid";
 
-const char * const MASTERNODE_CONF_FILENAME_ARG = "-mnconf";
-const char * const MASTERNODE_CONF_FILENAME = "masternode.conf";
+const char * const MASTERNODE_CONF_FILENAME_ARG = "-sinconf";
+const char * const MASTERNODE_CONF_FILENAME = "infinitynode.conf";
 
 ArgsManager gArgs;
 

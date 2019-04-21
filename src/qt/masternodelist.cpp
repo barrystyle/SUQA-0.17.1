@@ -460,7 +460,7 @@ void MasternodeList::on_startAutoSINButton_clicked()
                 (address == BurnAddress) &&
                 (
                     ((Params().GetConsensus().nMasternodeBurnSINNODE_1 - 1) * COIN < pcoin->tx->vout[i].nValue && pcoin->tx->vout[i].nValue <= Params().GetConsensus().nMasternodeBurnSINNODE_1 * COIN) ||
-                    ((Params().GetConsensus().nMasternodeBurnSINNODE_5 - 1) < pcoin->tx->vout[i].nValue * COIN && pcoin->tx->vout[i].nValue <= Params().GetConsensus().nMasternodeBurnSINNODE_5 * COIN) ||
+                    ((Params().GetConsensus().nMasternodeBurnSINNODE_5 - 1) * COIN < pcoin->tx->vout[i].nValue && pcoin->tx->vout[i].nValue <= Params().GetConsensus().nMasternodeBurnSINNODE_5 * COIN) ||
                     ((Params().GetConsensus().nMasternodeBurnSINNODE_10 - 1) * COIN < pcoin->tx->vout[i].nValue && pcoin->tx->vout[i].nValue <= Params().GetConsensus().nMasternodeBurnSINNODE_10 * COIN)
                 )
           ) {
@@ -471,7 +471,8 @@ void MasternodeList::on_startAutoSINButton_clicked()
                     //add to list
                     listNode[counter].burnFundHash = txid->ToString();
                     listNode[counter].burnFundIndex = i;
-                    const CTxIn& txin = pcoin->tx->vin[0]; //Burn Input is only one address. So we can take the first without problem
+                    const CTxIn txin = pcoin->tx->vin[0]; //Burn Input is only one address. So we can take the first without problem
+
                     string strAsm = ScriptToAsmStr(txin.scriptSig, true);
                     string s;
                     stringstream ss(strAsm);
@@ -481,15 +482,7 @@ void MasternodeList::on_startAutoSINButton_clicked()
                             std::vector<unsigned char> data(ParseHex(s));
                             CPubKey pubKey(data.begin(), data.end());
                             if (!pubKey.IsFullyValid()) {
-                                stringstream sskey;
-                                fwrite(strAsm.c_str(), std::strlen(strAsm.c_str()), 1, configFile);
-                                sskey << "#PublicKey of burntx is not valid: " << s << ". Fund is burnt from mixing coin. It can not be identify.\n";
-                                strHeader = "#PublicKey of burntx is not valid:";
-                                //fwrite(strHeader.c_str(), std::strlen(strHeader.c_str()), 1, configFile);
-                                fwrite(sskey.str().c_str(), std::strlen(sskey.str().c_str()), 1, configFile);
                                 LogPrintf("MasternodeList::AutoSIN -- Can't not find Input Pubkey key\n");
-                                fclose(configFile);
-                                return;
                             } else {
                                 //LogPrintf("CMasternode::BurnFundStatus -- Pubkey is correct\n");
                                 OutputType output_type = OutputType::LEGACY;
@@ -499,11 +492,11 @@ void MasternodeList::on_startAutoSINButton_clicked()
                                 listNode[counter].infinitynodePrivateKey = EncodeSecret(secret);
                                 listNode[counter].IPaddress = vpsip.toUtf8().constData();
                                 listNode[counter].port = Params().GetDefaultPort();
+                                counter++; //new item in list if found
                             }
                         }
                         i++;
                     }
-                    counter++; //new item in list if found
             }
         }
     }
