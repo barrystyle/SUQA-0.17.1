@@ -499,9 +499,10 @@ void ThreadCheckPrivateSend(CConnman& connman)
                 activeMasternode.ManageState(connman);
 
             if(nTick % 60 == 0) {
-                //netfulfilledman.CheckAndRemove();
+                netfulfilledman.CheckAndRemove();
                 mnodeman.ProcessMasternodeConnections(connman);
                 mnodeman.CheckAndRemove(connman);
+                mnodeman.CheckAndRemoveBurnFundNotUniqueNode(connman);
                 //mnodeman.WarnMasternodeDaemonUpdates();
                 mnpayments.CheckAndRemove();
                 instantsend.CheckAndRemove();

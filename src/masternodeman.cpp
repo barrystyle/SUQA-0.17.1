@@ -238,7 +238,6 @@ void CMasternodeMan::CheckAndRemove(CConnman& connman)
         // Need LOCK2 here to ensure consistent locking order because code below locks cs_main
         // in CheckMnbAndUpdateMasternodeList()
         LOCK2(cs_main, cs);
-        CheckAndRemoveBurnFundNotUniqueNode(connman);
 
         Check();
 

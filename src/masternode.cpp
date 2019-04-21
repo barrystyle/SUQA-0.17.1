@@ -210,7 +210,6 @@ CMasternode::CollateralStatus CMasternode::CheckCollateral(const COutPoint& outp
 
     Coin coin;
     if(!GetUTXOCoin(outpoint, coin)) {
-		LogPrintf("CMasternode::CollateralStatus -- Check Collateral tx not found %s-%d\n", outpoint.hash.ToString(), outpoint.n);
         return COLLATERAL_UTXO_NOT_FOUND;
     }
 
@@ -218,7 +217,6 @@ CMasternode::CollateralStatus CMasternode::CheckCollateral(const COutPoint& outp
 
     CMasternode cm;
     if(round(coin.out.nValue / COIN) < Params().GetConsensus().nMasternodeCollateralMinimum) {
-		LogPrintf("CMasternode::CollateralStatus -- Collateral tx value is inferior than minumum required %s-%d\n", outpoint.hash.ToString(), outpoint.n);
        return COLLATERAL_INVALID_AMOUNT;
     }
 
@@ -322,8 +320,6 @@ bool CMasternode::CheckCollateralBurnFundRelation(const COutPoint& outpoint, con
     int counter=0;
     for (const CTxIn& txin : tx->vin)  {
         string strAsm = ScriptToAsmStr(txin.scriptSig, true);
-        //LogPrintf("CMasternode::CheckCollateralBurnFundRelation -- script signature(ASM): %s\n", strAsm);
-        //LogPrintf("CMasternode::CheckCollateralBurnFundRelation -- script signature(HEX): %s\n", HexStr(txin.scriptSig.begin(), txin.scriptSig.end()));
         string s;
         stringstream ss(strAsm);
         int i=0;
@@ -333,7 +329,7 @@ bool CMasternode::CheckCollateralBurnFundRelation(const COutPoint& outpoint, con
                 std::vector<unsigned char> data(ParseHex(s));
                 CPubKey pubKey(data.begin(), data.end());
                 if (!pubKey.IsFullyValid()) {
-                    LogPrintf("CMasternode::CheckCollateralBurnFundRelation -- Pubkey key of BurnFund tx is not valid.\n");
+                    LogPrintf("CMasternode::CheckCollateralBurnFundRelation -- Pubkey key of BurnFund tx is not valid. Perhaps mixing coin is used\n");
                     return false;
                 } else {
                     //LogPrintf("CMasternode::BurnFundStatus -- Pubkey is correct\n");

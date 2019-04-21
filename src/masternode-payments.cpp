@@ -905,10 +905,7 @@ bool CMasternodePayments::ProcessBlock(int nBlockHeight, CConnman& connman)
     LogPrintf("CMasternodePayments::ProcessBlock -- Masternode found by GetNextMasternodeInQueueForPayment(): vote for %s, payee=%s, burnfund %llf, nBlockHeight=%d \n", mnInfo.vin.prevout.ToStringShort(), address2, nBurnFundValue, nBlockHeight);
 
     // SIGN MESSAGE TO NETWORK WITH OUR MASTERNODE KEYS
-
     if (voteNew.Sign()) {
-        LogPrintf("CMasternodePayments::ProcessBlock -- AddPaymentVote()\n");
-
         if (AddPaymentVote(voteNew)) {
             voteNew.Relay(connman);
             return true;

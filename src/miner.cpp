@@ -207,7 +207,6 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
     coinbaseTx.vin[0].scriptSig = CScript() << nHeight << OP_0;
     // Dev fee
     coinbaseTx.vout.push_back(CTxOut(GetDevCoin(blockReward), devScript));
-    LogPrintf("Miner -- Payout: %d. Dev fee: %d\n",blockReward, GetDevCoin(blockReward));
 	//sinnode reward
     FillBlockPayments(coinbaseTx, nHeight, coinbaseTx.vout[0].nValue, pblock->txoutMasternode, pblock->voutSuperblock);
 	// Burn Tx Fee
