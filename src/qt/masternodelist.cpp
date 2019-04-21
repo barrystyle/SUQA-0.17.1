@@ -405,14 +405,34 @@ void MasternodeList::on_startAutoSINButton_clicked()
 
     if (!ok)
        return;
+
+    //Write in file
+    boost::filesystem::path pathMasternodeConfigFile = GetMasternodeConfigFile();
+    boost::filesystem::ifstream streamConfig(pathMasternodeConfigFile);
+    FILE* configFile = fopen(pathMasternodeConfigFile.string().c_str(), "w");
+    std::string strHeader = "# infinitynode config file\n"
+                            "# Format: alias IP:port infinitynodeprivkey collateral_output_txid collateral_output_index burnfund_output_txid burnfund_output_index\n"
+                            "# infinitynode1 127.0.0.1:20980 7RVuQhi45vfazyVtskTRLBgNuSrYGecS5zj2xERaooFVnWKKjhS b7ed8c1396cf57ac78d756186b6022d3023fd2f1c338b7fbae42d342fdd7070a 0 563d9434e816b3e8ffc5347c6b8db07509de6068f6759f21a16be5d92b7e3111 1\n";
+    fwrite(strHeader.c_str(), std::strlen(strHeader.c_str()), 1, configFile);
+
+    LogPrintf("MasternodeList::AutoSIN -- location of configFile is %s\n",pathMasternodeConfigFile.string());
     // quick input parsing
     int vpsiplen = strlen(vpsip.toUtf8().constData());
-    if (vpsiplen < 7 || vpsiplen > 16)
+    if (vpsiplen < 7 || vpsiplen > 16) {
+       strHeader = "#IP format is not valid\n";
+       fwrite(strHeader.c_str(), std::strlen(strHeader.c_str()), 1, configFile);
+       fclose(configFile);
        return;
+    }
     // char type parsing
-    for (int i=0; i<vpsiplen; i++)
-       if ((vpsip[i] < 46 || vpsip[i] > 57) || vpsip[i] == 47)
-          return;
+    for (int i=0; i<vpsiplen; i++) {
+       if ((vpsip[i] < 46 || vpsip[i] > 57) || vpsip[i] == 47) {
+           strHeader = "#IP format is not valid\n";
+           fwrite(strHeader.c_str(), std::strlen(strHeader.c_str()), 1, configFile);
+           fclose(configFile);
+           return;
+       }
+    }
 
     // generate masternode key
     CKey secret;
@@ -427,6 +447,7 @@ void MasternodeList::on_startAutoSINButton_clicked()
     // find suitable burntx
     bool foundBurn = false;
     int counter = 0;
+    listNode.clear();
 
     for (map<uint256, CWalletTx>::const_iterator it = pwallet->mapWallet.begin(); it != pwallet->mapWallet.end(); ++it) {
       const uint256* txid = &(*it).first;
@@ -435,14 +456,14 @@ void MasternodeList::on_startAutoSINButton_clicked()
           CTxDestination address;
           bool fValidAddress = ExtractDestination(pcoin->tx->vout[i].scriptPubKey, address);
           CTxDestination BurnAddress = DecodeDestination(Params().GetConsensus().cBurnAddress);
-            if (
+          if (
                 (address == BurnAddress) &&
                 (
                     ((Params().GetConsensus().nMasternodeBurnSINNODE_1 - 1) * COIN < pcoin->tx->vout[i].nValue && pcoin->tx->vout[i].nValue <= Params().GetConsensus().nMasternodeBurnSINNODE_1 * COIN) ||
                     ((Params().GetConsensus().nMasternodeBurnSINNODE_5 - 1) < pcoin->tx->vout[i].nValue * COIN && pcoin->tx->vout[i].nValue <= Params().GetConsensus().nMasternodeBurnSINNODE_5 * COIN) ||
                     ((Params().GetConsensus().nMasternodeBurnSINNODE_10 - 1) * COIN < pcoin->tx->vout[i].nValue && pcoin->tx->vout[i].nValue <= Params().GetConsensus().nMasternodeBurnSINNODE_10 * COIN)
                 )
-            ) {
+          ) {
                     //add dummy
                     listNode.push_back(infinitynode_conf_t());
                     foundBurn = true;
@@ -450,7 +471,6 @@ void MasternodeList::on_startAutoSINButton_clicked()
                     //add to list
                     listNode[counter].burnFundHash = txid->ToString();
                     listNode[counter].burnFundIndex = i;
-
                     const CTxIn& txin = pcoin->tx->vin[0]; //Burn Input is only one address. So we can take the first without problem
                     string strAsm = ScriptToAsmStr(txin.scriptSig, true);
                     string s;
@@ -461,7 +481,14 @@ void MasternodeList::on_startAutoSINButton_clicked()
                             std::vector<unsigned char> data(ParseHex(s));
                             CPubKey pubKey(data.begin(), data.end());
                             if (!pubKey.IsFullyValid()) {
-                                LogPrintf("MasternodeList::AutoSIN -- Can't not find Input Pubkey key.\n");
+                                stringstream sskey;
+                                fwrite(strAsm.c_str(), std::strlen(strAsm.c_str()), 1, configFile);
+                                sskey << "#PublicKey of burntx is not valid: " << s << ". Fund is burnt from mixing coin. It can not be identify.\n";
+                                strHeader = "#PublicKey of burntx is not valid:";
+                                //fwrite(strHeader.c_str(), std::strlen(strHeader.c_str()), 1, configFile);
+                                fwrite(sskey.str().c_str(), std::strlen(sskey.str().c_str()), 1, configFile);
+                                LogPrintf("MasternodeList::AutoSIN -- Can't not find Input Pubkey key\n");
+                                fclose(configFile);
                                 return;
                             } else {
                                 //LogPrintf("CMasternode::BurnFundStatus -- Pubkey is correct\n");
@@ -499,15 +526,6 @@ void MasternodeList::on_startAutoSINButton_clicked()
             }
         }
     }
-
-    //Write in file
-    boost::filesystem::path pathMasternodeConfigFile = GetMasternodeConfigFile();
-    boost::filesystem::ifstream streamConfig(pathMasternodeConfigFile);
-    FILE* configFile = fopen(pathMasternodeConfigFile.string().c_str(), "w");
-    std::string strHeader = "# infinitynode config file\n"
-                            "# Format: alias IP:port infinitynodeprivkey collateral_output_txid collateral_output_index burnfund_output_txid burnfund_output_index\n"
-                            "# infinitynode1 127.0.0.1:20980 7RVuQhi45vfazyVtskTRLBgNuSrYGecS5zj2xERaooFVnWKKjhS b7ed8c1396cf57ac78d756186b6022d3023fd2f1c338b7fbae42d342fdd7070a 0 563d9434e816b3e8ffc5347c6b8db07509de6068f6759f21a16be5d92b7e3111 1\n";
-    fwrite(strHeader.c_str(), std::strlen(strHeader.c_str()), 1, configFile);
 
     if (!foundBurn) {
         LogPrintf("MasternodeList::AutoSIN -- burnTx not found\n");

@@ -221,6 +221,7 @@ public:
     void ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStream& vRecv, CConnman& connman);
     std::string GetRequiredPaymentsString(int nBlockHeight);
     void FillBlockPayee(CMutableTransaction& txNew, int nBlockHeight, CAmount blockReward, std::vector<CTxOut>& txoutMasternodeRet, sintype_pair_vec_t& vSinType);
+    void FillNextBlockPayee(CMutableTransaction& txNew, int nBlockHeight, CAmount blockReward, std::vector<CTxOut>& txoutMasternodeRet, sintype_pair_vec_t& vSinType);
     std::string ToString() const;
 
     int GetBlockCount() { return mapMasternodeBlocks.size(); }

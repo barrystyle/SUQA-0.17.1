@@ -227,12 +227,12 @@ void FillBlockPayments(CMutableTransaction& txNew, int nBlockHeight, CAmount blo
     }
 
 	int fSINNODE_1 = 0; int fSINNODE_5 = 0; int fSINNODE_10 = 0;
-	mnpayments.NetworkDiagnostic(chainActive.Height(), fSINNODE_1, fSINNODE_5, fSINNODE_10);
-	LogPrintf("FillBlockPayments -- SIN type in network, height: %d, LILSIN: %d MIDSIN: %d BIGSIN:  %d\n", chainActive.Height(), fSINNODE_1, fSINNODE_5, fSINNODE_10);
-
+    sintype_pair_vec_t vSinType;
 
     // FILL BLOCK PAYEE WITH MASTERNODE PAYMENT OTHERWISE
-	sintype_pair_vec_t vSinType;
+	mnpayments.NetworkDiagnostic(nBlockHeight, fSINNODE_1, fSINNODE_5, fSINNODE_10);
+	LogPrintf("FillBlockPayments -- SIN type in network, height: %d, LILSIN: %d MIDSIN: %d BIGSIN:  %d\n", nBlockHeight, fSINNODE_1, fSINNODE_5, fSINNODE_10);
+    vSinType.clear();
 	vSinType.push_back(std::make_pair(CMasternode::SinType::SINNODE_1, fSINNODE_1));
 	vSinType.push_back(std::make_pair(CMasternode::SinType::SINNODE_5, fSINNODE_5));
 	vSinType.push_back(std::make_pair(CMasternode::SinType::SINNODE_10, fSINNODE_10));
@@ -240,6 +240,18 @@ void FillBlockPayments(CMutableTransaction& txNew, int nBlockHeight, CAmount blo
 	for (auto txoutMasternode : txoutMasternodeRet) {
 		LogPrint(BCLog::MNPAYMENTS, "FillBlockPayments -- nBlockHeight %d blockReward %lld txoutMasternodeRet %s txNew %s\n",
                             nBlockHeight, blockReward, txoutMasternode.ToString(), txNew.ToString());
+	}
+
+    mnpayments.NetworkDiagnostic(nBlockHeight + 1, fSINNODE_1, fSINNODE_5, fSINNODE_10);
+	LogPrintf("FillBlockPayments -- SIN type in network, height: %d, LILSIN: %d MIDSIN: %d BIGSIN:  %d\n", nBlockHeight + 1, fSINNODE_1, fSINNODE_5, fSINNODE_10);
+    vSinType.clear();
+    vSinType.push_back(std::make_pair(CMasternode::SinType::SINNODE_1, fSINNODE_1));
+	vSinType.push_back(std::make_pair(CMasternode::SinType::SINNODE_5, fSINNODE_5));
+	vSinType.push_back(std::make_pair(CMasternode::SinType::SINNODE_10, fSINNODE_10));
+    mnpayments.FillNextBlockPayee(txNew, nBlockHeight + 1, blockReward, txoutMasternodeRet, vSinType);
+	for (auto txoutMasternode : txoutMasternodeRet) {
+		LogPrint(BCLog::MNPAYMENTS, "FillBlockPayments -- nBlockHeight %d blockReward %lld txoutMasternodeRet %s txNew %s\n",
+                            nBlockHeight + 1, blockReward, txoutMasternode.ToString(), txNew.ToString());
 	}
 }
 
@@ -301,6 +313,57 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int nBlockH
 				payee = GetScriptForDestination(mnInfo.pubKeyCollateralAddress.GetID());
 			}
 
+			// split reward between miner ...
+			txNew.vout[0].nValue -= masternodePayment;
+			// ... and masternode
+			txoutMasternodeRet.push_back(CTxOut(masternodePayment, payee));
+			txNew.vout.push_back(CTxOut(masternodePayment, payee));
+
+			CTxDestination address1;
+			ExtractDestination(payee, address1);
+			std::string address2 = EncodeDestination(address1);
+
+			LogPrintf("CMasternodePayments::FillBlockPayee -- Masternode payment %lld to %s with SIN type %d\n", masternodePayment, address2, sintype.first);
+		}else{
+			txNew.vout[0].nValue -= masternodePayment;
+			CTxDestination burnDestination =  DecodeDestination(Params().GetConsensus().cBurnAddress);
+			CScript burnAddressScript = GetScriptForDestination(burnDestination);
+			txNew.vout.push_back(CTxOut(masternodePayment, burnAddressScript));
+			LogPrintf("CMasternodePayments::FillBlockPayee -- Burn coin %lld for SIN type %d\n", masternodePayment, sintype.first);
+		}
+	}
+	return;
+}
+
+void CMasternodePayments::FillNextBlockPayee(CMutableTransaction& txNew, int nBlockHeight, CAmount blockReward, std::vector<CTxOut>& txoutMasternodeRet, sintype_pair_vec_t& vSinType)
+{
+    // make sure it's not filled yet
+    txoutMasternodeRet.clear();
+
+    CScript payee;
+	for (auto& sintype : vSinType) {
+        CAmount masternodePayment = 0;
+        if (CMasternode::SinType::SINNODE_1 == sintype.first) {
+            masternodePayment = Params().GetConsensus().nMasternodeBurnSINNODE_1;
+        }
+        if (CMasternode::SinType::SINNODE_5 == sintype.first) {
+            masternodePayment = Params().GetConsensus().nMasternodeBurnSINNODE_5;
+        }
+        if (CMasternode::SinType::SINNODE_10 == sintype.first) {
+            masternodePayment = Params().GetConsensus().nMasternodeBurnSINNODE_10;
+        }
+		if (sintype.second == 1) {
+			if(!mnpayments.GetBlockPayee(nBlockHeight, sintype.first, payee)) {
+				// no masternode detected/voted from network...
+				int nCount = 0;
+				masternode_info_t mnInfo;
+				if(!mnodeman.GetNextMasternodeInQueueForPayment(nBlockHeight, true, nCount, mnInfo)) { //this call is always false by SINNODE_UNKNOWN ==> no paid for local miner vote
+					LogPrintf("CMasternodePayments::FillBlockPayee -- Failed to detect masternode to pay\n");
+					continue;
+				}
+				// fill payee with locally calculated winner and hope for the best
+				payee = GetScriptForDestination(mnInfo.pubKeyCollateralAddress.GetID());
+			}
 			// split reward between miner ...
 			txNew.vout[0].nValue -= masternodePayment;
 			// ... and masternode
@@ -482,11 +545,11 @@ void CMasternodePayments::NetworkDiagnostic(int nBlockHeight, int& nSINNODE_1Ret
 	}
 
 	if(mapMasternodeBlocks.count(nBlockHeight) && mapMasternodeBlocks[nBlockHeight].GetBestPayee(CMasternode::SinType::SINNODE_5, payee)){
-		nSINNODE_1Ret = 1;
+		nSINNODE_5Ret = 1;
 	}
 
 	if(mapMasternodeBlocks.count(nBlockHeight) && mapMasternodeBlocks[nBlockHeight].GetBestPayee(CMasternode::SinType::SINNODE_10, payee)){
-		nSINNODE_1Ret = 1;
+		nSINNODE_10Ret = 1;
 	}
 }
 
@@ -654,9 +717,9 @@ std::string CMasternodeBlockPayees::GetRequiredPaymentsString()
         std::string address2 = EncodeDestination(address1);
 
         if (strRequiredPayments != "Unknown") {
-            strRequiredPayments += ", " + address2 + ":" + boost::lexical_cast<std::string>(payee.GetVoteCount());
+            strRequiredPayments += ", " + address2 + "(" + boost::lexical_cast<std::string>(payee.GetSinType()) + ")" + ":" + boost::lexical_cast<std::string>(payee.GetVoteCount());
         } else {
-            strRequiredPayments = address2 + ":" + boost::lexical_cast<std::string>(payee.GetVoteCount());
+            strRequiredPayments = address2 + "(" + boost::lexical_cast<std::string>(payee.GetSinType()) + ")" + ":" + boost::lexical_cast<std::string>(payee.GetVoteCount());
         }
     }
 
