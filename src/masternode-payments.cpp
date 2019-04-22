@@ -870,7 +870,6 @@ bool CMasternodePayments::ProcessBlock(int nBlockHeight, CConnman& connman)
         return false;
     }
 
-    AssertLockHeld(cs_main);
     CAmount nBurnFundValue = 0;
     Coin coin;
     if(!GetUTXOCoin(activeMasternode.burntx, coin)) {

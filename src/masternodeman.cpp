@@ -165,12 +165,12 @@ void CMasternodeMan::CheckAndRemoveBurnFundNotUniqueNode(CConnman& connman)
 {
     if(!masternodeSync.IsMasternodeListSynced()) return;
 
-    LOCK2(cs_main, cs);
-    if (masternodeSync.IsSynced())
     {
             // we test two scenarios here, first is checking if winner is
             // unique (has one entry with burntx) in the masternode list.
             // (we populate nBurnFundMap first time checking this)
+            LOCK2(cs_main, cs);
+
             std::map<COutPoint, CMasternode> nBurnFundMap;
             std::vector<CMasternode> vpMasternodesToBan; //list node will be banned
             for (auto& mnpair : mapMasternodes) {
