@@ -546,6 +546,14 @@ void MasternodeList::on_startAutoSINButton_clicked()
            fwrite(inconfigline, strlen(inconfigline), 1, configFile);
        }
     }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    QMessageBox messageBox;
+    messageBox.setWindowTitle("Alert");
+    messageBox.setText(QString::fromStdString(strHeader+"\n"+pathMasternodeConfigFile.string()));
+    messageBox.exec();
+    ////////////////////////////////////////////////////////////////////////////////
+
     fclose(configFile);
 }
 
