@@ -1230,46 +1230,17 @@ void CConnman::ThreadSocketHandler()
         //
         {
             LOCK(cs_vNodes);
-
-            if (!fNetworkActive) {
-                // Disconnect any connected nodes
-                for (CNode* pnode : vNodes) {
-                    if (!pnode->fDisconnect) {
-                        LogPrint(BCLog::NET, "Network not active, dropping peer=%d\n", pnode->GetId());
-                        pnode->fDisconnect = true;
-                    }
-                }
-            }
-
             // Disconnect unused nodes
             std::vector<CNode*> vNodesCopy = vNodes;
             for (CNode* pnode : vNodesCopy)
             {
                 if (pnode->fDisconnect)
                 {
-                    LogPrintf("ThreadSocketHandler* -- removing node: peer=%d addr=%s nRefCount=%d fNetworkNode=%d fInbound=%d fMasternode=%d\n",
-                              pnode->id, pnode->addr.ToString(), pnode->GetRefCount(), pnode->fNetworkNode, pnode->fInbound, pnode->fMasternode);
-
-                    // remove from vNodes
                     vNodes.erase(remove(vNodes.begin(), vNodes.end(), pnode), vNodes.end());
-
-                    // release outbound grant (if any)
                     pnode->grantOutbound.Release();
-                    // Dash
-                    pnode->grantMasternodeOutbound.Release();
-                    //
-
-                    // close socket and cleanup
                     pnode->CloseSocketDisconnect();
-
-                    // hold in disconnected pool until all refs are released
-		   if (pnode->fNetworkNode)
-			pnode->Release();
-		   if (pnode->fInbound)
-			pnode->Release();
-		   if (pnode->fMasternode)
-			pnode->Release();
-		   vNodesDisconnected.push_back(pnode);
+                    pnode->Release();
+                    vNodesDisconnected.push_back(pnode);
                 }
             }
         }
@@ -1278,14 +1249,6 @@ void CConnman::ThreadSocketHandler()
             std::list<CNode*> vNodesDisconnectedCopy = vNodesDisconnected;
             for (CNode* pnode : vNodesDisconnectedCopy)
             {
-                LogPrint(BCLog::NET, "ThreadSocketHandler -- disconnected node: peer=%d addr=%s nRefCount=%d fNetworkNode=%d fInbound=%d fMasternode=%d\n",
-                          pnode->id, pnode->addr.ToString(), pnode->GetRefCount(), pnode->fNetworkNode, pnode->fInbound, pnode->fMasternode);
-                if (pnode->fNetworkNode)
-                    pnode->Release();
-                if (pnode->fInbound)
-                    pnode->Release();
-                if (pnode->fMasternode)
-                    pnode->Release();
                 // wait until threads are done using it
                 if (pnode->GetRefCount() <= 0) {
                     bool fDelete = false;
@@ -1321,7 +1284,7 @@ void CConnman::ThreadSocketHandler()
         //
         struct timeval timeout;
         timeout.tv_sec  = 0;
-        timeout.tv_usec = 50000; // frequency to poll pnode->vSend
+        timeout.tv_usec = 50000;
 
         fd_set fdsetRecv;
         fd_set fdsetSend;
@@ -1521,7 +1484,7 @@ void CConnman::ThreadSocketHandler()
                     LogPrintf("socket sending timeout: %is\n", nTime - pnode->nLastSend);
                     pnode->fDisconnect = true;
                 }
-		else if (nTime - pnode->nLastRecv > 90*60)
+                else if (nTime - pnode->nLastRecv > (pnode->nVersion > BIP0031_VERSION ? TIMEOUT_INTERVAL : 90*60))
                 {
                     LogPrintf("socket receive timeout: %is\n", nTime - pnode->nLastRecv);
                     pnode->fDisconnect = true;
