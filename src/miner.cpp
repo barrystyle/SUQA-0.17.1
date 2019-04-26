@@ -67,7 +67,7 @@ int64_t UpdateTime(CBlock* pblock, const Consensus::Params& consensusParams, con
 
         // Calculate delta reward
         CAmount nBlockReward = GetBlockSubsidy(pindexPrev->nHeight + 1, consensusParams);
-        CAmount nMasternodePayment = GetMasternodePayment(pindexPrev->nHeight + 1, nFees + nBlockReward);
+        CAmount nMasternodePayment = 0;
 
         // Update rewards if necessary
         if (pblock->vtx[0]->GetValueOut() != nFees + nBlockReward) {
@@ -76,9 +76,32 @@ int64_t UpdateTime(CBlock* pblock, const Consensus::Params& consensusParams, con
             coinbaseTx.vout[0].nValue = nFees + nBlockReward;
 
             // Update masternode reward to new value
-			//sintype
             CScript cMasternodePayee;
+	     //sintype  LIL SIN : 1
             if(mnpayments.GetBlockPayee(pindexPrev->nHeight + 1, 1, cMasternodePayee)) {
+		  nMasternodePayment = GetMasternodePayment(pindexPrev->nHeight + 1, 1);
+                for (auto output : coinbaseTx.vout) {
+                    if (output.scriptPubKey == cMasternodePayee) {
+                        coinbaseTx.vout[0].nValue -= nMasternodePayment;
+                        output.nValue = nMasternodePayment;
+                        break;
+                    }
+                }
+            }
+	     //sintype  LIL SIN : 5
+            if(mnpayments.GetBlockPayee(pindexPrev->nHeight + 1, 5, cMasternodePayee)) {
+		  nMasternodePayment = GetMasternodePayment(pindexPrev->nHeight + 1, 5);
+                for (auto output : coinbaseTx.vout) {
+                    if (output.scriptPubKey == cMasternodePayee) {
+                        coinbaseTx.vout[0].nValue -= nMasternodePayment;
+                        output.nValue = nMasternodePayment;
+                        break;
+                    }
+                }
+            }
+	     //sintype  LIL SIN : 10
+            if(mnpayments.GetBlockPayee(pindexPrev->nHeight + 1, 10, cMasternodePayee)) {
+		  nMasternodePayment = GetMasternodePayment(pindexPrev->nHeight + 1, 10);
                 for (auto output : coinbaseTx.vout) {
                     if (output.scriptPubKey == cMasternodePayee) {
                         coinbaseTx.vout[0].nValue -= nMasternodePayment;

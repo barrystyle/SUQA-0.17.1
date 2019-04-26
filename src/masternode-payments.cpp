@@ -666,10 +666,7 @@ bool CMasternodeBlockPayees::IsTransactionValid(const CTransactionRef txNew)
     int nMaxSignatures = 0;
     std::string strPayeesPossible = "";
 
-    CAmount nMasternodePayment = GetMasternodePayment(nBlockHeight, txNew->GetValueOut());
-
     //require at least MNPAYMENTS_SIGNATURES_REQUIRED signatures
-
     for (auto& payee : vecPayees) {
         if (payee.GetVoteCount() >= nMaxSignatures) {
             nMaxSignatures = payee.GetVoteCount();
@@ -681,6 +678,7 @@ bool CMasternodeBlockPayees::IsTransactionValid(const CTransactionRef txNew)
 
     for (auto& payee : vecPayees) {
         if (payee.GetVoteCount() >= MNPAYMENTS_SIGNATURES_REQUIRED) {
+	     CAmount nMasternodePayment = GetMasternodePayment(nBlockHeight, payee.GetSinType());
             for (auto txout : txNew->vout) {
                 if (payee.GetPayee() == txout.scriptPubKey && nMasternodePayment == txout.nValue) {
                     LogPrint(BCLog::MNPAYMENTS, "CMasternodeBlockPayees::IsTransactionValid -- Found required payment\n");
@@ -700,7 +698,7 @@ bool CMasternodeBlockPayees::IsTransactionValid(const CTransactionRef txNew)
         }
     }
 
-    LogPrintf("CMasternodeBlockPayees::IsTransactionValid -- ERROR: Missing required payment, possible payees: '%s', amount: %f SIN\n", strPayeesPossible, (float)nMasternodePayment/COIN);
+    LogPrintf("CMasternodeBlockPayees::IsTransactionValid -- ERROR: Missing required payment, possible payees: '%s'\n", strPayeesPossible);
     return false;
 }
 

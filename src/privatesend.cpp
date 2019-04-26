@@ -481,8 +481,7 @@ void ThreadCheckPrivateSend(CConnman& connman)
 
         // try to sync from all available nodes, one step at a time
         masternodeSync.ProcessTick(connman);
-
-        if(masternodeSync.IsBlockchainSynced() && !ShutdownRequested()) {
+        if(masternodeSync.IsBlockchainSynced() && !ShutdownRequested() && masternodeSync.IsSynced()) {
 
             nTick++;
 
@@ -497,7 +496,6 @@ void ThreadCheckPrivateSend(CConnman& connman)
             // slightly postpone first run to give net thread a chance to connect to some peers
             if(nTick % MASTERNODE_MIN_MNP_SECONDS == 15)
                 activeMasternode.ManageState(connman);
-
             if(nTick % 60 == 0) {
                 netfulfilledman.CheckAndRemove();
                 mnodeman.ProcessMasternodeConnections(connman);
@@ -510,7 +508,6 @@ void ThreadCheckPrivateSend(CConnman& connman)
             if(fMasterNode && (nTick % (60 * 5) == 0)) {
                 mnodeman.DoFullVerificationStep(connman);
             }
-
             if(nTick % (60 * 5) == 0) {
                 governance.DoMaintenance(connman);
             }
