@@ -317,7 +317,6 @@ bool CMasternode::CheckCollateralBurnFundRelation(const COutPoint& outpoint, con
         return false;
     }
 
-    int counter=0;
     for (const CTxIn& txin : tx->vin)  {
         string strAsm = ScriptToAsmStr(txin.scriptSig, true);
         string s;
@@ -350,7 +349,6 @@ bool CMasternode::CheckCollateralBurnFundRelation(const COutPoint& outpoint, con
 void CMasternode::Check(bool fForce)
 {
     LOCK(cs);
-
     if(ShutdownRequested()) return;
 
     if(!fForce && (GetTime() - nTimeLastChecked < MASTERNODE_CHECK_SECONDS)) return;
@@ -361,8 +359,8 @@ void CMasternode::Check(bool fForce)
 
     int nHeight = 0;
     if(!fUnitTest) {
-        TRY_LOCK(cs_main, lockMain);
-        if(!lockMain) return;
+	TRY_LOCK(cs_main, lockMain);
+	if(!lockMain) return;
 
         CollateralStatus err = CheckCollateral(vin.prevout);
         if (err == COLLATERAL_UTXO_NOT_FOUND) {
@@ -558,14 +556,17 @@ void CMasternode::UpdateLastPaid(const CBlockIndex *pindex, int nMaxBlocksToScan
             if(!ReadBlockFromDisk(block, BlockReading, Params().GetConsensus())) // shouldn't really happen
                 continue;
 
-            CAmount nMasternodePayment = GetMasternodePayment(BlockReading->nHeight, block.vtx[0]->GetValueOut());
+	    CAmount nNodePaymentSINNODE_1 = GetMasternodePayment(BlockReading->nHeight, 1);
+	    CAmount nNodePaymentSINNODE_5 = GetMasternodePayment(BlockReading->nHeight, 5);
+	    CAmount nNodePaymentSINNODE_10 = GetMasternodePayment(BlockReading->nHeight, 10);
 
             for (auto txout : block.vtx[0]->vout)
-                if(mnpayee == txout.scriptPubKey && nMasternodePayment == txout.nValue) {
-                    nBlockLastPaid = BlockReading->nHeight;
-                    nTimeLastPaid = BlockReading->nTime;
-                    LogPrint(BCLog::MASTERNODE, "CMasternode::UpdateLastPaidBlock -- searching for block with payment to %s -- found new %d\n", vin.prevout.ToStringShort(), nBlockLastPaid);
-                    return;
+                if(mnpayee == txout.scriptPubKey && (nNodePaymentSINNODE_1 == txout.nValue || 
+		   nNodePaymentSINNODE_5 == txout.nValue || nNodePaymentSINNODE_10 == txout.nValue)) {
+                   nBlockLastPaid = BlockReading->nHeight;
+                   nTimeLastPaid = BlockReading->nTime;
+                   LogPrint(BCLog::MASTERNODE, "CMasternode::UpdateLastPaidBlock -- searching for block with payment to %s -- found new %d\n", vin.prevout.ToStringShort(), nBlockLastPaid);
+                   return;
                 }
         }
 
