@@ -1245,11 +1245,21 @@ void CConnman::ThreadSocketHandler()
             {
                 if (pnode->fDisconnect)
                 {
+                    LogPrint(BCLog::NET, "CConnman::ThreadSocketHandler -- Disconnect node: peer=%d addr=%s nRefCount=%d fNetworkNode=%d fInbound=%d fMasternode=%d\n",                                                                                    
+                    pnode->id, pnode->addr.ToString(), pnode->GetRefCount(), pnode->fNetworkNode, pnode->fInbound, pnode->fMasternode);
                     vNodes.erase(remove(vNodes.begin(), vNodes.end(), pnode), vNodes.end());
                     pnode->grantOutbound.Release();
                     pnode->grantMasternodeOutbound.Release();
                     pnode->CloseSocketDisconnect();
-                    pnode->Release();
+                    if (pnode->fNetworkNode)
+                        pnode->Release();
+                    if (pnode->fInbound)
+                        pnode->Release();
+                    if (pnode->fMasternode)
+                        pnode->Release();
+                    while (pnode->GetRefCount() > 0) {
+                        pnode->Release();
+                    }
                     vNodesDisconnected.push_back(pnode);
                 }
             }
@@ -1259,6 +1269,8 @@ void CConnman::ThreadSocketHandler()
             std::list<CNode*> vNodesDisconnectedCopy = vNodesDisconnected;
             for (CNode* pnode : vNodesDisconnectedCopy)
             {
+                LogPrint(BCLog::NET, "CConnman::ThreadSocketHandler -- Delete node: peer=%d addr=%s nRefCount=%d fNetworkNode=%d fInbound=%d fMasternode=%d\n",                                                                                    
+                    pnode->id, pnode->addr.ToString(), pnode->GetRefCount(), pnode->fNetworkNode, pnode->fInbound, pnode->fMasternode);
                 // wait until threads are done using it
                 if (pnode->GetRefCount() <= 0) {
                     bool fDelete = false;
@@ -1275,6 +1287,8 @@ void CConnman::ThreadSocketHandler()
                         vNodesDisconnected.remove(pnode);
                         DeleteNode(pnode);
                     }
+                } else {
+                    pnode->Release();
                 }
             }
         }
@@ -1494,7 +1508,7 @@ void CConnman::ThreadSocketHandler()
                     LogPrintf("socket sending timeout: %is\n", nTime - pnode->nLastSend);
                     pnode->fDisconnect = true;
                 }
-                else if (nTime - pnode->nLastRecv > (pnode->nVersion > BIP0031_VERSION ? TIMEOUT_INTERVAL : 90*60))
+                else if (nTime - pnode->nLastRecv > 90*60)
                 {
                     LogPrintf("socket receive timeout: %is\n", nTime - pnode->nLastRecv);
                     pnode->fDisconnect = true;

@@ -3727,7 +3727,6 @@ bool CWallet::SelectPSInOutPairsByDenominations(int nDenom, CAmount nValueMin, C
     }
 
     AvailableCoins(vCoins, true, NULL, false, ONLY_DENOMINATED);
-    LogPrintf("CWallet::%s -- vCoins.size(): %d\n", __func__, vCoins.size());
 
     std::random_shuffle(vCoins.rbegin(), vCoins.rend(), GetRandInt);
 
@@ -3753,8 +3752,6 @@ bool CWallet::SelectPSInOutPairsByDenominations(int nDenom, CAmount nValueMin, C
                             __func__, txHash.ToString(), nValue / COIN, nValue % COIN, nRounds);
         }
     }
-
-    LogPrintf("CWallet::%s -- setRecentTxIds.size(): %d\n", __func__, setRecentTxIds.size());
 
     return nValueTotal >= nValueMin && nDenom == nDenomResult;
 }

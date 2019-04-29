@@ -216,7 +216,7 @@ CMasternode::CollateralStatus CMasternode::CheckCollateral(const COutPoint& outp
     nHeightRet = coin.nHeight;
 
     CMasternode cm;
-    if(round(coin.out.nValue / COIN) < Params().GetConsensus().nMasternodeCollateralMinimum) {
+    if(round(coin.out.nValue / COIN) != Params().GetConsensus().nMasternodeCollateralMinimum) {
        return COLLATERAL_INVALID_AMOUNT;
     }
 
