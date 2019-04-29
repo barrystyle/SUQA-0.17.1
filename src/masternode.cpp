@@ -316,33 +316,29 @@ bool CMasternode::CheckCollateralBurnFundRelation(const COutPoint& outpoint, con
         LogPrintf("CMasternode::CheckCollateralBurnFundRelation -- BurnFund tx is not in block");
         return false;
     }
+    const CTxIn& txin = tx->vin[0];
+    int index = txin.prevout.n;
 
-    for (const CTxIn& txin : tx->vin)  {
-        string strAsm = ScriptToAsmStr(txin.scriptSig, true);
-        string s;
-        stringstream ss(strAsm);
-        int i=0;
-        while (getline(ss, s,' ')) {
-            if (i==1) {
-                //LogPrintf("CMasternode::CheckCollateralBurnFundRelation -- Pubkey Hex:%s\n",s.c_str());
-                std::vector<unsigned char> data(ParseHex(s));
-                CPubKey pubKey(data.begin(), data.end());
-                if (!pubKey.IsFullyValid()) {
-                    LogPrintf("CMasternode::CheckCollateralBurnFundRelation -- Pubkey key of BurnFund tx is not valid. Perhaps mixing coin is used\n");
-                    return false;
-                } else {
-                    //LogPrintf("CMasternode::BurnFundStatus -- Pubkey is correct\n");
-                    OutputType output_type = OutputType::LEGACY;
-                    CTxDestination dest = GetDestinationForKey(pubKey, output_type);
-                    if ( dest != addressCollateral ) {
-                        LogPrintf("CMasternode::CheckCollateralBurnFundRelation -- Pubkey address of input BurnFund tx and Collateral address is different.\n");
-                        return false;
-                    }
-                }
-            }
-            i++;
-        }
+    CTransactionRef prevtx;
+    if(!GetTransaction(txin.prevout.hash, prevtx, Params().GetConsensus(), hashblock, false)) {
+        LogPrintf("CMasternode::CheckCollateralBurnFundRelation -- PrevBurnFund tx is not in block");
+        return false;
     }
+
+    CTxDestination senderAddress;
+    if(!ExtractDestination(prevtx->vout[index].scriptPubKey, senderAddress)){
+        return false;
+    }
+
+    if ( senderAddress != addressCollateral ) {
+        LogPrintf("CMasternode::CheckCollateralBurnFundRelation -- ERROR: Pubkey address of input BurnFund tx and Collateral address is different.\n");
+        return false;
+    }
+    //good message but too much for debug.log
+    /*
+    LogPrint(BCLog::MASTERNODE,"CheckCollateralBurnFundRelation -- [Hash:%s-%d], [prevHash: %s-%d]\n",outpointBurnFund.hash.ToString(), outpointBurnFund.n, txin.prevout.hash.ToString(), txin.prevout.n);
+    LogPrint(BCLog::MASTERNODE,"CheckCollateralBurnFundRelation -- BurnFund address:%s, Collateral address: %s\n",EncodeDestination(senderAddress), EncodeDestination(addressCollateral));
+    */
     return true;
 }
 

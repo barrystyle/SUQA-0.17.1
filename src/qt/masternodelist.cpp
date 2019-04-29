@@ -398,7 +398,7 @@ void MasternodeList::on_startAutoSINButton_clicked()
 {
     std::vector<std::shared_ptr<CWallet>> wallets = GetWallets();
     CWallet * const pwallet = (wallets.size() > 0) ? wallets[0].get() : nullptr;
-
+    LOCK2(cs_main, pwallet->cs_wallet);
     bool ok;
     setStyleSheet( "QDialog{ background-color: #0d1827; }");
     QString vpsip = QInputDialog::getText(this, tr("SINnode"), tr("Enter VPS address:"), QLineEdit::Normal, "", &ok);
@@ -471,39 +471,23 @@ void MasternodeList::on_startAutoSINButton_clicked()
                     //add to list
                     listNode[counter].burnFundHash = txid->ToString();
                     listNode[counter].burnFundIndex = i;
-                    const CTxIn txin = pcoin->tx->vin[0]; //Burn Input is only one address. So we can take the first without problem
-
-                    string strAsm = ScriptToAsmStr(txin.scriptSig, true);
-                    string s;
-                    stringstream ss(strAsm);
-                    int i=0;
-                    while (getline(ss, s,' ')) {
-                        if (i==1) {
-                            std::vector<unsigned char> data(ParseHex(s));
-                            CPubKey pubKey(data.begin(), data.end());
-                            if (!pubKey.IsFullyValid()) {
-                                LogPrintf("MasternodeList::AutoSIN -- Can't not find Input Pubkey key\n");
-                            } else {
-                                //LogPrintf("CMasternode::BurnFundStatus -- Pubkey is correct\n");
-                                OutputType output_type = OutputType::LEGACY;
-                                collateralAddress = GetDestinationForKey(pubKey, output_type);
-                                listNode[counter].collateralAddress = collateralAddress;
-                                secret.MakeNewKey(false);
-                                listNode[counter].infinitynodePrivateKey = EncodeSecret(secret);
-                                listNode[counter].IPaddress = vpsip.toUtf8().constData();
-                                listNode[counter].port = Params().GetDefaultPort();
-                                counter++; //new item in list if found
-                            }
-                        }
-                        i++;
-                    }
+                    const CTxIn txin = pcoin->tx->vin[0]; //BurnFund Input is only one address. So we can take the first without problem
+                    CTxDestination sendAddress;
+                    ExtractDestination(pwallet->mapWallet.at(txin.prevout.hash).tx->vout[txin.prevout.n].scriptPubKey, sendAddress);
+                    LogPrintf("MasternodeList::AutoSIN -- find BurnFund tx: %s, index: %d\n",listNode[counter].burnFundHash, listNode[counter].burnFundIndex);
+                    LogPrintf("MasternodeList::AutoSIN -- Sender's address:%s\n", EncodeDestination(sendAddress));
+                    listNode[counter].collateralAddress = sendAddress;
+                    secret.MakeNewKey(false);
+                    listNode[counter].infinitynodePrivateKey = EncodeSecret(secret);
+                    listNode[counter].IPaddress = vpsip.toUtf8().constData();
+                    listNode[counter].port = Params().GetDefaultPort();
+                    counter++;
             }
         }
     }
 
     // find suitable collateral outputs
     std::vector<COutput> vPossibleCoins;
-    LOCK2(cs_main, pwallet->cs_wallet);
     pwallet->AvailableCoins(vPossibleCoins, true, NULL, false, ONLY_MASTERNODE_COLLATERAL);
 
     for (COutput& out : vPossibleCoins) {
@@ -550,7 +534,7 @@ void MasternodeList::on_startAutoSINButton_clicked()
     ////////////////////////////////////////////////////////////////////////////////
     QMessageBox messageBox;
     messageBox.setWindowTitle("Alert");
-    messageBox.setText(QString::fromStdString(strHeader+"\n"+pathMasternodeConfigFile.string()));
+    messageBox.setText(QString::fromStdString("Please open config file in:\n"+pathMasternodeConfigFile.string()));
     messageBox.exec();
     ////////////////////////////////////////////////////////////////////////////////
 
