@@ -1251,11 +1251,11 @@ void CConnman::ThreadSocketHandler()
                     pnode->grantOutbound.Release();
                     pnode->grantMasternodeOutbound.Release();
                     pnode->CloseSocketDisconnect();
-                    if (pnode->fNetworkNode)
+                    if (pnode->fNetworkNode && pnode->GetRefCount() > 0)
                         pnode->Release();
-                    if (pnode->fInbound)
+                    if (pnode->fInbound && pnode->GetRefCount() > 0)
                         pnode->Release();
-                    if (pnode->fMasternode)
+                    if (pnode->fMasternode && pnode->GetRefCount() > 0)
                         pnode->Release();
                     while (pnode->GetRefCount() > 0) {
                         pnode->Release();
