@@ -667,7 +667,7 @@ static UniValue infinitynodeburnfund(const JSONRPCRequest& request)
 
     LOCK2(cs_main, pwallet->cs_wallet);
     std::vector<COutput> vPossibleCoins;
-    pwallet->AvailableCoins(vPossibleCoins, true, NULL, false, ONLY_MASTERNODE_COLLATERAL);
+    pwallet->AvailableCoins(vPossibleCoins, true, NULL, false, ALL_COINS);
 
     UniValue results(UniValue::VARR);
 	// Amount
