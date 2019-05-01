@@ -333,9 +333,14 @@ void SendCoinsDialog::on_sendButton_clicked()
         ctrl = *CoinControlDialog::coinControl();
 
     updateCoinControlState(ctrl);
-
+    if (ctrl.HasSelected()) {
+        LogPrintf("SendCoinsDialog::on_sendButton_clicked -- CoinControl has selected.\n");
+    } else {
+        LogPrintf("SendCoinsDialog::on_sendButton_clicked -- CoinControl has not selected.\n");
+    }
+    
     std::string termDepositConfirmQuestion = "";
-    prepareStatus = model->prepareTransaction(currentTransaction, termDepositConfirmQuestion, 0);
+    prepareStatus = model->prepareTransaction(currentTransaction, termDepositConfirmQuestion, 0, &ctrl);
 
     // process prepareStatus and on error generate message shown to user
     processSendCoinsReturn(prepareStatus,

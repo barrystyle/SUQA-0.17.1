@@ -127,13 +127,13 @@ bool WalletModel::validateAddress(const QString &address)
     return IsValidDestinationString(address.toStdString());
 }
 
-WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransaction &transaction, std::string &termdepositquestion, int termDepositLength)
+WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransaction &transaction, std::string &termdepositquestion, int termDepositLength, const CCoinControl *coinControl)
 {
     CAmount total = 0;
     bool fSubtractFeeFromAmount = false;
     QList<SendCoinsRecipient> recipients = transaction.getRecipients();
     std::vector<CRecipient> vecSend;
-    CCoinControl coinControl;
+    //CCoinControl coinControl;
 
     if(recipients.empty())
     {
@@ -218,8 +218,13 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
     {
         return DuplicateAddress;
     }
-
-    CAmount nBalance = m_wallet->getAvailableBalance(coinControl);
+    
+    CAmount nBalance = m_wallet->getAvailableBalance(*coinControl);
+    if (coinControl->HasSelected()) {
+        LogPrintf("WalletModel::prepareTransaction -- CoinControl has selected.\n");
+    } else {
+        LogPrintf("WalletModel::prepareTransaction -- CoinControl has not selected.\n");
+    }
 
     if(total > nBalance)
     {
@@ -240,7 +245,7 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
         auto& newTx = transaction.getWtx();
 
         // Dash
-        newTx = m_wallet->createTransaction(vecSend, coinControl, true , nChangePosRet, nFeeRequired, strFailReason, recipients[0].inputType, recipients[0].fUseInstantSend);
+        newTx = m_wallet->createTransaction(vecSend, *coinControl, true , nChangePosRet, nFeeRequired, strFailReason, recipients[0].inputType, recipients[0].fUseInstantSend);
         //
 
         transaction.setTransactionFee(nFeeRequired);
