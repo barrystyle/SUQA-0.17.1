@@ -3980,7 +3980,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CTransac
 
                     // Dash
                     if (fUseInstantSend && nValueIn > sporkManager.GetSporkValue(SPORK_5_INSTANTSEND_MAX_VALUE)*COIN) {
-                        strFailReason += " " + strprintf(_("InstantSend doesn't support sending values %lld that high yet (selected values %lld). Transactions are currently limited to %1 SIN."),nValueIn, nValueToSelect, sporkManager.GetSporkValue(SPORK_5_INSTANTSEND_MAX_VALUE));
+                        strFailReason += " " + strprintf(_("InstantSend doesn't support sending: Selected coins: %lld, Send values: %lld. Transactions are currently limited to %1 SIN."),nValueIn, nValueToSelect, sporkManager.GetSporkValue(SPORK_5_INSTANTSEND_MAX_VALUE));
                         return false;
                     }
 
@@ -4017,14 +4017,9 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CTransac
                     } else {
 
                         // Fill a vout to ourself
-                        // TODO: pass in scriptChange instead of reservekey so
-                        // change transaction isn't always pay-to-dash-address
                         CScript scriptChange;
 
                         // coin control: send change to custom address
-                        // FXTC TODO: check
-                        //if (coinControl && !boost::get<CNoDestination>(&coinControl->destChange))
-                        //    scriptChange = GetScriptForDestination(coinControl->destChange);
                         if (!boost::get<CNoDestination>(&coin_control.destChange))
                             scriptChange = GetScriptForDestination(coin_control.destChange);
                         //
@@ -4048,44 +4043,41 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CTransac
                             }
                             scriptChange = GetScriptForDestination(vchPubKey.GetID());
                         }
-                    //
 
-                    // FXTC TODO: aligned to left because of original Bitcoin Core code compatibility
-                    // Fill a vout to ourself
-                    CTxOut newTxOut(nChange, scriptChange);
+                        // Fill a vout to ourself
+                        CTxOut newTxOut(nChange, scriptChange);
 
-                    // Never create dust outputs; if we would, just
-                    // add the dust to the fee.
-                    // The nChange when BnB is used is always going to go to fees.
-                    if (IsDust(newTxOut, discard_rate) || bnb_used)
-                    {
-                        nChangePosInOut = -1;
-                        nFeeRet += nChange;
-                    }
-                    else
-                    {
-                        if (nChangePosInOut == -1)
+                        // Never create dust outputs; if we would, just
+                        // add the dust to the fee.
+                        // The nChange when BnB is used is always going to go to fees.
+                        if (IsDust(newTxOut, discard_rate) || bnb_used)
                         {
-                            // Insert change txn at random position:
-                            nChangePosInOut = GetRandInt(txNew.vout.size()+1);
+                            nChangePosInOut = -1;
+                            nFeeRet += nChange;
                         }
-                        else if ((unsigned int)nChangePosInOut > txNew.vout.size())
+                        else
                         {
-                            strFailReason = _("Change index out of range");
-                            return false;
+                            if (nChangePosInOut == -1)
+                            {
+                                // Insert change txn at random position:
+                                nChangePosInOut = GetRandInt(txNew.vout.size()+1);
+                            }
+                            else if ((unsigned int)nChangePosInOut > txNew.vout.size())
+                            {
+                                strFailReason = _("Change index out of range");
+                                return false;
+                            }
+
+                            std::vector<CTxOut>::iterator position = txNew.vout.begin()+nChangePosInOut;
+                            txNew.vout.insert(position, newTxOut);
                         }
 
-                        std::vector<CTxOut>::iterator position = txNew.vout.begin()+nChangePosInOut;
-                        txNew.vout.insert(position, newTxOut);
-                    }
-                    // FXTC TODO: end of compatibility alignement
                     }
                 } else {
                     nChangePosInOut = -1;
                 }
 
                 // Dummy fill vin for maximum size estimation
-                //
                 for (const auto& coin : setCoins) {
                     txNew.vin.push_back(CTxIn(coin.outpoint,CScript()));
                 }
@@ -4125,8 +4117,8 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CTransac
                 // FXTC TODO: check
                 //if (coinControl && nFeeNeeded > 0 && coinControl->nMinimumTotalFee > nFeeNeeded) {
                 //    nFeeNeeded = coinControl->nMinimumTotalFee;
-                if (nFeeNeeded > 0 && coin_control.nMinimumTotalFee > nFeeNeeded) {
-                    nFeeNeeded = coin_control.nMinimumTotalFee;
+                if (nFeeNeeded > 0 && *coin_control.nMinimumTotalFee > nFeeNeeded) {
+                    nFeeNeeded = *coin_control.nMinimumTotalFee;
                 }
                 //
 				*/

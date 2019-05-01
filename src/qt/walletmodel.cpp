@@ -220,20 +220,14 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
     }
     
     CAmount nBalance = m_wallet->getAvailableBalance(*coinControl);
-    if (coinControl->HasSelected()) {
-        LogPrintf("WalletModel::prepareTransaction -- CoinControl has selected.\n");
-    } else {
-        LogPrintf("WalletModel::prepareTransaction -- CoinControl has not selected.\n");
-    }
 
     if(total > nBalance)
     {
         return AmountExceedsBalance;
     }
-/*SIN*/
+
     if(recipients[0].fUseInstantSend && total > sporkManager.GetSporkValue(SPORK_5_INSTANTSEND_MAX_VALUE)*COIN) {
-        Q_EMIT message(tr("Send Coins"), tr("InstantSend doesn't support sending values %lld that high yet. Transactions are currently limited to %1 SIN.").arg(total, sporkManager.GetSporkValue(SPORK_5_INSTANTSEND_MAX_VALUE)),
-                     CClientUIInterface::MSG_ERROR);
+        Q_EMIT message(tr("Send Coins"), tr("InstantSend doesn't support sending values %1 that high yet. Transactions are currently limited to %2 SIN.").arg(total/COIN).arg(sporkManager.GetSporkValue(SPORK_5_INSTANTSEND_MAX_VALUE)), CClientUIInterface::MSG_ERROR);
         return TransactionCreationFailed;
     }
 
@@ -247,24 +241,22 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
         // Dash
         newTx = m_wallet->createTransaction(vecSend, *coinControl, true , nChangePosRet, nFeeRequired, strFailReason, recipients[0].inputType, recipients[0].fUseInstantSend);
         //
-
         transaction.setTransactionFee(nFeeRequired);
         if (fSubtractFeeFromAmount && newTx)
             transaction.reassignAmounts(nChangePosRet);
 
-        if(recipients[0].fUseInstantSend) {
+        if(recipients[0].fUseInstantSend && newTx) {
             std::vector<CTxOut> vout = newTx->get().vout;
-
             CAmount nValueOut = 0;
             for (const auto& tx_out : vout) {
                 nValueOut += tx_out.nValue;
-                if (!MoneyRange(tx_out.nValue) || !MoneyRange(nValueOut))
+                if (!MoneyRange(tx_out.nValue) || !MoneyRange(nValueOut)) {
                     throw std::runtime_error(std::string(__func__) + ": value out of range");
+                }
             }
 
             if(nValueOut > sporkManager.GetSporkValue(SPORK_5_INSTANTSEND_MAX_VALUE)*COIN) {
-                Q_EMIT message(tr("Send Coins"), tr("InstantSend doesn't support sending values %lld that high yet. Transactions are currently limited to %1 SIN.").arg(nValueOut, sporkManager.GetSporkValue(SPORK_5_INSTANTSEND_MAX_VALUE)),
-                            CClientUIInterface::MSG_ERROR);
+                Q_EMIT message(tr("Send Coins"), tr("InstantSend doesn't support sending values %1 that high yet. Transactions are currently limited to %2 SIN.").arg(nValueOut).arg(sporkManager.GetSporkValue(SPORK_5_INSTANTSEND_MAX_VALUE)), CClientUIInterface::MSG_ERROR);
                 return TransactionCreationFailed;
             }
 
@@ -284,7 +276,6 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
                          CClientUIInterface::MSG_ERROR);
             return TransactionCreationFailed;
         }
-
         // reject absurdly high fee. (This can never happen because the
         // wallet caps the fee at maxTxFee. This merely serves as a
         // belt-and-suspenders check)

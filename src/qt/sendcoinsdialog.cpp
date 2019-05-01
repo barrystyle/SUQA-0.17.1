@@ -278,7 +278,7 @@ void SendCoinsDialog::on_sendButton_clicked()
 
     if(ui->checkUsePrivateSend->isChecked()) {
         recipients[0].inputType = ONLY_DENOMINATED;
-        strFunds = tr(": using") + " <b>" + tr("anonymous funds") + "</b>";
+        strFunds = tr(": using") + " <b>" + tr("Anonymous funds - ShadowSend") + "</b>";
         QString strNearestAmount(
             BitcoinUnits::formatWithUnit(
                 model->getOptionsModel()->getDisplayUnit(), CPrivateSend::GetSmallestDenomination()));
@@ -287,7 +287,7 @@ void SendCoinsDialog::on_sendButton_clicked()
         ).arg(strNearestAmount));
     } else {
         recipients[0].inputType = ALL_COINS;
-        strFunds = tr(": using") + " <b>" + tr("any available funds (not anonymous)") + "</b>";
+        strFunds = tr(": using") + " <b>" + tr("any available funds (NOT ShadowSend)") + "</b>";
     }
 
     if(ui->checkUseInstantSend->isChecked()) {
@@ -322,23 +322,16 @@ void SendCoinsDialog::on_sendButton_clicked()
         }
     //}
     //
-
     // prepare transaction for getting txFee earlier
     WalletModelTransaction currentTransaction(recipients);
     WalletModel::SendCoinsReturn prepareStatus;
-
     // Always use a CCoinControl instance, use the CoinControlDialog instance if CoinControl has been enabled
     CCoinControl ctrl;
     if (model->getOptionsModel()->getCoinControlFeatures())
         ctrl = *CoinControlDialog::coinControl();
 
     updateCoinControlState(ctrl);
-    if (ctrl.HasSelected()) {
-        LogPrintf("SendCoinsDialog::on_sendButton_clicked -- CoinControl has selected.\n");
-    } else {
-        LogPrintf("SendCoinsDialog::on_sendButton_clicked -- CoinControl has not selected.\n");
-    }
-    
+
     std::string termDepositConfirmQuestion = "";
     prepareStatus = model->prepareTransaction(currentTransaction, termDepositConfirmQuestion, 0, &ctrl);
 
@@ -451,6 +444,7 @@ void SendCoinsDialog::on_sendButton_clicked()
 
     // now send the prepared transaction
     WalletModel::SendCoinsReturn sendStatus = model->sendCoins(currentTransaction);
+
     // process sendStatus and on error generate message shown to user
     processSendCoinsReturn(sendStatus);
 
