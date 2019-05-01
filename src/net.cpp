@@ -1257,9 +1257,6 @@ void CConnman::ThreadSocketHandler()
                         pnode->Release();
                     if (pnode->fMasternode && pnode->GetRefCount() > 0)
                         pnode->Release();
-                    while (pnode->GetRefCount() > 0) {
-                        pnode->Release();
-                    }
                     vNodesDisconnected.push_back(pnode);
                 }
             }
@@ -1288,6 +1285,7 @@ void CConnman::ThreadSocketHandler()
                         DeleteNode(pnode);
                     }
                 } else {
+                    LogPrint(BCLog::NET, "CConnman::ThreadSocketHandler -- Remove node: peer=%d addr=%s nRefCount=%d fNetworkNode=%d fInbound=%d fMasternode=%d\n", pnode->id, pnode->addr.ToString(), pnode->GetRefCount(), pnode->fNetworkNode, pnode->fInbound, pnode->fMasternode);
                     pnode->Release();
                 }
             }
@@ -1527,8 +1525,11 @@ void CConnman::ThreadSocketHandler()
         }
         {
             LOCK(cs_vNodes);
-            for (CNode* pnode : vNodesCopy)
-                pnode->Release();
+            for (CNode* pnode : vNodesCopy) {
+                if ( pnode->GetRefCount() > 0 ) {
+                    pnode->Release();
+                }
+            }
         }
     }
 }
@@ -2220,8 +2221,11 @@ void CConnman::ThreadMessageHandler()
 
         {
             LOCK(cs_vNodes);
-            for (CNode* pnode : vNodesCopy)
-                pnode->Release();
+            for (CNode* pnode : vNodesCopy) {
+                if ( pnode->GetRefCount() > 0 ) {
+                    pnode->Release();
+                }
+            }
         }
 
         std::unique_lock<std::mutex> lock(mutexMsgProc);
@@ -3235,7 +3239,9 @@ void CConnman::ReleaseNodeVector(const std::vector<CNode*>& vecNodes)
     LOCK(cs_vNodes);
     for(size_t i = 0; i < vecNodes.size(); ++i) {
         CNode* pnode = vecNodes[i];
-        pnode->Release();
+        if ( pnode->GetRefCount() > 0 ) {
+            pnode->Release();
+        }
     }
 }
 //
