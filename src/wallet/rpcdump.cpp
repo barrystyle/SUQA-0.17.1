@@ -130,14 +130,13 @@ UniValue importprivkey(const JSONRPCRequest& request)
             + HelpExampleRpc("importprivkey", "\"mykey\", \"testing\", false")
         );
 
-
     WalletRescanReserver reserver(pwallet);
     bool fRescan = true;
     {
+
         LOCK2(cs_main, pwallet->cs_wallet);
 
         EnsureWalletIsUnlocked(pwallet);
-
         std::string strSecret = request.params[0].get_str();
         std::string strLabel = "";
         if (!request.params[1].isNull())
@@ -156,17 +155,17 @@ UniValue importprivkey(const JSONRPCRequest& request)
 
         CKey key = DecodeSecret(strSecret);
         if (!key.IsValid()) throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid private key encoding");
-
         CPubKey pubkey = key.GetPubKey();
         assert(key.VerifyPubKey(pubkey));
         CKeyID vchAddress = pubkey.GetID();
         {
             pwallet->MarkDirty();
-            // We don't know which corresponding address will be used; label them all
-            for (const auto& dest : GetAllDestinationsForKey(pubkey)) {
-                pwallet->SetAddressBook(dest, strLabel, "receive");
-            }
-
+            //Bitcoin: We don't know which corresponding address will be used; label them all
+            //SIN: don't support P2SH_SEGWIT and BECH32 yet
+            //for (const auto& dest : GetAllDestinationsForKey(pubkey)) {
+            OutputType output_type = pwallet->m_default_address_type;
+            CTxDestination dest = GetDestinationForKey(pubkey, output_type);
+            pwallet->SetAddressBook(dest, strLabel, "receive");
             // Don't throw error in case a key is already there
             if (pwallet->HaveKey(vchAddress)) {
                 return NullUniValue;
@@ -179,13 +178,13 @@ UniValue importprivkey(const JSONRPCRequest& request)
             if (!pwallet->AddKeyPubKey(key, pubkey)) {
                 throw JSONRPCError(RPC_WALLET_ERROR, "Error adding key to wallet");
             }
-            pwallet->LearnAllRelatedScripts(pubkey);
+            //SIN don't support P2SH_SEGWIT and BECH32 yet
+            //pwallet->LearnAllRelatedScripts(pubkey);
         }
     }
     if (fRescan) {
         RescanWallet(*pwallet, reserver);
     }
-
     return NullUniValue;
 }
 

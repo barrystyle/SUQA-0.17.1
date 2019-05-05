@@ -614,7 +614,7 @@ bool CMasternodeBroadcast::Create(std::string strService, std::string strKeyMast
     if (Params().NetworkIDString() == CBaseChainParams::MAIN) { //only work on port 20970 on mainnet
         if (service.GetPort() != Params().GetDefaultPort())
             return Log(strprintf("Invalid port %u for masternode %s, only %d is supported on mainnet.", service.GetPort(), strService, Params().GetDefaultPort()));
-    } else if (service.GetPort() == 20970) { //dont accept 20970 for other network
+    } else if (service.GetPort() == Params().GetMainnetPort()) { //dont accept 20970 for other network
             return Log(strprintf("Invalid port %u for masternode %s, only %d is supported on the current network.", service.GetPort(), strService, Params().GetDefaultPort()));
     }
 
@@ -722,7 +722,7 @@ bool CMasternodeBroadcast::SimpleCheck(int& nDos)
     int nDefaultPort = Params().GetDefaultPort();
     if(Params().NetworkIDString() == CBaseChainParams::MAIN) {
         if(addr.GetPort() != nDefaultPort) return false;
-    } else if(addr.GetPort() == 20970) return false;
+    } else if(addr.GetPort() == Params().GetMainnetPort()) return false;
 
     return true;
 }

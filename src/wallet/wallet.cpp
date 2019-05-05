@@ -295,36 +295,38 @@ void CWallet::DeriveNewChildKey(WalletBatch &batch, CKeyMetadata& metadata, CKey
 bool CWallet::AddKeyPubKeyWithDB(WalletBatch &batch, const CKey& secret, const CPubKey &pubkey)
 {
     AssertLockHeld(cs_wallet); // mapKeyMetadata
-
     // CCryptoKeyStore has no concept of wallet databases, but calls AddCryptedKey
     // which is overridden below.  To avoid flushes, the database handle is
     // tunneled through to it.
     bool needsDB = !encrypted_batch;
+
     if (needsDB) {
         encrypted_batch = &batch;
     }
+
     if (!CCryptoKeyStore::AddKeyPubKey(secret, pubkey)) {
         if (needsDB) encrypted_batch = nullptr;
         return false;
     }
-    if (needsDB) encrypted_batch = nullptr;
 
+    if (needsDB) encrypted_batch = nullptr;
     // check if we need to remove from watch-only
     CScript script;
     script = GetScriptForDestination(pubkey.GetID());
+
     if (HaveWatchOnly(script)) {
         RemoveWatchOnly(script);
     }
+
     script = GetScriptForRawPubKey(pubkey);
     if (HaveWatchOnly(script)) {
         RemoveWatchOnly(script);
     }
 
     if (!IsCrypted()) {
-        return batch.WriteKey(pubkey,
-                                                 secret.GetPrivKey(),
-                                                 mapKeyMetadata[pubkey.GetID()]);
+        return batch.WriteKey(pubkey, secret.GetPrivKey(), mapKeyMetadata[pubkey.GetID()]);
     }
+
     return true;
 }
 

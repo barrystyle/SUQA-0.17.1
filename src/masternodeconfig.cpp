@@ -87,7 +87,7 @@ bool CMasternodeConfig::read(std::string& strErr) {
                 streamConfig.close();
                 return false;
             }
-        } else if(port == 20970) {
+        } else if(port == Params().GetMainnetPort()) {
             strErr = _("Invalid port detected in infinitynode.conf") + "\n" +
                     strprintf(_("Line: %d"), linenumber) + "\n\"" + line + "\"" + "\n" +
                     strprintf(_("(%d could be used only on mainnet)"), Params().GetDefaultPort());
