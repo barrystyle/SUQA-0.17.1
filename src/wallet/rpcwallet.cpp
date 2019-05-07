@@ -675,9 +675,11 @@ static UniValue infinitynodeburnfund(const JSONRPCRequest& request)
     if (nAmount != Params().GetConsensus().nMasternodeBurnSINNODE_1 * COIN &&
         nAmount != Params().GetConsensus().nMasternodeBurnSINNODE_5 * COIN &&
         nAmount != Params().GetConsensus().nMasternodeBurnSINNODE_10 * COIN)
+    {
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount to burn and run Infinity node");
-	// BurnAddress
-	CTxDestination dest = DecodeDestination(Params().GetConsensus().cBurnAddress);
+    }
+    // BurnAddress
+    CTxDestination dest = DecodeDestination(Params().GetConsensus().cBurnAddress);
     CScript scriptPubKeyBurnAddress = GetScriptForDestination(dest);
     std::vector<std::vector<unsigned char> > vSolutions;
     txnouttype whichType;

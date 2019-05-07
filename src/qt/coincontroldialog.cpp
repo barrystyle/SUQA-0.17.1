@@ -484,11 +484,11 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog* dialog)
     CAmount nChange             = 0;
     unsigned int nBytes         = 0;
     unsigned int nBytesInputs   = 0;
-    double dPriority            = 0;
-    double dPriorityInputs      = 0;
+    // double dPriority            = 0;
+    // double dPriorityInputs      = 0;
     unsigned int nQuantity      = 0;
-    int nQuantityUncompressed   = 0;
-    bool fAllowFree             = false;
+    // int nQuantityUncompressed   = 0;
+    // bool fAllowFree             = false;
     bool fWitness               = false;
 
     std::vector<COutPoint> vCoinControl;

@@ -454,7 +454,7 @@ void MasternodeList::on_startAutoSINButton_clicked()
       const CWalletTx* pcoin = &(*it).second;
       for (unsigned int i = 0; i < pcoin->tx->vout.size(); i++) {
           CTxDestination address;
-          bool fValidAddress = ExtractDestination(pcoin->tx->vout[i].scriptPubKey, address);
+          // bool fValidAddress = ExtractDestination(pcoin->tx->vout[i].scriptPubKey, address);
           CTxDestination BurnAddress = DecodeDestination(Params().GetConsensus().cBurnAddress);
           if (
                 (address == BurnAddress) &&
@@ -492,8 +492,8 @@ void MasternodeList::on_startAutoSINButton_clicked()
 
     for (COutput& out : vPossibleCoins) {
       CTxDestination address;
-        const CScript& scriptPubKey = out.tx->tx->vout[out.i].scriptPubKey;
-        bool fValidAddress = ExtractDestination(scriptPubKey, address);
+        // const CScript& scriptPubKey = out.tx->tx->vout[out.i].scriptPubKey;
+        // bool fValidAddress = ExtractDestination(scriptPubKey, address);
         for (unsigned int i = 0; i < listNode.size(); i++) {
             if (address == listNode[i].collateralAddress && trackCollateralTx.count(out.tx->GetHash()) != 1) {
                 listNode[i].collateralHash = out.tx->GetHash().ToString();

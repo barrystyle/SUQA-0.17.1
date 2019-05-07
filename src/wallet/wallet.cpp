@@ -1917,7 +1917,7 @@ std::vector<COutput> CWallet::GetTermDepositInfo()
         LOCK2(cs_main, cs_wallet);
         for (std::map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
         {
-            const uint256& wtxid = it->first;
+            // const uint256& wtxid = it->first;
             const CWalletTx* pcoin = &(*it).second;
 
             for (unsigned int i = 0; i < pcoin->tx->vout.size(); i++) {
@@ -2809,8 +2809,7 @@ void CWallet::AvailableCoins(std::vector<COutput> &vCoins, bool fOnlySafe, const
     AssertLockHeld(cs_wallet);
 
     vCoins.clear();
-    CAmount nTotal = 0;
-
+    // CAmount nTotal = 0;
     for (const auto& entry : mapWallet)
     {
         const uint256& wtxid = entry.first;

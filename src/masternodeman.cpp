@@ -557,7 +557,7 @@ void CMasternodeMan::LocalDiagnostic(int nBlockHeight, int& nSINNODE_1Ret, int& 
     // Need LOCK2 here to ensure consistent locking order because the GetBlockHash call below locks cs_main
     LOCK2(cs_main,cs);
 
-    int nMnCount = CountMasternodes();
+    // int nMnCount = CountMasternodes();
     std::vector<std::pair<int, CMasternode*> > vecMasternodeLastPaid;
     nSINNODE_1Ret = 0; nSINNODE_5Ret = 0; nSINNODE_10Ret = 0;
     
