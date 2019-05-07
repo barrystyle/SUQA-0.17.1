@@ -2,7 +2,7 @@
 // Copyright (c) 2009-2018 The Bitcoin Core developers
 // Copyright (c) 2014-2017 The Dash Core developers
 // Copyright (c) 2018 FXTC developers
-// Copyright (c) 2018-2019 SUQA developers
+// Copyright (c) 2018-2019 SIN developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -746,7 +746,7 @@ fs::path GetDefaultDataDir()
     fs::path pathOldFolder;
 #ifdef WIN32
     // Windows
-    pathOldFolder = GetSpecialFolderPath(CSIDL_APPDATA) / "SUQA";
+    pathOldFolder = GetSpecialFolderPath(CSIDL_APPDATA) / "SIN";
     if (fs::is_directory(pathOldFolder)) return pathOldFolder;
     else return GetSpecialFolderPath(CSIDL_APPDATA) / "SIN";
 #else
@@ -758,12 +758,12 @@ fs::path GetDefaultDataDir()
         pathRet = fs::path(pszHome);
 #ifdef MAC_OSX
     // Mac
-    pathOldFolder = pathRet / "Library/Application Support/SUQA";
+    pathOldFolder = pathRet / "Library/Application Support/SIN";
 	if (fs::is_directory(pathOldFolder)) return pathOldFolder;
     else return pathRet / "Library/Application Support/SIN";
 #else
     // Unix
-    pathOldFolder = pathRet / ".SUQA";
+    pathOldFolder = pathRet / ".SIN";
 	if (fs::is_directory(pathOldFolder)) return pathOldFolder;
     else return pathRet / ".sin";
 #endif

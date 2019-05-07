@@ -2931,8 +2931,8 @@ std::map<CTxDestination, std::vector<COutput>> CWallet::ListCoins() const
     // CWalletTx objects, callers to this function really should acquire the
     // cs_wallet lock before calling it. However, the current caller doesn't
     // acquire this lock yet. There was an attempt to add the missing lock in
-    // https://github.com/suqa/suqa/pull/10340, but that change has been
-    // postponed until after https://github.com/suqa/suqa/pull/10244 to
+    // https://github.com/sin/sin/pull/10340, but that change has been
+    // postponed until after https://github.com/sin/sin/pull/10244 to
     // avoid adding some extra complexity to the Qt code.
 
     std::map<CTxDestination, std::vector<COutput>> result;
@@ -3681,7 +3681,7 @@ bool CWallet::FundTransaction(CMutableTransaction& tx, CAmount& nFeeRet, int& nC
 
 OutputType CWallet::TransactionChangeType(OutputType change_type, const std::vector<CRecipient>& vecSend)
 {
-    // Suit SUQA legacy
+    // Suit SIN legacy
     return OutputType::LEGACY;
 
     // If -changetype is specified, always use that change type.
@@ -3835,7 +3835,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CTransac
 
             // Create change script that will be used if we need change
             // TODO: pass in scriptChange instead of reservekey so
-            // change transaction isn't always pay-to-suqa-address
+            // change transaction isn't always pay-to-sin-address
             CScript scriptChange;
 
             // coin control: send change to custom address
@@ -5131,8 +5131,8 @@ void CWallet::GetKeyBirthTimes(std::map<CTxDestination, int64_t> &mapKeyBirth) c
  *   the block time.
  *
  * For more information see CWalletTx::nTimeSmart,
- * https://suqatalk.org/?topic=54527, or
- * https://github.com/suqa/suqa/pull/1393.
+ * https://sintalk.org/?topic=54527, or
+ * https://github.com/sin/sin/pull/1393.
  */
 unsigned int CWallet::ComputeTimeSmart(const CWalletTx& wtx) const
 {
