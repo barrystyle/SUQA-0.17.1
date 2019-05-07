@@ -1,6 +1,6 @@
 // Copyright (c) 2014-2017 The Dash Core developers
 // Copyright (c) 2018 FXTC developers
-// Copyright (c) 2018-2019 SUQA developers
+// Copyright (c) 2018-2019 SIN developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -557,7 +557,7 @@ void CMasternodeMan::LocalDiagnostic(int nBlockHeight, int& nSINNODE_1Ret, int& 
     // Need LOCK2 here to ensure consistent locking order because the GetBlockHash call below locks cs_main
     LOCK2(cs_main,cs);
 
-    int nMnCount = CountMasternodes();
+    // int nMnCount = CountMasternodes();
     std::vector<std::pair<int, CMasternode*> > vecMasternodeLastPaid;
     nSINNODE_1Ret = 0; nSINNODE_5Ret = 0; nSINNODE_10Ret = 0;
     

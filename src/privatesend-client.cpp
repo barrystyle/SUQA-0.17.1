@@ -882,7 +882,7 @@ bool CPrivateSendClient::JoinExistingQueue(CAmount nBalanceNeedsAnonymized, CCon
         // no need for additional verification here
         LogPrint(BCLog::PRIVATESEND, "CPrivateSendClient::JoinExistingQueue -- found valid queue: %s\n", dsq.ToString());
 
-        CAmount nValueInTmp = 0;
+        // CAmount nValueInTmp = 0;
         std::vector<std::pair<CTxDSIn, CTxOut> > vecPSInOutPairsTmp;
         /*
         std::vector<CTxDSIn> vecTxDSInTmp;

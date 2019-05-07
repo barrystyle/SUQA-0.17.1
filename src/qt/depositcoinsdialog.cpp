@@ -6,7 +6,7 @@
 #include <qt/forms/ui_depositcoinsdialog.h>
 
 #include <qt/addresstablemodel.h>
-#include <qt/suqaunits.h>
+#include <qt/sinunits.h>
 #include <qt/clientmodel.h>
 #include <qt/coincontroldialog.h>
 #include <qt/guiutil.h>
@@ -295,10 +295,11 @@ void DepositCoinsDialog::on_sendButton_clicked()
         }
     }else{
         QString questionString = QString::fromStdString("Something went wrong! No term deposit instruction was detected. Instruction will be cancelled.");
+        /*
         QMessageBox::StandardButton retval = QMessageBox::question(this, tr("No Term Deposit Detected"),
             questionString,
             QMessageBox::Yes | QMessageBox::Cancel,
-            QMessageBox::Cancel);
+            QMessageBox::Cancel); */
         fNewRecipientAllowed = true;
         return;
     }
@@ -844,7 +845,7 @@ void DepositCoinsDialog::coinControlChangeEdited(const QString& text)
         }
         else if (!IsValidDestination(dest)) // Invalid address
         {
-            ui->labelCoinControlChangeLabel->setText(tr("Warning: Invalid SUQA address"));
+            ui->labelCoinControlChangeLabel->setText(tr("Warning: Invalid SIN address"));
         }
         else // Valid address
         {

@@ -1690,7 +1690,7 @@ QScrollBar:right-arrow {
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../suqa.qrc"/>
+  <include location="../sin.qrc"/>
  </resources>
  <connections/>
 </ui>
