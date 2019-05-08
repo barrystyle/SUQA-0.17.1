@@ -21,6 +21,8 @@
 class CBlockIndex;
 class CChainParams;
 class CScript;
+class CWallet;
+class CConnman;
 
 namespace Consensus { struct Params; };
 
@@ -197,6 +199,9 @@ private:
       * of updated descendants. */
     int UpdatePackagesForAdded(const CTxMemPool::setEntries& alreadyAdded, indexed_modified_transaction_set &mapModifiedTx) EXCLUSIVE_LOCKS_REQUIRED(mempool.cs);
 };
+
+/** Run the miner threads */
+void GenerateSINs(bool fGenerate, int nThreads, const CChainParams& chainparams, CConnman &connman);
 
 /** Modify the extranonce in a block */
 void IncrementExtraNonce(CBlock* pblock, const CBlockIndex* pindexPrev, unsigned int& nExtraNonce);
