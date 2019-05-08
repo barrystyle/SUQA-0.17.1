@@ -548,7 +548,7 @@ UniValue masternodelist(const JSONRPCRequest& request)
                                (int64_t)(mn.lastPing.sigTime - mn.sigTime) << " " << std::setw(10) <<
                                mn.GetLastPaidTime() << " "  << std::setw(6) <<
                                mn.GetLastPaidBlock() << " " <<
-                               mn.addr.ToString();
+                               mn.addr.ToString() << " " << mn.GetSinTypeInt();
                 std::string strFull = streamFull.str();
                 if (strFilter !="" && strFull.find(strFilter) == std::string::npos &&
                     strOutpoint.find(strFilter) == std::string::npos) continue;
@@ -563,7 +563,7 @@ UniValue masternodelist(const JSONRPCRequest& request)
                                (int64_t)(mn.lastPing.sigTime - mn.sigTime) << " " <<
                                SafeIntVersionToString(mn.lastPing.nSentinelVersion) << " "  <<
                                (mn.lastPing.fSentinelIsCurrent ? "current" : "expired") << " " <<
-                               mn.addr.ToString();
+                               mn.addr.ToString() << " " << mn.GetSinTypeInt();
                 std::string strInfo = streamInfo.str();
                 if (strFilter !="" && strInfo.find(strFilter) == std::string::npos &&
                     strOutpoint.find(strFilter) == std::string::npos) continue;
