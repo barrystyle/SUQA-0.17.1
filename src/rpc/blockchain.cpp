@@ -1025,7 +1025,11 @@ struct CTermDepositStats
 	CAmount n30days;
 	CAmount nMore30days;
 
-	CTermDepositStats() : nAddress(0), nTransactions(0), nTotalAmount(0), n1day(0), n2days(0), n7days(0), n14days(0), n30days(0), nMore30days(0) {}
+	CAmount nBurnFee;
+	CAmount nBurnNode;
+
+	CTermDepositStats() : nAddress(0), nTransactions(0), nTotalAmount(0), n1day(0), n2days(0), n7days(0), n14days(0), n30days(0), nMore30days(0),
+	nBurnFee(0), nBurnNode(0){}
 };
 
 static void ApplyTimeLockedStats(CTermDepositStats &stats, 	std::set<uint160> &addresses, const std::map<uint32_t, Coin>& outputs)
@@ -1034,7 +1038,8 @@ static void ApplyTimeLockedStats(CTermDepositStats &stats, 	std::set<uint160> &a
 
 	CAmount nNumberTxAmount = 0;
 	CAmount nValueAmount = 0;
-	//std::set<uint160> addresses;
+	std::string readAddress;
+
 	for (const auto& output : outputs) {
 			std::vector<std::vector<unsigned char>> vSolutions;
 			txnouttype whichType;
@@ -1059,6 +1064,21 @@ static void ApplyTimeLockedStats(CTermDepositStats &stats, 	std::set<uint160> &a
 					stats.n30days += output.second.out.nValue;
 				} else {
 					stats.nMore30days += output.second.out.nValue;
+				}
+			}
+			if (
+				(whichType == TX_PUBKEYHASH || whichType == TX_BURN_DATA) && 
+				(Params().GetConsensus().cBurnAddress == EncodeDestination(CKeyID(uint160(vSolutions[0]))))
+			   )
+			{
+				if (
+                    ((Params().GetConsensus().nMasternodeBurnSINNODE_1 - 1) * COIN < output.second.out.nValue && output.second.out.nValue <= Params().GetConsensus().nMasternodeBurnSINNODE_1 * COIN) ||
+                    ((Params().GetConsensus().nMasternodeBurnSINNODE_5 - 1) * COIN < output.second.out.nValue && output.second.out.nValue <= Params().GetConsensus().nMasternodeBurnSINNODE_5 * COIN) ||
+                    ((Params().GetConsensus().nMasternodeBurnSINNODE_10 - 1) * COIN < output.second.out.nValue && output.second.out.nValue <= Params().GetConsensus().nMasternodeBurnSINNODE_10 * COIN)
+                ) {
+					stats.nBurnNode += output.second.out.nValue;
+				} else {
+					stats.nBurnFee += output.second.out.nValue;
 				}
 			}
 	}
@@ -1135,6 +1155,8 @@ if (request.fHelp || request.params.size() != 0)
 		obj.pushKV("30days", ValueFromAmount(stats.n30days));
 		obj.pushKV("More30days", ValueFromAmount(stats.nMore30days));
 
+		obj.pushKV("nBurnFee", ValueFromAmount(stats.nBurnFee));
+		obj.pushKV("nBurnNode", ValueFromAmount(stats.nBurnNode));
 		distribution.push_back(obj);
 
 		ret.pushKV("distribution", distribution);
