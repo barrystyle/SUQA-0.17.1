@@ -1154,10 +1154,10 @@ if (request.fHelp || request.params.size() != 0)
 		obj.pushKV("14days", ValueFromAmount(stats.n14days));
 		obj.pushKV("30days", ValueFromAmount(stats.n30days));
 		obj.pushKV("More30days", ValueFromAmount(stats.nMore30days));
-
-		obj.pushKV("nBurnFee", ValueFromAmount(stats.nBurnFee));
-		obj.pushKV("nBurnNode", ValueFromAmount(stats.nBurnNode));
 		distribution.push_back(obj);
+
+		ret.pushKV("nBurnFee", ValueFromAmount(stats.nBurnFee));
+		ret.pushKV("nBurnNode", ValueFromAmount(stats.nBurnNode));
 
 		ret.pushKV("distribution", distribution);
 
