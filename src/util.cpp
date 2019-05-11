@@ -743,11 +743,15 @@ fs::path GetDefaultDataDir()
     // Windows >= Vista: C:\Users\Username\AppData\Roaming\SIN
     // Mac: ~/Library/Application Support/SIN
     // Unix: ~/.sin
+	fs::path pathSINFolder;
     fs::path pathOldFolder;
 #ifdef WIN32
     // Windows
-    pathOldFolder = GetSpecialFolderPath(CSIDL_APPDATA) / "SIN";
-    if (fs::is_directory(pathOldFolder)) return pathOldFolder;
+    pathOldFolder = GetSpecialFolderPath(CSIDL_APPDATA) / "SUQA";
+	pathSINFolder = GetSpecialFolderPath(CSIDL_APPDATA) / "SIN";
+
+	if (fs::is_directory(pathSINFolder)) return pathSINFolder;
+    else if (fs::is_directory(pathOldFolder)) return pathOldFolder;
     else return GetSpecialFolderPath(CSIDL_APPDATA) / "SIN";
 #else
     fs::path pathRet;
@@ -758,13 +762,19 @@ fs::path GetDefaultDataDir()
         pathRet = fs::path(pszHome);
 #ifdef MAC_OSX
     // Mac
-    pathOldFolder = pathRet / "Library/Application Support/SIN";
-	if (fs::is_directory(pathOldFolder)) return pathOldFolder;
+	pathSINFolder = pathRet / "Library/Application Support/SIN";
+    pathOldFolder = pathRet / "Library/Application Support/SUQA";
+
+	if (fs::is_directory(pathSINFolder)) return pathSINFolder;
+	else if (fs::is_directory(pathOldFolder)) return pathOldFolder;
     else return pathRet / "Library/Application Support/SIN";
 #else
     // Unix
-    pathOldFolder = pathRet / ".SIN";
-	if (fs::is_directory(pathOldFolder)) return pathOldFolder;
+	pathSINFolder = pathRet / ".sin";
+    pathOldFolder = pathRet / ".SUQA";
+
+	if (fs::is_directory(pathSINFolder)) return pathSINFolder;
+	else if (fs::is_directory(pathOldFolder)) return pathOldFolder;
     else return pathRet / ".sin";
 #endif
 #endif
