@@ -820,11 +820,9 @@ void CMasternodeMan::ProcessMasternodeConnections(CConnman& connman)
 #else
         if(pnode->fMasternode) {
 #endif // ENABLE_WALLET
-            // FXTC BEGIN
-            //LogPrintf("Closing Masternode connection: peer=%d, addr=%s\n", pnode->GetId(), pnode->addr.ToString());
             LogPrintf("CMasternodeMan::ProcessMasternodeConnections -- removing node: peer=%d addr=%s nRefCount=%d fNetworkNode=%d fInbound=%d fMasternode=%d\n",
                       pnode->GetId(), pnode->addr.ToString(), pnode->GetRefCount(), pnode->fNetworkNode, pnode->fInbound, pnode->fMasternode);
-            // FXTC END
+
             pnode->fDisconnect = true;
         }
     });
@@ -1165,10 +1163,7 @@ bool CMasternodeMan::SendVerifyRequest(const CAddress& addr, const std::vector<C
         return false;
     }
 
-    // FXTC BEGIN
-    //CNode* pnode = connman.ConnectNode(addr, NULL, false, true);
     CNode* pnode = connman.OpenNetworkConnection(addr, false, nullptr, NULL, false, false, false, true);
-    // FXTC END
     if(pnode == NULL) {
         LogPrintf("CMasternodeMan::SendVerifyRequest -- can't connect to node to verify it, addr=%s\n", addr.ToString());
         return false;

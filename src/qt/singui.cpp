@@ -355,7 +355,7 @@ void BitcoinGUI::createActions()
     changePassphraseAction->setStatusTip(tr("Change the passphrase used for wallet encryption"));
 
     // Dash
-    // FXTC TODO: menu items
+    // 0: menu items
     //-//unlockWalletAction = new QAction(tr("&Unlock Wallet..."), this);
     //-//unlockWalletAction->setToolTip(tr("Unlock wallet"));
     //-//lockWalletAction = new QAction(tr("&Lock Wallet"), this);
@@ -367,7 +367,6 @@ void BitcoinGUI::createActions()
     verifyMessageAction->setStatusTip(tr("Verify messages to ensure they were signed with specified SIN addresses"));
 
     // Dash
-    // FXTC TODO: menu items
     //-//openInfoAction = new QAction(QApplication::style()->standardIcon(QStyle::SP_MessageBoxInformation), tr("&Information"), this);
     //-//openInfoAction->setStatusTip(tr("Show diagnostic information"));
     //-//openRPCConsoleAction = new QAction(QIcon(":/icons/" + theme + "/debugwindow"), tr("&Debug console"), this);
@@ -411,7 +410,6 @@ void BitcoinGUI::createActions()
     showHelpMessageAction->setStatusTip(tr("Show the %1 help message to get a list with possible SIN command-line options").arg(tr("SINOVATE")));
 
     // Dash
-    // FXTC TODO: menu items
     //-//showPrivateSendHelpAction = new QAction(QApplication::style()->standardIcon(QStyle::SP_MessageBoxInformation), tr("&PrivateSend information"), this);
     //-//showPrivateSendHelpAction->setMenuRole(QAction::NoRole);
     //-//showPrivateSendHelpAction->setStatusTip(tr("Show the PrivateSend basic information"));
@@ -459,7 +457,6 @@ void BitcoinGUI::createActions()
         connect(changePassphraseAction, SIGNAL(triggered()), walletFrame, SLOT(changePassphrase()));
 
         // Dash
-        // FXTC TODO: menu items
         //-//connect(unlockWalletAction, SIGNAL(triggered()), walletFrame, SLOT(unlockWallet()));
         //connect(lockWalletAction, SIGNAL(triggered()), walletFrame, SLOT(lockWallet()));
         //
@@ -506,7 +503,6 @@ void BitcoinGUI::createMenuBar()
     // Dash
     if(walletFrame)
     {
-        // FXTC TODO: menu items
         QMenu *tools = appMenuBar->addMenu(tr("&Tools"));
         //-//tools->addAction(openInfoAction);
         //-//tools->addAction(openRPCConsoleAction);
@@ -527,7 +523,6 @@ void BitcoinGUI::createMenuBar()
         settings->addAction(changePassphraseAction);
 
         // Dash
-        // FXTC TODO: menu items
         //-//settings->addAction(unlockWalletAction);
         //-//settings->addAction(lockWalletAction);
         //
@@ -797,7 +792,6 @@ void BitcoinGUI::createTrayIconMenu()
     trayIconMenu->addAction(openRPCConsoleAction);
 
     // Dash
-    // FXTC TODO: menu items
     //-//trayIconMenu->addAction(openGraphAction);
     //-//trayIconMenu->addAction(openPeersAction);
     //-//trayIconMenu->addAction(openRepairAction);
@@ -1115,7 +1109,6 @@ void BitcoinGUI::setAdditionalDataSyncProgress(double nSyncProgress)
     QString tooltip;
 
     // Set icon state: spinning if catching up, tick otherwise
-    // FXTC TODO: themes
     //QString theme = GUIUtil::getThemeName();
 
     QString strSyncStatus;
@@ -1124,7 +1117,6 @@ void BitcoinGUI::setAdditionalDataSyncProgress(double nSyncProgress)
     if(masternodeSync.IsSynced()) {
         progressBarLabel->setVisible(false);
         progressBar->setVisible(false);
-        // FXTC TODO: themes
         //labelBlocksIcon->setPixmap(QIcon(":/icons/" + theme + "/synced").pixmap(STATUSBAR_ICONSIZE, STATUSBAR_ICONSIZE));
         labelBlocksIcon->setPixmap(platformStyle->SingleColorIcon(":/icons/synced").pixmap(STATUSBAR_ICONSIZE, STATUSBAR_ICONSIZE));
         //
@@ -1354,7 +1346,6 @@ void BitcoinGUI::setEncryptionStatus(int status)
         encryptWalletAction->setChecked(false);
         changePassphraseAction->setEnabled(false);
         // Dash
-        // FXTC TODO: menu items
         //-//unlockWalletAction->setVisible(false);
         //-//lockWalletAction->setVisible(false);
         //
@@ -1367,7 +1358,6 @@ void BitcoinGUI::setEncryptionStatus(int status)
         encryptWalletAction->setChecked(true);
         changePassphraseAction->setEnabled(true);
         // Dash
-        // FXTC TODO: menu items
         //-//unlockWalletAction->setVisible(false);
         //-//lockWalletAction->setVisible(true);
         //
@@ -1381,7 +1371,6 @@ void BitcoinGUI::setEncryptionStatus(int status)
         encryptWalletAction->setChecked(true);
         changePassphraseAction->setEnabled(true);
         // Dash
-        // FXTC TODO: menu items
         //-//unlockWalletAction->setVisible(true);
         //-//lockWalletAction->setVisible(true);
         //
@@ -1395,7 +1384,6 @@ void BitcoinGUI::setEncryptionStatus(int status)
         encryptWalletAction->setChecked(true);
         changePassphraseAction->setEnabled(true);
         // Dash
-        // FXTC TODO: menu items
         //-//unlockWalletAction->setVisible(true);
         //-//lockWalletAction->setVisible(false);
         //

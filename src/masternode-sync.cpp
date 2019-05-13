@@ -403,7 +403,7 @@ void CMasternodeSync::SendGovernanceSyncRequest(CNode* pnode, CConnman& connman)
         CBloomFilter filter;
         filter.clear();
 
-        // FXTC TODO: filter
+        //SIN TODO: filter
         connman.PushMessage(pnode, CNetMsgMaker(pnode->GetSendVersion()).Make(NetMsgType::MNGOVERNANCESYNC, uint256(), filter));
     }
     else {

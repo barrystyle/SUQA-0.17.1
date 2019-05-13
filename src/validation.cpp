@@ -20,9 +20,7 @@
 #include <cuckoocache.h>
 #include <hash.h>
 #include <index/txindex.h>
-// FXTC BEGIN
 #include <key_io.h>
-// FXTC END
 #include <policy/fees.h>
 #include <policy/policy.h>
 #include <policy/rbf.h>
@@ -1260,9 +1258,14 @@ CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
     if (nHeight <   22000) reward = 10000 * COIN;
     if (22000 <= nHeight && nHeight < 50000) reward = 5000 * COIN;
     if (50000 <= nHeight && nHeight < 100000) reward = 2500 * COIN;
-    if (100000 <= nHeight && nHeight < 200000) reward = 1250 * COIN;
-    if (200000 <= nHeight && nHeight < 400000) reward =  625 * COIN;
-    if (400000 <= nHeight && nHeight < 1500000) reward =  312 * COIN;
+    if (100000 <= nHeight && nHeight < 165000) reward = 1250 * COIN; //hard fork
+	if (165000 <= nHeight && nHeight < 245000) reward = 750 * COIN;
+	if (245000 <= nHeight && nHeight < 375000) reward = 375 * COIN;
+	if (375000 <= nHeight && nHeight < 505000) reward = 187.5 * COIN;
+	if (505000 <= nHeight && nHeight < 635000) reward = 93.75 * COIN;
+	if (635000 <= nHeight && nHeight < 765000) reward = 46.875 * COIN;
+    if (765000 <= nHeight && nHeight < 895000) reward =  23.4375 * COIN;
+    if (895000 <= nHeight) reward =  11.71875 * COIN;
 
 	reward += GetMasternodePayment(nHeight, 1) + GetMasternodePayment(nHeight, 5) + GetMasternodePayment(nHeight, 10);
 
@@ -1271,12 +1274,22 @@ CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
 
 CAmount GetBlockSubsidy(int nHeight, CBlockHeader pblock, const Consensus::Params& consensusParams, bool fSuperblockPartOnly)
 {
-    if (nHeight <   22000) return 10000 * COIN;
-    if (nHeight <   50000) return  5000 * COIN;
-    if (nHeight <  100000) return  2500 * COIN;
-    if (nHeight <  200000) return  1250 * COIN;
-    if (nHeight <  400000) return   625 * COIN;
-    if (nHeight < 1500000) return   312 * COIN;
+    CAmount reward = 0;
+
+    if (nHeight <   22000) reward = 10000 * COIN;
+    if (22000 <= nHeight && nHeight < 50000) reward = 5000 * COIN;
+    if (50000 <= nHeight && nHeight < 100000) reward = 2500 * COIN;
+    if (100000 <= nHeight && nHeight < 165000) reward = 1250 * COIN; //hard fork
+	if (165000 <= nHeight && nHeight < 245000) reward = 750 * COIN;
+	if (245000 <= nHeight && nHeight < 375000) reward = 375 * COIN;
+	if (375000 <= nHeight && nHeight < 505000) reward = 187.5 * COIN;
+	if (505000 <= nHeight && nHeight < 635000) reward = 93.75 * COIN;
+	if (635000 <= nHeight && nHeight < 765000) reward = 46.875 * COIN;
+    if (765000 <= nHeight && nHeight < 895000) reward =  23.4375 * COIN;
+    if (895000 <= nHeight) reward =  11.71875 * COIN;
+
+	reward += GetMasternodePayment(nHeight, 1) + GetMasternodePayment(nHeight, 5) + GetMasternodePayment(nHeight, 10);
+
     return 0;
 }
 
@@ -1289,30 +1302,21 @@ CAmount GetMasternodePayment(int nHeight, int sintype = 0)
 	}
 
 	if (sintype == 1) {
-		if (nHeight <   22000) return  8 * COIN;
-		if (nHeight <   50000) return  8 * COIN;
-		if (nHeight <  100000) return  8 * COIN;  //test in testnet
-		if (nHeight <  200000) return  100 * COIN;
-		if (nHeight <  400000) return  105 * COIN;
-		if (nHeight < 1500000) return  110 * COIN;
+		if (nHeight <  150000) return  8 * COIN;  //testnet
+		if (nHeight <  165000) return  0 * COIN;  //hard fork
+		if (nHeight < 5000000) return  155 * COIN;
 	}
 
 	if (sintype == 5) {
-		if (nHeight <   22000) return  40 * COIN;
-		if (nHeight <   50000) return  40 * COIN;
-		if (nHeight <  100000) return  40 * COIN;  //test in testnet
-		if (nHeight <  200000) return  500 * COIN;
-		if (nHeight <  400000) return  525 * COIN;
-		if (nHeight < 1500000) return  550 * COIN;
+		if (nHeight <  150000) return  40 * COIN;  //testnet
+		if (nHeight <  165000) return  0 * COIN;  //hard fork
+		if (nHeight < 5000000) return  865 * COIN;
 	}
 
 	if (sintype == 10) {
-		if (nHeight <   22000) return  81 * COIN;
-		if (nHeight <   50000) return  81 * COIN;
-		if (nHeight <  100000) return  81 * COIN;  //test in testnet
-		if (nHeight <  200000) return  1000 * COIN;
-		if (nHeight <  400000) return  1050 * COIN;
-		if (nHeight < 1500000) return  1100 * COIN;
+		if (nHeight <  150000) return  81 * COIN;  //testnet
+		if (nHeight <  165000) return  0 * COIN;  //hard fork
+		if (nHeight < 5000000) return  1730 * COIN;
 	}
 
     return ret;

@@ -11,12 +11,10 @@
 #include <net.h>
 #include <utilstrencodings.h>
 
-// FXTC BEGIN
 class CSporkDB;
 
 /** Global variable that points to the spork database (protected by cs_main) */
 extern std::unique_ptr<CSporkDB> pSporkDB;
-//FXTC END
 
 class CSporkMessage;
 class CSporkManager;
@@ -27,10 +25,6 @@ class CSporkManager;
 */
 static const int SPORK_START                                            = 10001;
 static const int SPORK_END                                              = 10013;
-// FXTC BEGIN
-static const int SPORK_FXTC_START                                    = 94680010;
-static const int SPORK_FXTC_END                                      = 94680031;
-// FXTC END
 
 static const int SPORK_2_INSTANTSEND_ENABLED                            = 10001;
 static const int SPORK_3_INSTANTSEND_BLOCK_FILTERING                    = 10002;
@@ -42,15 +36,6 @@ static const int SPORK_12_RECONSIDER_BLOCKS                             = 10011;
 static const int SPORK_13_OLD_SUPERBLOCK_FLAG                           = 10012;
 static const int SPORK_14_REQUIRE_SENTINEL_FLAG                         = 10013;
 
-static const int SPORK_FXTC_02_IGNORE_SLIGHTLY_HIGHER_COINBASE       = 94680021;
-static const int SPORK_FXTC_02_IGNORE_FOUNDER_REWARD_CHECK           = 94680022;
-static const int SPORK_FXTC_02_IGNORE_FOUNDER_REWARD_VALUE           = 94680023;
-static const int SPORK_FXTC_02_IGNORE_MASTERNODE_REWARD_VALUE        = 94680024;
-static const int SPORK_FXTC_02_IGNORE_MASTERNODE_REWARD_PAYEE        = 94680025;
-
-static const int SPORK_FXTC_03_BLOCK_REWARD_SMOOTH_HALVING_START     = 94680031;
-// FXTC END
-
 static const int64_t SPORK_2_INSTANTSEND_ENABLED_DEFAULT                = 0;            // ON
 static const int64_t SPORK_3_INSTANTSEND_BLOCK_FILTERING_DEFAULT        = 0;            // ON
 static const int64_t SPORK_5_INSTANTSEND_MAX_VALUE_DEFAULT              = 10000;         // 10000 SIN
@@ -60,15 +45,6 @@ static const int64_t SPORK_10_MASTERNODE_PAY_UPDATED_NODES_DEFAULT      = 407090
 static const int64_t SPORK_12_RECONSIDER_BLOCKS_DEFAULT                 = 0;            // 0 BLOCKS
 static const int64_t SPORK_13_OLD_SUPERBLOCK_FLAG_DEFAULT               = 4070908800ULL;// OFF
 static const int64_t SPORK_14_REQUIRE_SENTINEL_FLAG_DEFAULT             = 4070908800ULL;// OFF
-
-static const int64_t SPORK_FXTC_02_IGNORE_SLIGHTLY_HIGHER_COINBASE_DEFAULT  = 4070908800ULL;// OFF
-static const int64_t SPORK_FXTC_02_IGNORE_FOUNDER_REWARD_CHECK_DEFAULT      = 4070908800ULL;// OFF
-static const int64_t SPORK_FXTC_02_IGNORE_FOUNDER_REWARD_VALUE_DEFAULT      = 4070908800ULL;// OFF
-static const int64_t SPORK_FXTC_02_IGNORE_MASTERNODE_REWARD_VALUE_DEFAULT   = 4070908800ULL;// OFF
-static const int64_t SPORK_FXTC_02_IGNORE_MASTERNODE_REWARD_PAYEE_DEFAULT   = 4070908800ULL;// OFF
-
-static const int64_t SPORK_FXTC_03_BLOCK_REWARD_SMOOTH_HALVING_START_DEFAULT  = 4070908800ULL;// OFF
-// FXTC END
 
 extern std::map<uint256, CSporkMessage> mapSporks;
 extern CSporkManager sporkManager;
@@ -137,9 +113,9 @@ public:
 
     CSporkManager() {}
 
-    // FXTC BEGIN
+
     void LoadSporksFromDB();
-    // FXTC END
+
     void ProcessSpork(CNode* pfrom, const std::string& strCommand, CDataStream& vRecv, CConnman& connman);
     void ExecuteSpork(int nSporkID, int nValue);
     bool UpdateSpork(int nSporkID, int64_t nValue, CConnman& connman);
@@ -152,4 +128,4 @@ public:
     bool SetPrivKey(std::string strPrivKey);
 };
 
-#endif // FXTC_SPORK_H
+#endif 

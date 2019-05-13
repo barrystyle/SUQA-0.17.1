@@ -93,7 +93,6 @@ void EraseOrphansFor(NodeId peer);
 
 /** Increase a node's misbehavior score. */
 // Dash
-// FXTC TODO: previously defined in net_processing.h, Bitcoin Core removed from .h but needed for Dash
 //void Misbehaving(NodeId nodeid, int howmuch, const std::string& message="") EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 //
 
@@ -1380,7 +1379,6 @@ void static ProcessGetData(CNode* pfrom, const CChainParams& chainparams, CConnm
             if (!push) {
                 vNotFound.push_back(inv);
             }
-            // FXTC BEGIN
           } else {
             // Dash
             {
@@ -1400,7 +1398,7 @@ void static ProcessGetData(CNode* pfrom, const CChainParams& chainparams, CConnm
                     if(pushed)
                         connman->PushMessage(pfrom, msgMaker.Make(inv.GetCommand(), ss));
                 }
-                // FXTC TODO: check if there are MSG_TX messages in Dash processing before removing this code
+                // SIN TODO: check if there are MSG_TX messages in Dash processing before removing this code
                 /*
                 if (!pushed && inv.type == MSG_TX) {
                     CTransaction tx;
@@ -1557,7 +1555,6 @@ void static ProcessGetData(CNode* pfrom, const CChainParams& chainparams, CConnm
             }
           }
           //
-          // FXTC END
         }
     } // release cs_main
 
@@ -1929,10 +1926,8 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             if (enable_bip61) {
                 connman->PushMessage(pfrom, CNetMsgMaker(INIT_PROTO_VERSION).Make(NetMsgType::REJECT, strCommand, REJECT_OBSOLETE,
                                    strprintf("Version must be %d or greater", MIN_PEER_PROTO_VERSION)));
-                // FXTC BEGIN
                 // obsolete peers are very annoying
                 connman->Ban(pfrom->addr, BanReasonNodeMisbehaving);
-                // FXTC END
             }
             pfrom->fDisconnect = true;
             return false;

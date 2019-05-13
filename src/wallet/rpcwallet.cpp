@@ -1439,15 +1439,10 @@ static UniValue getbalance(const JSONRPCRequest& request)
         } else if (IsDeprecatedRPCEnabled("accounts")) {
             // Dash
             bool fAddLockConf = (!request.params[3].isNull() && request.params[3].get_bool());
-            //
-            // Dash
-            //return ValueFromAmount(pwallet->GetLegacyBalance(filter, nMinDepth, account));
             return ValueFromAmount(pwallet->GetLegacyBalance(filter, min_depth, account, fAddLockConf));
-            //
         }
     }
 
-    // FXTC TODO: fAddLockConf?
     return ValueFromAmount(pwallet->GetBalance());
 }
 

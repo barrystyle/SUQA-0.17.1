@@ -307,7 +307,6 @@ void SendCoinsDialog::on_sendButton_clicked()
     // will call relock
 
     //WalletModel::UnlockContext ctx(model->requestUnlock());
-    // FXTC TODO: Obsolete check, remove later
     //WalletModel::EncryptionStatus encStatus = model->getEncryptionStatus();
     //if(encStatus == model->Locked || encStatus == model->UnlockedForMixingOnly)
     //{

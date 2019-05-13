@@ -805,10 +805,10 @@ const fs::path &GetBackupsDir()
         if (fs::is_directory(backupsDir)) return backupsDir;
         // Fallback to default path if it doesn't
         LogPrintf("%s: Warning: incorrect parameter -walletbackupsdir, path must exist! Using default path.\n", __func__);
-        // FXTC TODO: check
+        // SIN TODO: check
         //strMiscWarning = _("Warning: incorrect parameter -walletbackupsdir, path must exist! Using default path.");
         std::string strMessage = strprintf(_("Warning: incorrect parameter -walletbackupsdir, path must exist! Using default path."));
-        // FXTC TODO: SetMiscWarning(strMessage);
+        // SIN TODO: SetMiscWarning(strMessage);
     }
     // Default path
     backupsDir = GetDataDir() / "backups";
@@ -1046,8 +1046,6 @@ std::string ArgsManager::GetChainName() const
 {
     bool fRegTest = ArgsManagerHelper::GetNetBoolArg(*this, "-regtest");
     bool fTestNet = ArgsManagerHelper::GetNetBoolArg(*this, "-testnet");
-
-    return CBaseChainParams::TESTNET;
 
     if (fTestNet && fRegTest)
         throw std::runtime_error("Invalid combination of -regtest and -testnet.");

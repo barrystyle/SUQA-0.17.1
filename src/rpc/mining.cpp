@@ -382,12 +382,9 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
             "  ],\n"
             "  \"superblocks_started\" : true|false, (boolean) true, if superblock payments started\n"
             "  \"superblocks_enabled\" : true|false  (boolean) true, if superblock payments are enabled\n"
-            //
-            // FXTC BEGIN
             "  \"founderreward\" : {               (json object) required founder reward that must be included in the next block\n"
             "      \"payee\" : \"xxxx\",           (string) payee address\n"
             "      \"amount\": n                   (numeric) required amount to pay\n"
-            // FXTC END
             "  },\n"
             "}\n"
 

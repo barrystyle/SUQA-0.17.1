@@ -2526,7 +2526,6 @@ CAmount CWallet::GetBalance() const
     return nTotal;
 }
 
-// FXTC TODO:
 // Dash
 CAmount CWallet::GetAnonymizableBalance(bool fSkipDenominated, bool fSkipUnconfirmed) const
 {
@@ -2996,7 +2995,6 @@ bool CWallet::SelectCoinsMinConf(const CAmount& nTargetValue, const CoinEligibil
     nValueRet = 0;
 
     std::vector<OutputGroup> utxo_pool;
-    // FXTC TODO: revise implementation of coinLowestLarger
     // Dash
     // List of values less than target
     //boost::optional<CInputCoin> coinLowestLarger;
@@ -3312,7 +3310,6 @@ bool CWallet::SelectCoinsGrouppedByAddresses(std::vector<CompactTallyItem>& vecT
             if(fAnonymizable) {
                 // ignore collaterals
                 if(CPrivateSend::IsCollateralAmount(wtx.tx->vout[i].nValue)) continue;
-                // FXTC BEGIN
                 //if(fMasterNode && wtx.tx->vout[i].nValue == 1000*COIN) continue;
                 if(fMasterNode && CMasternode::CheckCollateral(COutPoint(wtx.GetHash(),i)) == CMasternode::COLLATERAL_OK) continue;
                 // ignore outputs that are 10 times smaller then the smallest denomination
@@ -3383,10 +3380,9 @@ bool CWallet::SelectCoinsDark(CAmount nValueMin, CAmount nValueMax, std::vector<
         //do not allow collaterals to be selected
 
         if(CPrivateSend::IsCollateralAmount(out.tx->tx->vout[out.i].nValue)) continue;
-        // FXTC BEGIN
         //if(fMasterNode && out.tx->tx->vout[out.i].nValue == 1000*COIN) continue; //masternode input
         if(fMasterNode && CMasternode::CheckCollateral(COutPoint(out.tx->GetHash(),out.i)) == CMasternode::COLLATERAL_OK) continue; //masternode input
-        // FXTC END
+
         if(nValueRet + out.tx->tx->vout[out.i].nValue <= nValueMax){
             CTxIn txin = CTxIn(out.tx->GetHash(),out.i);
             int nRounds = GetOutpointPrivateSendRounds(txin.prevout);
@@ -3462,7 +3458,6 @@ bool CWallet::GetOutpointAndKeysFromOutput(const COutput& out, COutPoint& outpoi
 
     CScript pubScript;
 
-    // FXTC TODO: tx or tx->tx ?
     outpointRet = COutPoint(out.tx->GetHash(), out.i);
     pubScript = out.tx->tx->vout[out.i].scriptPubKey; // the inputs PubKey
 
@@ -3496,7 +3491,7 @@ int CWallet::CountInputsWithAmount(CAmount nInputAmount)
                 int nDepth = pcoin->GetDepthInMainChain(false);
 
                 for (unsigned int i = 0; i < pcoin->tx->vout.size(); i++) {
-                    COutput out = COutput(pcoin, i, nDepth, true, true, true); // FXTC TODO: last bool is fSafe
+                    COutput out = COutput(pcoin, i, nDepth, true, true, true); // SIN TODO: last bool is fSafe
                     COutPoint outpoint = COutPoint(out.tx->GetHash(), out.i);
 
                     if(out.tx->tx->vout[out.i].nValue != nInputAmount) continue;
@@ -3549,8 +3544,6 @@ bool CWallet::CreateCollateralTransaction(CMutableTransaction& txCollateral, std
     CTxOut txout = CTxOut(nValue - CPrivateSend::GetCollateralAmount(), scriptChange);
     txCollateral.vout.push_back(txout);
 
-    // FXTC TODO: not sur if right way
-    //if(!SignSignature(*this, txdsinCollateral.prevPubKey, txCollateral, 0, int(SIGHASH_ALL|SIGHASH_ANYONECANPAY))) {
     const CKeyStore &keystore = *this;
     if(!SignSignature(keystore, txdsinCollateral.prevPubKey, txCollateral, 0, nValue, int(SIGHASH_ALL|SIGHASH_ANYONECANPAY))) {
     //
@@ -4096,7 +4089,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CTransac
                     return false;
                 }
 
-/* FXTC TODO: something wrong here
+/* SIN TODO: something wrong here
                 // Dash
                 dPriority = wtxNew.tx->ComputePriority(dPriority, nBytes);
 
@@ -4115,7 +4108,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CTransac
 //                        break;
                 }
                 CAmount nFeeNeeded = max(nFeePay, GetMinimumFee(*this, nBytes, coin_control, ::mempool, ::feeEstimator, &feeCals));
-                // FXTC TODO: check
+                // SIN TODO: check
                 //if (coinControl && nFeeNeeded > 0 && coinControl->nMinimumTotalFee > nFeeNeeded) {
                 //    nFeeNeeded = coinControl->nMinimumTotalFee;
                 if (nFeeNeeded > 0 && *coin_control.nMinimumTotalFee > nFeeNeeded) {

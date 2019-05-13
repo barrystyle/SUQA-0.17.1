@@ -11,11 +11,8 @@
 #include <net_processing.h>
 #include <netmessagemaker.h>
 #include <spork.h>
-// FXTC BEGIN
 // Pivx
 #include <sporkdb.h>
-//
-// FXTC END
 
 #include <boost/lexical_cast.hpp>
 
@@ -26,17 +23,13 @@ CSporkManager sporkManager;
 
 std::map<uint256, CSporkMessage> mapSporks;
 
-// FXTC BEGIN
 std::unique_ptr<CSporkDB> pSporkDB = NULL;
 
 // PIVX: on startup load spork values from previous session if they exist in the sporkDB
 void CSporkManager::LoadSporksFromDB()
 {
-    // FXTC BEGIN
-    //for (int i = SPORK_START; i <= SPORK_END; ++i) {
-    for (int i = SPORK_START; i <= SPORK_FXTC_END; ++i) {
-        if (i > SPORK_END && i < SPORK_FXTC_START) i = SPORK_FXTC_START;
-    // FXTC END
+
+    for (int i = SPORK_START; i <= SPORK_END; ++i) {
         // Since not all spork IDs are in use, we have to exclude undefined IDs
         std::string strSpork = sporkManager.GetSporkNameByID(i);
         if (strSpork.substr(0,7) == "Unknown") continue;
@@ -63,7 +56,6 @@ void CSporkManager::LoadSporksFromDB()
         }
     }
 }
-// FXTC END
 
 void CSporkManager::ProcessSpork(CNode* pfrom, const std::string& strCommand, CDataStream& vRecv, CConnman& connman)
 {
@@ -109,10 +101,9 @@ void CSporkManager::ProcessSpork(CNode* pfrom, const std::string& strCommand, CD
         //does a task if needed
         ExecuteSpork(spork.nSporkID, spork.nValue);
 
-        // FXTC BEGIN
         // PIVX: add to spork database.
         pSporkDB->WriteSpork(spork.nSporkID, spork);
-        // FXTC END
+
     } else if (strCommand == NetMsgType::GETSPORKS) {
 
         std::map<int, CSporkMessage>::iterator it = mapSporksActive.begin();
@@ -188,14 +179,6 @@ bool CSporkManager::IsSporkActive(int nSporkID)
             case SPORK_13_OLD_SUPERBLOCK_FLAG:              r = SPORK_13_OLD_SUPERBLOCK_FLAG_DEFAULT; break;
             case SPORK_14_REQUIRE_SENTINEL_FLAG:            r = SPORK_14_REQUIRE_SENTINEL_FLAG_DEFAULT; break;
 
-            case SPORK_FXTC_02_IGNORE_SLIGHTLY_HIGHER_COINBASE:     r = SPORK_FXTC_02_IGNORE_SLIGHTLY_HIGHER_COINBASE_DEFAULT; break;
-            case SPORK_FXTC_02_IGNORE_FOUNDER_REWARD_CHECK:         r = SPORK_FXTC_02_IGNORE_FOUNDER_REWARD_CHECK_DEFAULT; break;
-            case SPORK_FXTC_02_IGNORE_FOUNDER_REWARD_VALUE:         r = SPORK_FXTC_02_IGNORE_FOUNDER_REWARD_VALUE_DEFAULT; break;
-            case SPORK_FXTC_02_IGNORE_MASTERNODE_REWARD_VALUE:      r = SPORK_FXTC_02_IGNORE_MASTERNODE_REWARD_VALUE_DEFAULT; break;
-            case SPORK_FXTC_02_IGNORE_MASTERNODE_REWARD_PAYEE:      r = SPORK_FXTC_02_IGNORE_MASTERNODE_REWARD_PAYEE_DEFAULT; break;
-
-            case SPORK_FXTC_03_BLOCK_REWARD_SMOOTH_HALVING_START:   r = SPORK_FXTC_03_BLOCK_REWARD_SMOOTH_HALVING_START_DEFAULT; break;
-            // FXTC END
             default:
                 LogPrint(BCLog::SPORK, "CSporkManager::IsSporkActive -- Unknown Spork ID %d\n", nSporkID);
                 r = 4070908800ULL; // 2099-1-1 i.e. off by default
@@ -223,14 +206,6 @@ int64_t CSporkManager::GetSporkValue(int nSporkID)
         case SPORK_13_OLD_SUPERBLOCK_FLAG:              return SPORK_13_OLD_SUPERBLOCK_FLAG_DEFAULT;
         case SPORK_14_REQUIRE_SENTINEL_FLAG:            return SPORK_14_REQUIRE_SENTINEL_FLAG_DEFAULT;
 
-        case SPORK_FXTC_02_IGNORE_SLIGHTLY_HIGHER_COINBASE:     return SPORK_FXTC_02_IGNORE_SLIGHTLY_HIGHER_COINBASE_DEFAULT;
-        case SPORK_FXTC_02_IGNORE_FOUNDER_REWARD_CHECK:         return SPORK_FXTC_02_IGNORE_FOUNDER_REWARD_CHECK_DEFAULT;
-        case SPORK_FXTC_02_IGNORE_FOUNDER_REWARD_VALUE:         return SPORK_FXTC_02_IGNORE_FOUNDER_REWARD_VALUE_DEFAULT;
-        case SPORK_FXTC_02_IGNORE_MASTERNODE_REWARD_VALUE:      return SPORK_FXTC_02_IGNORE_MASTERNODE_REWARD_VALUE_DEFAULT;
-        case SPORK_FXTC_02_IGNORE_MASTERNODE_REWARD_PAYEE:      return SPORK_FXTC_02_IGNORE_MASTERNODE_REWARD_PAYEE_DEFAULT;
-
-        case SPORK_FXTC_03_BLOCK_REWARD_SMOOTH_HALVING_START:   return SPORK_FXTC_03_BLOCK_REWARD_SMOOTH_HALVING_START_DEFAULT;
-        // FXTC END
         default:
             LogPrint(BCLog::SPORK, "CSporkManager::GetSporkValue -- Unknown Spork ID %d\n", nSporkID);
             return -1;
@@ -250,15 +225,6 @@ int CSporkManager::GetSporkIDByName(std::string strName)
     if (strName == "SPORK_13_OLD_SUPERBLOCK_FLAG")              return SPORK_13_OLD_SUPERBLOCK_FLAG;
     if (strName == "SPORK_14_REQUIRE_SENTINEL_FLAG")            return SPORK_14_REQUIRE_SENTINEL_FLAG;
 
-    if (strName == "SPORK_FXTC_02_IGNORE_SLIGHTLY_HIGHER_COINBASE")     return SPORK_FXTC_02_IGNORE_SLIGHTLY_HIGHER_COINBASE;
-    if (strName == "SPORK_FXTC_02_IGNORE_FOUNDER_REWARD_CHECK")         return SPORK_FXTC_02_IGNORE_FOUNDER_REWARD_CHECK;
-    if (strName == "SPORK_FXTC_02_IGNORE_FOUNDER_REWARD_VALUE")         return SPORK_FXTC_02_IGNORE_FOUNDER_REWARD_VALUE;
-    if (strName == "SPORK_FXTC_02_IGNORE_MASTERNODE_REWARD_VALUE")      return SPORK_FXTC_02_IGNORE_MASTERNODE_REWARD_VALUE;
-    if (strName == "SPORK_FXTC_02_IGNORE_MASTERNODE_REWARD_PAYEE")      return SPORK_FXTC_02_IGNORE_MASTERNODE_REWARD_PAYEE;
-
-    if (strName == "SPORK_FXTC_03_BLOCK_REWARD_SMOOTH_HALVING_START")   return SPORK_FXTC_03_BLOCK_REWARD_SMOOTH_HALVING_START;
-    // FXTC END
-
     LogPrint(BCLog::SPORK, "CSporkManager::GetSporkIDByName -- Unknown Spork name '%s'\n", strName);
     return -1;
 }
@@ -276,14 +242,6 @@ std::string CSporkManager::GetSporkNameByID(int nSporkID)
         case SPORK_13_OLD_SUPERBLOCK_FLAG:              return "SPORK_13_OLD_SUPERBLOCK_FLAG";
         case SPORK_14_REQUIRE_SENTINEL_FLAG:            return "SPORK_14_REQUIRE_SENTINEL_FLAG";
 
-        case SPORK_FXTC_02_IGNORE_SLIGHTLY_HIGHER_COINBASE:     return "SPORK_FXTC_02_IGNORE_SLIGHTLY_HIGHER_COINBASE";
-        case SPORK_FXTC_02_IGNORE_FOUNDER_REWARD_CHECK:         return "SPORK_FXTC_02_IGNORE_FOUNDER_REWARD_CHECK";
-        case SPORK_FXTC_02_IGNORE_FOUNDER_REWARD_VALUE:         return "SPORK_FXTC_02_IGNORE_FOUNDER_REWARD_VALUE";
-        case SPORK_FXTC_02_IGNORE_MASTERNODE_REWARD_VALUE:      return "SPORK_FXTC_02_IGNORE_MASTERNODE_REWARD_VALUE";
-        case SPORK_FXTC_02_IGNORE_MASTERNODE_REWARD_PAYEE:      return "SPORK_FXTC_02_IGNORE_MASTERNODE_REWARD_PAYEE";
-
-        case SPORK_FXTC_03_BLOCK_REWARD_SMOOTH_HALVING_START:   return "SPORK_FXTC_03_BLOCK_REWARD_SMOOTH_HALVING_START";
-        // FXTC END
         default:
             LogPrint(BCLog::SPORK, "CSporkManager::GetSporkNameByID -- Unknown Spork ID %d\n", nSporkID);
             return "Unknown";

@@ -384,10 +384,7 @@ static CAddress GetBindAddress(SOCKET sock)
     return addr_bind;
 }
 
-// FXTC BEGIN
-//CNode*  CConnman::ConnectNode(CAddress addrConnect, const char *pszDest, bool fCountFailure, bool manual_connection)
 CNode* CConnman::ConnectNode(CAddress addrConnect, const char *pszDest, bool fCountFailure, bool manual_connection, bool fConnectToMasternode)
-// FXTC END
 {
     // Dash
     // TODO: This is different from what we have in Bitcoin which only calls ConnectNode from OpenNetworkConnection
@@ -2090,10 +2087,8 @@ void CConnman::ThreadMnbRequestConnections()
         CNode *pnode = FindNode(p.first);
         if(!pnode || pnode->fDisconnect) continue;
 
-        // FXTC BEGIN
         LogPrint(BCLog::NET, "ThreadMnbRequestConnections -- adding node: peer=%d addr=%s nRefCount=%d fNetworkNode=%d fInbound=%d fMasternode=%d\n",
                    pnode->id, pnode->addr.ToString(), pnode->GetRefCount(), pnode->fNetworkNode, pnode->fInbound, pnode->fMasternode);
-        // FXTC END
 
         grant.MoveTo(pnode->grantMasternodeOutbound);
 
@@ -2112,57 +2107,33 @@ void CConnman::ThreadMnbRequestConnections()
         PushMessage(pnode, CNetMsgMaker(INIT_PROTO_VERSION).Make(NetMsgType::GETDATA, vToFetch));
     }
 }
-//
 
 // if successful, this moves the passed grant to the constructed node
-// FXTC BEGIN
-//void CConnman::OpenNetworkConnection(const CAddress& addrConnect, bool fCountFailure, CSemaphoreGrant *grantOutbound, const char *pszDest, bool fOneShot, bool fFeeler, bool manual_connection)
 CNode* CConnman::OpenNetworkConnection(const CAddress& addrConnect, bool fCountFailure, CSemaphoreGrant *grantOutbound, const char *pszDest, bool fOneShot, bool fFeeler, bool manual_connection, bool fConnectToMasternode)
-// FXTC END
 {
     //
     // Initiate outbound network connection
     //
     if (interruptNet) {
-        // FXTC BEGIN
-        //return;
         return nullptr;
-        // FXTC END
     }
     if (!fNetworkActive) {
-        // FXTC BEGIN
-        //return;
         return nullptr;
-        // FXTC END
     }
     if (!pszDest) {
-        // FXTC BEGIN
-        //if (IsLocal(addrConnect) ||
         if ((IsLocal(addrConnect) && !fConnectToMasternode) ||
-        // FXTC END
             FindNode(static_cast<CNetAddr>(addrConnect)) || IsBanned(addrConnect) ||
             FindNode(addrConnect.ToStringIPPort()))
-            // FXTC BEGIN
-            //return;
             return nullptr;
-            // FXTC END
     } else if (FindNode(std::string(pszDest)))
-        // FXTC BEGIN
-        //return;
         return nullptr;
-        // FXTC END
 
-    // FXTC BEGIN
-    //CNode* pnode = ConnectNode(addrConnect, pszDest, fCountFailure, manual_connection);
     LogPrint(BCLog::NET, "OpenNetworkConnection -- ConnectNode(addr=%s)\n", addrConnect.ToString());
     CNode* pnode = ConnectNode(addrConnect, pszDest, fCountFailure, manual_connection, fConnectToMasternode);
-    // FXTC END
 
     if (!pnode)
-        // FXTC BEGIN
-        //return;
         return nullptr;
-        // FXTC END
+	
     if (grantOutbound)
         grantOutbound->MoveTo(pnode->grantOutbound);
     if (fOneShot)
@@ -2179,9 +2150,8 @@ CNode* CConnman::OpenNetworkConnection(const CAddress& addrConnect, bool fCountF
         LOCK(cs_vNodes);
         vNodes.push_back(pnode);
     }
-    // FXTC BEGIN
     return pnode;
-    // FXTC END
+
 }
 
 void CConnman::ThreadMessageHandler()
@@ -3047,20 +3017,13 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn, int nMyStartingHeightIn
     } else {
         LogPrint(BCLog::NET, "Added connection peer=%d\n", id);
     }
-
-    // FXTC BEGIN
-    LogPrint(BCLog::NET, "CNode::CNode -- added connection: peer=%d addr=%s nRefCount=%d fNetworkNode=%d fInbound=%d fMasternode=%d\n",
-              id, addr.ToString(), GetRefCount(), fNetworkNode, fInbound, fMasternode);
-    // FXTC END
 }
 
 CNode::~CNode()
 {
-    // FXTC BEGIN
     LogPrint(BCLog::NET, "CNode::~CNode -- removed connection: peer=%d addr=%s nRefCount=%d fNetworkNode=%d fInbound=%d fMasternode=%d\n",
               id, addr.ToString(), GetRefCount(), fNetworkNode, fInbound, fMasternode);
     CloseSocket(hSocket);
-    // FXTC END
 }
 
 void CNode::AskFor(const CInv& inv)

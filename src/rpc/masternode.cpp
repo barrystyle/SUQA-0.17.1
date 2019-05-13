@@ -143,10 +143,7 @@ UniValue masternode(const JSONRPCRequest& request)
 #endif // ENABLE_WALLET
          strCommand != "list" && strCommand != "list-conf" && strCommand != "count" &&
          strCommand != "debug" && strCommand != "current" && strCommand != "winner" && strCommand != "winners" && strCommand != "genkey" &&
-         // FXTC BEGIN
-         //strCommand != "connect" && strCommand != "status"))
          strCommand != "connect" && strCommand != "status" && strCommand != "collateral"))
-         // FXTC END
             throw std::runtime_error(
                 "masternode \"command\"...\n"
                 "Set of commands to execute masternode related actions\n"
@@ -191,8 +188,6 @@ UniValue masternode(const JSONRPCRequest& request)
             throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("Incorrect masternode address %s", strAddress));
 
         // TODO: Pass CConnman instance somehow and don't use global variable.
-        // FXTC BEGIN
-        //CNode *pnode = g_connman->ConnectNode(CAddress(addr, NODE_NETWORK), NULL, false);
         CNode *pnode = g_connman->OpenNetworkConnection(CAddress(addr, NODE_NETWORK), false, nullptr, NULL, false, false, false, true);
         //
         if(!pnode)
@@ -971,7 +966,7 @@ static const CRPCCommand commands[] =
     { "dash",               "getpoolinfo",            &getpoolinfo,            {}  },
     { "dash",               "mnsetup",                &mnsetup,                {}  },
 #ifdef ENABLE_WALLET
-// FXTC TODO:    { "dash",               "privatesend",            &privatesend,            {"command"}  },
+// SIN TODO:    { "dash",               "privatesend",            &privatesend,            {"command"}  },
 #endif
 };
 

@@ -89,12 +89,6 @@ UniValue spork(const JSONRPCRequest& request)
             if(sporkManager.GetSporkNameByID(nSporkID) != "Unknown")
                 ret.push_back(Pair(sporkManager.GetSporkNameByID(nSporkID), sporkManager.GetSporkValue(nSporkID)));
         }
-        // FXTC BEGIN
-        for(int nSporkID = SPORK_FXTC_START; nSporkID <= SPORK_FXTC_END; nSporkID++){
-            if(sporkManager.GetSporkNameByID(nSporkID) != "Unknown")
-                ret.push_back(Pair(sporkManager.GetSporkNameByID(nSporkID), sporkManager.GetSporkValue(nSporkID)));
-        }
-        // FXTC END
         return ret;
     } else if(request.params.size() == 1 && request.params[0].get_str() == "active"){
         UniValue ret(UniValue::VOBJ);
@@ -102,12 +96,6 @@ UniValue spork(const JSONRPCRequest& request)
             if(sporkManager.GetSporkNameByID(nSporkID) != "Unknown")
                 ret.push_back(Pair(sporkManager.GetSporkNameByID(nSporkID), sporkManager.IsSporkActive(nSporkID)));
         }
-        // FXTC BEGIN
-        for(int nSporkID = SPORK_FXTC_START; nSporkID <= SPORK_FXTC_END; nSporkID++){
-            if(sporkManager.GetSporkNameByID(nSporkID) != "Unknown")
-                ret.push_back(Pair(sporkManager.GetSporkNameByID(nSporkID), sporkManager.IsSporkActive(nSporkID)));
-        }
-        // FXTC END
         return ret;
     }
 #ifdef ENABLE_WALLET

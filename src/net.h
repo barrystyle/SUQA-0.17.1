@@ -182,16 +182,12 @@ public:
     void Interrupt();
     bool GetNetworkActive() const { return fNetworkActive; };
     void SetNetworkActive(bool active);
-    // FXTC BEGIN
-    //void OpenNetworkConnection(const CAddress& addrConnect, bool fCountFailure, CSemaphoreGrant *grantOutbound = nullptr, const char *strDest = nullptr, bool fOneShot = false, bool fFeeler = false, bool manual_connection = false);
+
     CNode* OpenNetworkConnection(const CAddress& addrConnect, bool fCountFailure, CSemaphoreGrant *grantOutbound = nullptr, const char *strDest = nullptr, bool fOneShot = false, bool fFeeler = false, bool manual_connection = false, bool fConnectToMasternode = false);
     bool CheckIncomingNonce(uint64_t nonce);
-    // FXTC END
 
     // Dash
-    // FXTC BEGIN
     // ConnectNode() is private because public ConnectNode() is replaced by public OpenNetworkConnection() in Dash functions
-    // FXTC END
     struct CFullyConnectedOnly {
         bool operator() (const CNode* pnode) const {
             return NodeFullyConnected(pnode);
@@ -210,14 +206,12 @@ public:
 
     constexpr static const CAllNodes AllNodes{};
     constexpr static const CAllNodesExceptMasternodes AllNodesExceptMasternodes{};
-    //
 
     bool ForNode(NodeId id, std::function<bool(CNode* pnode)> func);
     // Dash
     bool ForNode(const CService& addr, std::function<bool(CNode* pnode)> func);
     bool ForNode(NodeId id, std::function<bool(const CNode* pnode)> cond, std::function<bool(CNode* pnode)> func);
     bool ForNode(const CService& addr, std::function<bool(const CNode* pnode)> cond, std::function<bool(CNode* pnode)> func);
-    //
 
     bool IsMasternodeOrDisconnectRequested(const CService& addr);
 
@@ -446,10 +440,9 @@ private:
     CNode* FindNode(const CService& addr);
 
     bool AttemptToEvictConnection();
-    // FXTC BEGIN
-    //CNode* ConnectNode(CAddress addrConnect, const char *pszDest, bool fCountFailure, bool manual_connection);
+
     CNode* ConnectNode(CAddress addrConnect, const char *pszDest, bool fCountFailure, bool manual_connection, bool fConnectToMasternode = false);
-    // FXTC END
+
     bool IsWhitelistedRange(const CNetAddr &addr);
 
     void DeleteNode(CNode* pnode);
@@ -517,9 +510,7 @@ private:
     ServiceFlags nLocalServices;
 
     std::unique_ptr<CSemaphore> semOutbound;
-    // Dash
     std::unique_ptr<CSemaphore> semMasternodeOutbound;
-    //
     std::unique_ptr<CSemaphore> semAddnode;
     int nMaxConnections;
     int nMaxOutbound;
@@ -547,7 +538,6 @@ private:
     std::thread threadOpenConnections;
     // Dash
     std::thread threadMnbRequestConnections;
-    //
     std::thread threadMessageHandler;
 
     /** flag for deciding to connect to an extra outbound peer,
@@ -636,7 +626,7 @@ extern bool fRelayTxes;
 extern std::map<CInv, CDataStream> mapRelayDash;
 extern std::deque<std::pair<int64_t, CInv> > vRelayExpirationDash;
 extern CCriticalSection cs_mapRelayDash;
-//
+
 extern limitedmap<uint256, int64_t> mapAlreadyAskedFor;
 
 /** Subversion as sent to the P2P network in `version` messages */
@@ -775,7 +765,6 @@ public:
     bool fFeeler; // If true this node is being used as a short lived feeler.
     // Dash
     bool fNetworkNode;
-    //
     bool fOneShot;
     bool m_manual_connection;
     bool fClient;
@@ -793,7 +782,6 @@ public:
     CSemaphoreGrant grantOutbound;
     // Dash
     CSemaphoreGrant grantMasternodeOutbound;
-    //
     CCriticalSection cs_filter;
     std::unique_ptr<CBloomFilter> pfilter;
     std::atomic<int> nRefCount;
@@ -822,7 +810,6 @@ public:
     CRollingBloomFilter filterInventoryKnown;
     // Dash
     std::vector<CInv> vInventoryToSend;
-    //
     // Set of transaction ids we still have to announce.
     // They are sorted by the mempool before relay, so the order is not important.
     std::set<uint256> setInventoryTxToSend;
@@ -836,7 +823,6 @@ public:
     int64_t nNextInvSend;
     // Dash
     int64_t nNextInvSendDash;
-    //
     // Used for headers announcements - unfiltered blocks to relay
     // Also protected by cs_inventory
     std::vector<uint256> vBlockHashesToAnnounce;
