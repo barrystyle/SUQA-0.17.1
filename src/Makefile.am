@@ -400,6 +400,9 @@ crypto_libsin_crypto_base_a_SOURCES = \
   crypto/sph_sha2.c \
   crypto/gost_streebog.c \
   crypto/SWIFFTX/SWIFFTX.c \
+  crypto/panama.c \
+  crypto/lane.c \
+  crypto/blake2s.c \
   crypto/sph_groestl.h \
   crypto/sph_types.h \
   crypto/sph_blake.h \
@@ -418,7 +421,10 @@ crypto_libsin_crypto_base_a_SOURCES = \
   crypto/lyra2.h \
   crypto/sponge.h \
   crypto/gost_streebog.h \
-  crypto/SWIFFTX/SWIFFTX.h
+  crypto/SWIFFTX/SWIFFTX.h \
+  crypto/SWIFFTX/sph_panama.h \
+  crypto/SWIFFTX/lane.h \
+  crypto/SWIFFTX/blake2s.h
 
 
 if USE_ASM
