@@ -15,8 +15,9 @@ uint256 CBlockHeader::GetHash() const
     return HashX22I(BEGIN(nVersion), END(nNonce));
 }
 
-uint256 CBlockHeader::GetPoWHash() const
+uint256 CBlockHeader::GetPoWHash(int nHeight) const
 {
+    // printf("%d\n", nHeight);
     return HashX22I(BEGIN(nVersion), END(nNonce));
 }
 
