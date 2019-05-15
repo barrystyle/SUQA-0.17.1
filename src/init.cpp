@@ -1387,8 +1387,7 @@ bool AppInitMain()
     const std::vector<unsigned char> data(interestRateTable.begin(), interestRateTable.end());
     int rateTableHash=MurmurHash3(1989,data);
     LogPrintf("Rate Table Hash=%d\n",rateTableHash);
-    assert(rateTableHash == -1285278043);
-    LogPrintf("Rate Table Hash=%d\n",rateTableHash);
+    assert(rateTableHash == 980424920);
 
     // ********************************************************* Step 5: verify wallet database integrity
     if (!g_wallet_init_interface.Verify()) return false;
