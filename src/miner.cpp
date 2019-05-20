@@ -233,7 +233,7 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
     coinbaseTx.vout[0].nValue = blockReward;
     coinbaseTx.vin[0].scriptSig = CScript() << nHeight << OP_0;
     // Dev fee
-    coinbaseTx.vout.push_back(CTxOut(GetDevCoin(blockReward), devScript));
+    coinbaseTx.vout.push_back(CTxOut(GetDevCoin(nHeight, blockReward), devScript));
 	//sinnode reward
     FillBlockPayments(coinbaseTx, nHeight, coinbaseTx.vout[0].nValue, pblock->txoutMasternode, pblock->voutSuperblock);
 	// Burn Tx Fee

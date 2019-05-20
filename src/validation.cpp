@@ -1274,27 +1274,6 @@ CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
     return reward;
 }
 
-CAmount GetBlockSubsidy(int nHeight, CBlockHeader pblock, const Consensus::Params& consensusParams, bool fSuperblockPartOnly)
-{
-    CAmount reward = 0;
-
-    if (nHeight <   22000) reward = 10000 * COIN;
-    if (22000 <= nHeight && nHeight < 50000) reward = 5000 * COIN;
-    if (50000 <= nHeight && nHeight < 100000) reward = 2500 * COIN;
-    if (100000 <= nHeight && nHeight < 165000) reward = 1250 * COIN; //hard fork
-	if (165000 <= nHeight && nHeight < 245000) reward = 750 * COIN;
-	if (245000 <= nHeight && nHeight < 375000) reward = 375 * COIN;
-	if (375000 <= nHeight && nHeight < 505000) reward = 187.5 * COIN;
-	if (505000 <= nHeight && nHeight < 635000) reward = 93.75 * COIN;
-	if (635000 <= nHeight && nHeight < 765000) reward = 46.875 * COIN;
-    if (765000 <= nHeight && nHeight < 895000) reward =  23.4375 * COIN;
-    if (895000 <= nHeight) reward =  11.71875 * COIN;
-
-	reward += GetMasternodePayment(nHeight, 1) + GetMasternodePayment(nHeight, 5) + GetMasternodePayment(nHeight, 10);
-
-    return 0;
-}
-
 CAmount GetMasternodePayment(int nHeight, int sintype = 0)
 {
     CAmount ret = 0.00;
@@ -1966,8 +1945,9 @@ static int64_t nTimeCallbacks = 0;
 static int64_t nTimeTotal = 0;
 static int64_t nBlocksTotal = 0;
 
-CAmount GetDevCoin(CAmount reward) {
-    return 0.1 * reward;
+CAmount GetDevCoin(int nHeight, CAmount reward) {
+  if (nHeight < 165000) return 0.1 * reward;
+  return 0.01 * reward;
 }
 
 /** Apply the effects of this block (with given index) on the UTXO set represented by coins.
@@ -2222,17 +2202,17 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
     LogPrint(BCLog::BENCH, "      - Connect %u transactions: %.2fms (%.3fms/tx, %.3fms/txin) [%.2fs (%.2fms/blk)]\n", (unsigned)block.vtx.size(), MILLI * (nTime3 - nTime2), MILLI * (nTime3 - nTime2) / block.vtx.size(), nInputs <= 1 ? 0 : MILLI * (nTime3 - nTime2) / (nInputs-1), nTimeConnect * MICRO, nTimeConnect * MILLI / nBlocksTotal);
 
     CAmount blockReward = nFees + GetBlockSubsidy(pindex->nHeight, chainparams.GetConsensus());
-    if (block.vtx[0]->GetValueOut() > blockReward + GetDevCoin(blockReward))
+    if (block.vtx[0]->GetValueOut() > blockReward + GetDevCoin(pindex->nHeight, blockReward))
         return state.DoS(100,
                          error("ConnectBlock(): coinbase pays too much (actual=%d vs limit=%d)",
-                               block.vtx[0]->GetValueOut(), blockReward + GetDevCoin(blockReward)),
+                               block.vtx[0]->GetValueOut(), blockReward + GetDevCoin(pindex->nHeight, blockReward)),
                                REJECT_INVALID, "bad-cb-amount");
 
     // verify devfund addr and amount are correct
     if (block.vtx[0]->vout[1].scriptPubKey != devScript)
         return state.DoS(100, error("ConnectBlock(): coinbase does not pay to the dev fund address."), REJECT_INVALID, "bad-cb-dev-fee");
-	LogPrintf("Miner -- Dev fee paid: %d, Calcul dev fee %d\n", block.vtx[0]->vout[1].nValue, GetDevCoin(blockReward));
-    if (block.vtx[0]->vout[1].nValue < GetDevCoin(blockReward))
+	LogPrintf("Miner -- Dev fee paid: %d, Calcul dev fee %d\n", block.vtx[0]->vout[1].nValue, GetDevCoin(pindex->nHeight, blockReward));
+    if (block.vtx[0]->vout[1].nValue < GetDevCoin(pindex->nHeight, blockReward))
         return state.DoS(100, error("ConnectBlock(): coinbase does not pay enough to the dev fund address."), REJECT_INVALID, "bad-cb-dev-fee");
 
     if (!control.Wait())
@@ -3382,7 +3362,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
                     // relaying instantsend data won't help it.
                     LOCK(cs_main);
                     mapRejectedBlocks.insert(std::make_pair(block.GetHash(), GetTime()));
-                    return state.DoS(100, false, REJECT_INVALID, "conflict-tx-lock", false, 
+                    return state.DoS(100, false, REJECT_INVALID, "conflict-tx-lock", false,
                                      strprintf("transaction %s conflicts with transaction lock %s", tx->GetHash().ToString(), hashLocked.ToString()));
                 }
             }
@@ -3498,7 +3478,7 @@ static bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationSta
     // Check proof of work
     const Consensus::Params& consensusParams = params.GetConsensus();
     uint32_t nBitsExpected = GetNextWorkRequired(pindexPrev, &block, consensusParams);
-    
+
     // LogPrintf("nHeight %d nBitsConsensus %08x nBitsActual %08x nBitsPass %s\n", nHeight, nBitsExpected, block.nBits, (nBitsExpected == block.nBits) ? "Y" : "N");
 
     if (block.nBits != nBitsExpected)
@@ -3834,7 +3814,7 @@ bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<cons
     return true;
 }
 
-bool TestBlockValidity(CValidationState& state, const CChainParams& chainparams, const CBlock& block, CBlockIndex* pindexPrev, bool fCheckPOW, 
+bool TestBlockValidity(CValidationState& state, const CChainParams& chainparams, const CBlock& block, CBlockIndex* pindexPrev, bool fCheckPOW,
 					   bool fCheckMerkleRoot)
 {
     AssertLockHeld(cs_main);
