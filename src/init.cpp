@@ -391,8 +391,11 @@ void SetupServerArgs()
 {
     const auto defaultBaseParams = CreateBaseChainParams(CBaseChainParams::MAIN);
     const auto testnetBaseParams = CreateBaseChainParams(CBaseChainParams::TESTNET);
+    const auto finalnetBaseParams = CreateBaseChainParams(CBaseChainParams::FINALNET);
+
     const auto defaultChainParams = CreateChainParams(CBaseChainParams::MAIN);
     const auto testnetChainParams = CreateChainParams(CBaseChainParams::TESTNET);
+    const auto finalChainParams = CreateChainParams(CBaseChainParams::FINALNET);
 
     // Hidden Options
     std::vector<std::string> hidden_args = {"-rpcssl", "-benchmark", "-h", "-help", "-socks", "-tor", "-debugnet", "-whitelistalwaysrelay",

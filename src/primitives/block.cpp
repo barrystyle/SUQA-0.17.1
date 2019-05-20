@@ -5,11 +5,15 @@
 
 #include <primitives/block.h>
 
+#include <chainparams.h>
 #include <hash.h>
 #include <tinyformat.h>
 #include <utilstrencodings.h>
 #include <crypto/common.h>
-#include "logging.h"
+
+const int nSinHeightFinalnet = 50;
+const int nSinHeightTestnet  = 100000;
+const int nSinHeightMainnet  = 165000;
 
 uint256 CBlockHeader::GetHash() const
 {
@@ -18,13 +22,17 @@ uint256 CBlockHeader::GetHash() const
 
 uint256 CBlockHeader::GetPoWHash(int nHeight) const
 {
-		if (nHeight >= 165000) {
-			LogPrintf("Hashing with X25X\n");
-			return HashX25X(BEGIN(nVersion), END(nNonce));
-    } else {
-			LogPrintf("Hashing with X22I\n");
-			return HashX22I(BEGIN(nVersion), END(nNonce));
-		}
+    bool fSinMode = false;
+
+    if ((Params().NetworkIDString() == CBaseChainParams::MAIN && nHeight >= nSinHeightMainnet) ||
+        (Params().NetworkIDString() == CBaseChainParams::TESTNET && nHeight >= nSinHeightTestnet) ||
+        (Params().NetworkIDString() == CBaseChainParams::FINALNET && nHeight >= nSinHeightFinalnet))
+        fSinMode = true;
+
+    if (!fSinMode)
+        return HashX22I(BEGIN(nVersion), END(nNonce));
+    else
+        return HashX25X(BEGIN(nVersion), END(nNonce));
 }
 
 std::string CBlock::ToString() const

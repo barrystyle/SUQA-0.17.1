@@ -1046,11 +1046,14 @@ std::string ArgsManager::GetChainName() const
 {
     bool fRegTest = ArgsManagerHelper::GetNetBoolArg(*this, "-regtest");
     bool fTestNet = ArgsManagerHelper::GetNetBoolArg(*this, "-testnet");
+    bool fFinalNet = ArgsManagerHelper::GetNetBoolArg(*this, "-finalnet");
 
     if (fTestNet && fRegTest)
         throw std::runtime_error("Invalid combination of -regtest and -testnet.");
     if (fRegTest)
         return CBaseChainParams::REGTEST;
+    if (fFinalNet)
+        return CBaseChainParams::FINALNET;
     if (fTestNet)
         return CBaseChainParams::TESTNET;
     return CBaseChainParams::MAIN;

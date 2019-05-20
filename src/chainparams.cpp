@@ -6,6 +6,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <arith_uint256.h>
 #include <chainparams.h>
 #include <consensus/merkle.h>
 
@@ -306,6 +307,113 @@ public:
 };
 
 /**
+ * FinalNet
+ */
+class CFinalNetParams : public CChainParams {
+public:
+    CFinalNetParams() {
+        strNetworkID = "final";
+        consensus.nSubsidyHalvingInterval = 210000;
+        consensus.nMasternodeMinimumConfirmations = 15;
+        consensus.nMasternodePaymentsStartBlock = 50;
+        consensus.nMasternodePaymentsIncreaseBlock = 50;
+        consensus.nMasternodePaymentsIncreasePeriod = 365 * 1440; // 1 common year
+        consensus.nMasternodeCollateralMinimum = 10;
+        consensus.nMasternodeBurnSINNODE_1 = 100;
+        consensus.nMasternodeBurnSINNODE_5 = 500;
+        consensus.nMasternodeBurnSINNODE_10 = 1000;
+        consensus.nInstantSendKeepLock = 24;
+        consensus.nBudgetPaymentsStartBlock = 365 * 1440; // 1 common year
+        consensus.nBudgetPaymentsCycleBlocks = 10958; // weekly
+        consensus.nBudgetPaymentsWindowBlocks = 100;
+        consensus.nBudgetProposalEstablishingTime = 86400; // 1 day
+        consensus.nSuperblockStartBlock = 365 * 1440; // 1 common year
+        consensus.nSuperblockCycle = 10958; // weekly
+        consensus.nGovernanceMinQuorum = 10;
+        consensus.nGovernanceFilterElements = 20000;
+        consensus.BIP16Exception = uint256S("0000000000000000000000000000000000000000000000000000000000000000");
+        consensus.BIP34Height = 8388608;
+        consensus.BIP34Hash = uint256S("0000000000000000000000000000000000000000000000000000000000000000");
+        consensus.BIP65Height = 8388608;
+        consensus.BIP66Height = 8388608;
+        consensus.powLimit = uint256S("0000ffff00000000000000000000000000000000000000000000000000000000");
+        consensus.nPowTargetTimespan = 3600;
+        consensus.nPowTargetSpacing = 120;
+        consensus.fPowAllowMinDifficultyBlocks = false;
+        consensus.fPowNoRetargeting = false;
+        consensus.nRuleChangeActivationThreshold = 1916;
+        consensus.nMinerConfirmationWindow = 2016;
+        consensus.cBurnAddress = "SinBurnAddress123456789SuqaXbx3AMC";
+        consensus.cBurnAddressPubKey = "ebaf5ec74cb2e2342dfda0229111738ff4dc742d";
+        strSporkPubKey = "0454E1B43ECCAC17E50402370477455BE34593E272CA9AE0DF04F6F3D423D1366D017822C77990A3D8DD980C60D3692C9B6D7DFD75F683F7056C1E97E82BD94DBE";
+
+        consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].bit = 28;
+        consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nStartTime = NEVER;
+        consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nTimeout = NEVER;
+
+        // Deployment of BIP68, BIP112, and BIP113.
+        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].bit = 0;
+        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nStartTime = NEVER;
+        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nTimeout = NEVER;
+
+        // Deployment of SegWit (BIP141, BIP143, and BIP147)
+        consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].bit = 1;
+        consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nStartTime = NEVER;
+        consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nTimeout = NEVER;
+
+        // The best chain should have at least this much work.
+        consensus.nMinimumChainWork = uint256S("0000000000000000000000000000000000000000000000000000000000000000");
+
+        // By default assume that the signatures in ancestors of this block are valid.
+        consensus.defaultAssumeValid = uint256S("0000000000000000000000000000000000000000000000000000000000000000");
+
+        pchMessageStart[0] = 0xfe;
+        pchMessageStart[1] = 0xfd;
+        pchMessageStart[2] = 0xf4;
+        pchMessageStart[3] = 0xd8;
+        nPruneAfterHeight = 1000;
+        nFulfilledRequestExpireTime = 60*60;
+
+        genesis = CreateGenesisBlock(1558117000, 91643, 0x1f00ffff, 1, 0 * COIN);
+        consensus.hashGenesisBlock = genesis.GetHash();
+        // assert(consensus.hashGenesisBlock == uint256S("0000000000000000000000000000000000000000000000000000000000000000"));
+        // assert(genesis.hashMerkleRoot == uint256S("0000000000000000000000000000000000000000000000000000000000000000"));
+
+        vFixedSeeds.clear();
+        vSeeds.clear();
+
+        vSeeds.emplace_back("178.128.230.114");
+        vSeeds.emplace_back("178.62.226.114");
+        nDefaultPort = 20990;
+
+        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,63);
+        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,5);
+        base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,191);
+        base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x35, 0x87, 0xCF};
+        base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x35, 0x83, 0x94};
+
+        bech32_hrp = "tb";
+
+        vFixedSeeds = std::vector<SeedSpec6>(pnSeed6_test, pnSeed6_test + ARRAYLEN(pnSeed6_test));
+
+        fDefaultConsistencyChecks = false;
+        fRequireStandard = false;
+        fMineBlocksOnDemand = false;
+
+        nPoolMaxTransactions = 3;
+
+        checkpointData = {
+        };
+
+        chainTxData = ChainTxData{
+        };
+
+        /* enable fallback fee on FinalNet */
+        m_fallback_fee_enabled = true;
+    }
+};
+
+/**
  * Regression test
  */
 class CRegTestParams : public CChainParams {
@@ -395,6 +503,8 @@ std::unique_ptr<CChainParams> CreateChainParams(const std::string& chain)
         return std::unique_ptr<CChainParams>(new CMainParams());
     else if (chain == CBaseChainParams::TESTNET)
         return std::unique_ptr<CChainParams>(new CTestNetParams());
+    else if (chain == CBaseChainParams::FINALNET)
+        return std::unique_ptr<CChainParams>(new CFinalNetParams());
     else if (chain == CBaseChainParams::REGTEST)
         return std::unique_ptr<CChainParams>(new CRegTestParams());
     throw std::runtime_error(strprintf("%s: Unknown chain %s.", __func__, chain));
