@@ -1946,6 +1946,7 @@ static int64_t nTimeTotal = 0;
 static int64_t nBlocksTotal = 0;
 
 CAmount GetDevCoin(int nHeight, CAmount reward) {
+  if (Params().NetworkIDString() == CBaseChainParams::FINALNET && nHeight >=100) return 0.01 * reward;
   if (nHeight < 165000) return 0.1 * reward;
   return 0.01 * reward;
 }
