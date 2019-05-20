@@ -537,7 +537,7 @@ inline bool IsBlockPruned(const CBlockIndex* pblockindex)
     return (fHavePruned && !(pblockindex->nStatus & BLOCK_HAVE_DATA) && pblockindex->nTx > 0);
 }
 
-CAmount GetDevCoin(CAmount reward);
+CAmount GetDevCoin(int nHeight, CAmount reward);
 extern CScript devScript;
 
 #endif // BITCOIN_VALIDATION_H
