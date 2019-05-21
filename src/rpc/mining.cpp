@@ -714,7 +714,7 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
     result.pushKV("height", (int64_t)(pindexPrev->nHeight+1));
 
     // Dash
-    UniValue masternodeObj(UniValue::VOBJ);
+    UniValue masternodeObj(UniValue::VARR);
 	/*
 	 * 0: miner payment
 	 * 1: dev fee
@@ -722,12 +722,14 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
 	 */
 	for (unsigned int i = 2; i < pblock->vtx[0]->vout.size() - 1; i++) 
 	{
+                UniValue entry(UniValue::VOBJ);
 		CTxDestination address1;
 		ExtractDestination(pblock->vtx[0]->vout[i].scriptPubKey, address1);
 		std::string address2 = EncodeDestination(address1);
-		masternodeObj.push_back(Pair("payee", address2.c_str()));
-		masternodeObj.push_back(Pair("script", HexStr(pblock->vtx[0]->vout[i].scriptPubKey.begin(), pblock->vtx[0]->vout[i].scriptPubKey.end())));
-		masternodeObj.push_back(Pair("amount", pblock->vtx[0]->vout[i].nValue));
+		entry.push_back(Pair("payee",address2.c_str()));
+		entry.push_back(Pair("script",HexStr(pblock->vtx[0]->vout[i].scriptPubKey.begin(), pblock->vtx[0]->vout[i].scriptPubKey.end())));
+		entry.push_back(Pair("amount",ValueFromAmount(pblock->vtx[0]->vout[i].nValue * COIN)));
+                masternodeObj.push_back(entry);
 	}
 		 
     result.push_back(Pair("masternode", masternodeObj));
