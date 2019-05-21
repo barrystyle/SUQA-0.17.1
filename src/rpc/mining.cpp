@@ -728,7 +728,7 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
 		std::string address2 = EncodeDestination(address1);
 		entry.push_back(Pair("payee",address2.c_str()));
 		entry.push_back(Pair("script",HexStr(pblock->vtx[0]->vout[i].scriptPubKey.begin(), pblock->vtx[0]->vout[i].scriptPubKey.end())));
-		entry.push_back(Pair("amount",ValueFromAmount(pblock->vtx[0]->vout[i].nValue * COIN)));
+		entry.push_back(Pair("amount",(int64_t)pblock->vtx[0]->vout[i].nValue));
                 masternodeObj.push_back(entry);
 	}
 		 
