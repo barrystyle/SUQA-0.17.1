@@ -132,7 +132,7 @@ UniValue generateBlocks(std::shared_ptr<CReserveScript> coinbaseScript, int nGen
             LOCK(cs_main);
             IncrementExtraNonce(pblock, chainActive.Tip(), nExtraNonce);
         }
-        while (nMaxTries > 0 && pblock->nNonce < nInnerLoopCount && !CheckProofOfWork(pblock->GetHash(), pblock->nBits, Params().GetConsensus())) {
+        while (nMaxTries > 0 && pblock->nNonce < nInnerLoopCount && !CheckProofOfWork(pblock->GetPoWHash(nHeight + 1), pblock->nBits, Params().GetConsensus())) {
             ++pblock->nNonce;
             --nMaxTries;
         }
@@ -720,7 +720,7 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
 	 * 1: dev fee
 	 * size() - 1: not our payment
 	 */
-	for (unsigned int i = 2; i < pblock->vtx[0]->vout.size() - 1; i++) 
+	for (unsigned int i = 2; i < pblock->vtx[0]->vout.size() - 1; i++)
 	{
                 UniValue entry(UniValue::VOBJ);
 		CTxDestination address1;
@@ -731,7 +731,7 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
 		entry.push_back(Pair("amount",(int64_t)pblock->vtx[0]->vout[i].nValue));
                 masternodeObj.push_back(entry);
 	}
-		 
+
     result.push_back(Pair("masternode", masternodeObj));
     result.push_back(Pair("masternode_payments_started", pindexPrev->nHeight + 1 > Params().GetConsensus().nMasternodePaymentsStartBlock));
     result.push_back(Pair("masternode_payments_enforced", sporkManager.IsSporkActive(SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT)));
