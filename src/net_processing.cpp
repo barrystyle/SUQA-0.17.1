@@ -1908,6 +1908,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         {
             connman->SetServices(pfrom->addr, nServices);
         }
+#if 0
         if (!pfrom->fInbound && !pfrom->fFeeler && !pfrom->m_manual_connection && !HasAllDesirableServiceFlags(nServices))
         {
             LogPrint(BCLog::NET, "peer=%d does not offer the expected services (%08x offered, %08x expected); disconnecting\n", pfrom->GetId(), nServices, GetDesirableServiceFlags(nServices));
@@ -1918,6 +1919,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             pfrom->fDisconnect = true;
             return false;
         }
+#endif
 
         if (nVersion < MIN_PEER_PROTO_VERSION)
         {
