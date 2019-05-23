@@ -12,7 +12,7 @@
 #include <crypto/common.h>
 
 const int nSinHeightFinalnet = 50;
-const int nSinHeightTestnet  = 100000;
+const int nSinHeightTestnet  = 50;
 const int nSinHeightMainnet  = 165000;
 
 uint256 CBlockHeader::GetHash() const
