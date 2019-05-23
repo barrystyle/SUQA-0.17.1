@@ -1287,7 +1287,7 @@ CAmount GetMasternodePayment(int nHeight, int sintype = 0)
 		if (Params().NetworkIDString() == CBaseChainParams::TESTNET && nHeight >=105 && nHeight <  150000) return 8 * COIN;
 
 		if (nHeight <  150000) return  0 * COIN;  //testnet
-		if (nHeight <  165000) return  0 * COIN;  //hard fork
+		if (nHeight <  165100) return  0 * COIN;  //hard fork
 		if (nHeight < 5000000) return  160 * COIN;
 	}
 
@@ -1296,7 +1296,7 @@ CAmount GetMasternodePayment(int nHeight, int sintype = 0)
 		if (Params().NetworkIDString() == CBaseChainParams::TESTNET && nHeight >=105 && nHeight <  150000) return 41 * COIN;
 
 		if (nHeight <  150000) return  0 * COIN;  //testnet
-		if (nHeight <  165000) return  0 * COIN;  //hard fork
+		if (nHeight <  165100) return  0 * COIN;  //hard fork
 		if (nHeight < 5000000) return  838 * COIN;
 	}
 
@@ -1305,7 +1305,7 @@ CAmount GetMasternodePayment(int nHeight, int sintype = 0)
 		if (Params().NetworkIDString() == CBaseChainParams::TESTNET && nHeight >=105 && nHeight <  150000) return 85 * COIN;
 
 		if (nHeight <  150000) return  0 * COIN;  //testnet
-		if (nHeight <  165000) return  0 * COIN;  //hard fork
+		if (nHeight <  165100) return  0 * COIN;  //hard fork
 		if (nHeight < 5000000) return  1752 * COIN;
 	}
 
@@ -1956,7 +1956,7 @@ static int64_t nBlocksTotal = 0;
 
 CAmount GetDevCoin(int nHeight, CAmount reward) {
   if (Params().NetworkIDString() == CBaseChainParams::FINALNET && nHeight >=100) return 0.01 * reward;
-  if (nHeight < 165000) return 0.1 * reward;
+  if (nHeight < 165050) return 0.1 * reward;
   return 0.01 * reward;
 }
 
