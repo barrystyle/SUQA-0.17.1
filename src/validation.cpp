@@ -1254,24 +1254,25 @@ double ConvertBitsToDouble(unsigned int nBits)
 
 CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
 {
-
 	CAmount reward = 0;
 
-    if (nHeight <   22000) reward = 10000 * COIN;
-    if (22000 <= nHeight && nHeight < 50000) reward = 5000 * COIN;
-    if (50000 <= nHeight && nHeight < 100000) reward = 2500 * COIN;
-    if (100000 <= nHeight && nHeight < 165000) reward = 1250 * COIN; //hard fork
-	if (165000 <= nHeight && nHeight < 245000) reward = 750 * COIN;
-	if (245000 <= nHeight && nHeight < 375000) reward = 375 * COIN;
-	if (375000 <= nHeight && nHeight < 505000) reward = 187.5 * COIN;
-	if (505000 <= nHeight && nHeight < 635000) reward = 93.75 * COIN;
-	if (635000 <= nHeight && nHeight < 765000) reward = 46.875 * COIN;
-    if (765000 <= nHeight && nHeight < 895000) reward =  23.4375 * COIN;
-    if (895000 <= nHeight) reward =  11.71875 * COIN;
+	if (nHeight  <   22000) reward = 10000 * COIN;
+	if (22000   <= nHeight && nHeight < 50000)   reward = 5000 * COIN;
+	if (50000   <= nHeight && nHeight < 100000)  reward = 2500 * COIN;
+	if (100000  <= nHeight && nHeight < 165000)  reward = 1250 * COIN; //hard fork
+	if (165000  <= nHeight && nHeight < 245000)  reward = 500 * COIN;
+	if (245000  <= nHeight && nHeight < 375000)  reward = 250 * COIN;
+	if (375000  <= nHeight && nHeight < 505000)  reward = 125 * COIN;
+	if (505000  <= nHeight && nHeight < 635000)  reward = 62.5 * COIN;
+	if (635000  <= nHeight && nHeight < 765000)  reward = 31.25 * COIN;
+	if (765000  <= nHeight && nHeight < 895000)  reward = 15.625 * COIN;
+	if (895000  <= nHeight && nHeight < 1025000) reward = 7.8125 * COIN;
+	if (1025000 <= nHeight && nHeight < 1500000) reward = 3.90625 * COIN;
+	if (1500000 <= nHeight && nHeight < 5000000) reward = 1.953125 * COIN;
 
 	reward += GetMasternodePayment(nHeight, 1) + GetMasternodePayment(nHeight, 5) + GetMasternodePayment(nHeight, 10);
 
-    return reward;
+  return reward;
 }
 
 CAmount GetMasternodePayment(int nHeight, int sintype = 0)
