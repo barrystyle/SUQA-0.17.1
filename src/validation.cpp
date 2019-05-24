@@ -1259,8 +1259,8 @@ CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
 	if (nHeight  <   22000) reward = 10000 * COIN;
 	if (22000   <= nHeight && nHeight < 50000)   reward = 5000 * COIN;
 	if (50000   <= nHeight && nHeight < 100000)  reward = 2500 * COIN;
-	if (100000  <= nHeight && nHeight < 165000)  reward = 1250 * COIN; //hard fork
-	if (165000  <= nHeight && nHeight < 245000)  reward = 500 * COIN;
+	if (100000  <= nHeight && nHeight < 170000)  reward = 1250 * COIN; //hard fork
+	if (170000  <= nHeight && nHeight < 245000)  reward = 500 * COIN;
 	if (245000  <= nHeight && nHeight < 375000)  reward = 250 * COIN;
 	if (375000  <= nHeight && nHeight < 505000)  reward = 125 * COIN;
 	if (505000  <= nHeight && nHeight < 635000)  reward = 62.5 * COIN;
@@ -1288,7 +1288,7 @@ CAmount GetMasternodePayment(int nHeight, int sintype = 0)
 		if (Params().NetworkIDString() == CBaseChainParams::TESTNET && nHeight >=105 && nHeight <  150000) return 8 * COIN;
 
 		if (nHeight <  150000) return  0 * COIN;  //testnet
-		if (nHeight <  165100) return  0 * COIN;  //hard fork
+		if (nHeight <  170100) return  0 * COIN;  //hard fork
 		if (nHeight < 5000000) return  160 * COIN;
 	}
 
@@ -1297,7 +1297,7 @@ CAmount GetMasternodePayment(int nHeight, int sintype = 0)
 		if (Params().NetworkIDString() == CBaseChainParams::TESTNET && nHeight >=105 && nHeight <  150000) return 41 * COIN;
 
 		if (nHeight <  150000) return  0 * COIN;  //testnet
-		if (nHeight <  165100) return  0 * COIN;  //hard fork
+		if (nHeight <  170100) return  0 * COIN;  //hard fork
 		if (nHeight < 5000000) return  838 * COIN;
 	}
 
@@ -1306,7 +1306,7 @@ CAmount GetMasternodePayment(int nHeight, int sintype = 0)
 		if (Params().NetworkIDString() == CBaseChainParams::TESTNET && nHeight >=105 && nHeight <  150000) return 85 * COIN;
 
 		if (nHeight <  150000) return  0 * COIN;  //testnet
-		if (nHeight <  165100) return  0 * COIN;  //hard fork
+		if (nHeight <  170100) return  0 * COIN;  //hard fork
 		if (nHeight < 5000000) return  1752 * COIN;
 	}
 
@@ -1957,7 +1957,7 @@ static int64_t nBlocksTotal = 0;
 
 CAmount GetDevCoin(int nHeight, CAmount reward) {
   if (Params().NetworkIDString() == CBaseChainParams::FINALNET && nHeight >=100) return 0.01 * reward;
-  if (nHeight < 165050) return 0.1 * reward;
+  if (nHeight < 170050) return 0.1 * reward;
   return 0.01 * reward;
 }
 

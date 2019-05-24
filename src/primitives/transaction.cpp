@@ -231,7 +231,7 @@ std::string initRateTable()
 
 CAmount GetInterest(CAmount nValue, int outputBlockHeight, int valuationHeight, int maturationBlock)
 {
-    if(maturationBlock >= 500000000 || outputBlockHeight<0 || outputBlockHeight>=165000 || valuationHeight<0 || valuationHeight<outputBlockHeight)
+    if(maturationBlock >= 500000000 || outputBlockHeight<0 || outputBlockHeight>=170000 || valuationHeight<0 || valuationHeight<outputBlockHeight)
         return nValue;
 
     int blocks=0;
