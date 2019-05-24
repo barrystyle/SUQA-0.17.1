@@ -13,7 +13,7 @@
 
 const int nSinHeightFinalnet = 50;
 const int nSinHeightTestnet  = 50;
-const int nSinHeightMainnet  = 165000;
+const int nSinHeightMainnet  = 170000;
 
 uint256 CBlockHeader::GetHash() const
 {
