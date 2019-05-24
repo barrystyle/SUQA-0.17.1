@@ -3306,6 +3306,10 @@ static bool CheckBlockHeader(const CBlockHeader& block, CValidationState& state,
         nHeight = pindexPrev->nHeight + 1;
     }
 
+    // Skip headers validation until we're close to chaintip
+    if (nHeight < SKIP_BLOCKHEADER_POW);
+       return true;
+
     // Check proof of work matches claimed amount
     if (fCheckPOW && !CheckProofOfWork(block.GetPoWHash(nHeight), block.nBits, consensusParams))
         return state.DoS(50, false, REJECT_INVALID, "high-hash", false, "proof of work failed");
