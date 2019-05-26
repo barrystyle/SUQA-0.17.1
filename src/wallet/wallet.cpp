@@ -4967,7 +4967,7 @@ void CWallet::MarkReserveKeysAsUsed(int64_t keypool_id)
             m_pool_key_to_index.erase(keypool.vchPubKey.GetID());
         }
 		//SIN don't support P2SH_SEGWIT and BECH32 yet
-        //LearnAllRelatedScripts(keypool.vchPubKey);
+        LearnAllRelatedScripts(keypool.vchPubKey);
         batch.ErasePool(index);
         WalletLogPrintf("keypool index %d removed\n", index);
         it = setKeyPool->erase(it);

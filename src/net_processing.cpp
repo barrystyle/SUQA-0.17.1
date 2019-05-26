@@ -1335,12 +1335,9 @@ void static ProcessGetData(CNode* pfrom, const CChainParams& chainparams, CConnm
     {
         LOCK(cs_main);
 
-        //while (it != pfrom->vRecvGetData.end() && (it->type == MSG_TX || it->type == MSG_WITNESS_TX))
-        while (it != pfrom->vRecvGetData.end() && (it->type == MSG_TX || it->type == MSG_WITNESS_TX ||
-            it->type == MSG_TXLOCK_REQUEST || it->type == MSG_TXLOCK_VOTE || it->type == MSG_SPORK ||
-            it->type == MSG_MASTERNODE_PAYMENT_VOTE || it->type == MSG_MASTERNODE_PAYMENT_BLOCK || it->type == MSG_MASTERNODE_ANNOUNCE ||
-            it->type == MSG_MASTERNODE_PING || it->type == MSG_DSTX || it->type == MSG_GOVERNANCE_OBJECT ||
-            it->type == MSG_GOVERNANCE_OBJECT_VOTE || it->type == MSG_MASTERNODE_VERIFY))
+		while (it != pfrom->vRecvGetData.end() && !(it->type == MSG_BLOCK || 
+													it->type == MSG_FILTERED_BLOCK || 
+													it->type == MSG_CMPCT_BLOCK || it->type == MSG_WITNESS_BLOCK))			
         {
             if (interruptMsgProc)
                 return;
@@ -1354,35 +1351,31 @@ void static ProcessGetData(CNode* pfrom, const CChainParams& chainparams, CConnm
             LogPrint(BCLog::NET, "ProcessGetData -- inv = %s\n", inv.ToString());
 
           // Process non-Dash messages by original Bitcoin Core processor
-          if (!(inv.type == MSG_TXLOCK_REQUEST || inv.type == MSG_TXLOCK_VOTE || inv.type == MSG_SPORK ||
-              inv.type == MSG_MASTERNODE_PAYMENT_VOTE || inv.type == MSG_MASTERNODE_PAYMENT_BLOCK || inv.type == MSG_MASTERNODE_ANNOUNCE ||
-              inv.type == MSG_MASTERNODE_PING || inv.type == MSG_DSTX || inv.type == MSG_GOVERNANCE_OBJECT ||
-              inv.type == MSG_GOVERNANCE_OBJECT_VOTE || inv.type == MSG_MASTERNODE_VERIFY)) {
-
-	    LogPrint(BCLog::NET, "ProcessGetData -- NON Node message\n");
-            // Send stream from relay memory
-            bool push = false;
-            auto mi = mapRelay.find(inv.hash);
-            int nSendFlags = (inv.type == MSG_TX ? SERIALIZE_TRANSACTION_NO_WITNESS : 0);
-            if (mi != mapRelay.end()) {
-                connman->PushMessage(pfrom, msgMaker.Make(nSendFlags, NetMsgType::TX, *mi->second));
-                push = true;
-            } else if (pfrom->timeLastMempoolReq) {
-                auto txinfo = mempool.info(inv.hash);
-                // To protect privacy, do not answer getdata using the mempool when
-                // that TX couldn't have been INVed in reply to a MEMPOOL request.
-                if (txinfo.tx && txinfo.nTime <= pfrom->timeLastMempoolReq) {
-                    connman->PushMessage(pfrom, msgMaker.Make(nSendFlags, NetMsgType::TX, *txinfo.tx));
-                    push = true;
-                }
-            }
-            if (!push) {
-                vNotFound.push_back(inv);
-            }
+          if (inv.type == MSG_TX || inv.type == MSG_WITNESS_TX) {
+				LogPrint(BCLog::NET, "ProcessGetData -- NON Node message\n");
+				// Send stream from relay memory
+				bool push = false;
+				auto mi = mapRelay.find(inv.hash);
+				int nSendFlags = (inv.type == MSG_TX ? SERIALIZE_TRANSACTION_NO_WITNESS : 0);
+				if (mi != mapRelay.end()) {
+					connman->PushMessage(pfrom, msgMaker.Make(nSendFlags, NetMsgType::TX, *mi->second));
+					push = true;
+				} else if (pfrom->timeLastMempoolReq) {
+					auto txinfo = mempool.info(inv.hash);
+					// To protect privacy, do not answer getdata using the mempool when
+					// that TX couldn't have been INVed in reply to a MEMPOOL request.
+					if (txinfo.tx && txinfo.nTime <= pfrom->timeLastMempoolReq) {
+						connman->PushMessage(pfrom, msgMaker.Make(nSendFlags, NetMsgType::TX, *txinfo.tx));
+						push = true;
+					}
+				}
+				if (!push) {
+					vNotFound.push_back(inv);
+				}
           } else {
-            // Dash
-            {
-		LogPrint(BCLog::NET, "ProcessGetData -- Node message type in protocol: %d\n", inv.type);
+          // Dash
+            	{
+				LogPrint(BCLog::NET, "ProcessGetData -- Node message type in protocol: %d\n", inv.type);
                 // Send stream from relay memory
                 bool pushed = false;
                 {

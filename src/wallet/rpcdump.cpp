@@ -179,7 +179,7 @@ UniValue importprivkey(const JSONRPCRequest& request)
                 throw JSONRPCError(RPC_WALLET_ERROR, "Error adding key to wallet");
             }
             //SIN don't support P2SH_SEGWIT and BECH32 yet
-            //pwallet->LearnAllRelatedScripts(pubkey);
+            pwallet->LearnAllRelatedScripts(pubkey);
         }
     }
     if (fRescan) {
