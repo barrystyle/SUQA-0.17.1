@@ -3307,8 +3307,9 @@ static bool CheckBlockHeader(const CBlockHeader& block, CValidationState& state,
     }
 
     // Skip headers validation until we're close to chaintip
-    if (nHeight < SKIP_BLOCKHEADER_POW);
-       return true;
+    if (Params().NetworkIDString() == CBaseChainParams::MAIN)
+      if (nHeight < SKIP_BLOCKHEADER_POW)
+        return true;
 
     // Check proof of work matches claimed amount
     if (fCheckPOW && !CheckProofOfWork(block.GetPoWHash(nHeight), block.nBits, consensusParams))
