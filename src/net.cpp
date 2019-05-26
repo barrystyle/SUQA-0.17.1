@@ -410,8 +410,20 @@ CNode* CConnman::ConnectNode(CAddress addrConnect, const char *pszDest, bool fCo
         CNode* pnode = FindNode(static_cast<CService>(addrConnect));
         if (pnode)
         {
-            LogPrintf("Failed to open new connection, already connected\n");
-            return nullptr;
+            // Dash
+            // we have existing connection to this node but it was not a connection to masternode,
+            // change flag and add reference so that we can correctly clear it later
+            if(fConnectToMasternode && !pnode->fMasternode) {
+                pnode->AddRef();
+                pnode->fMasternode = true;
+            } else {
+                LogPrintf("Failed to open new connection, already connected\n");
+                return nullptr;
+            // Dash
+            }
+            LogPrint(BCLog::NET, "CConnman::ConnectNode -- reusing node: peer=%d addr=%s nRefCount=%d fNetworkNode=%d fInbound=%d fMasternode=%d\n",
+                      pnode->id, pnode->addr.ToString(), pnode->GetRefCount(), pnode->fNetworkNode, pnode->fInbound, pnode->fMasternode);
+            return pnode;
         }
     }
 
@@ -1236,6 +1248,17 @@ void CConnman::ThreadSocketHandler()
         //
         {
             LOCK(cs_vNodes);
+
+            if (!fNetworkActive) {
+                // Disconnect any connected nodes
+                for (CNode* pnode : vNodes) {
+                    if (!pnode->fDisconnect) {
+                        LogPrint(BCLog::NET, "Network not active, dropping peer=%d\n", pnode->GetId());
+                        pnode->fDisconnect = true;
+                    }
+                }
+            }
+
             // Disconnect unused nodes
             std::vector<CNode*> vNodesCopy = vNodes;
             for (CNode* pnode : vNodesCopy)
@@ -1853,7 +1876,7 @@ void CConnman::ThreadOpenConnections(const std::vector<std::string> connect)
             return;
 
         // Add seed nodes if DNS seeds are all down (an infrastructure attack?).
-        if (addrman.size() == 0 && (GetTime() - nStart > 5)) {
+        if (addrman.size() == 0 && (GetTime() - nStart > 60)) {
             static bool done = false;
             if (!done) {
                 LogPrintf("Adding fixed seed nodes as DNS doesn't seem to be available.\n");
@@ -2792,13 +2815,9 @@ void CConnman::RelayTransaction(const CTransaction& tx, const CDataStream& ss)
         LOCK(pnode->cs_filter);
         if (pnode->pfilter)
         {
-            if (pnode->pfilter->IsRelevantAndUpdate(tx)) {
-                LogPrintf("Net::RelayTransaction -- in case filter\n");
+            if (pnode->pfilter->IsRelevantAndUpdate(tx))
                 pnode->PushInventory(inv);
-            } else
-                continue;
         } else {
-            LogPrintf("Net::RelayTransaction -- in case non filter\n");
             pnode->PushInventory(inv);
         }
     }
