@@ -1234,18 +1234,6 @@ void CConnman::ThreadSocketHandler()
     unsigned int nPrevNodeCount = 0;
     while (!interruptNet)
     {
-        if (!fNetworkActive) {
-            // Disconnect any connected nodes
-            for (CNode* pnode : vNodes) {
-                if (!pnode->fDisconnect) {
-                    LogPrint(BCLog::NET, "Network not active, dropping peer=%d\n", pnode->GetId());
-                    pnode->fDisconnect = true;
-                }
-            }
-        }
-        //
-        // Disconnect nodes
-        //
         {
             LOCK(cs_vNodes);
 
