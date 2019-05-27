@@ -87,7 +87,7 @@ QLabel {
 color:white;
 }
 
-QWidget#RPCConsole QTableView#peerWidget::item, QTableView#banlistWidget::ite  {
+QWidget#RPCConsole QTableView#peerWidget::item, QTableView#banlistWidget::item  {
 	/* Peers Table Items */
 	color: #fff;
 }
