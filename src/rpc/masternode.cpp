@@ -535,6 +535,12 @@ UniValue masternodelist(const JSONRPCRequest& request)
                 obj.push_back(Pair(strOutpoint, strAddress));
             } else if (strMode == "full") {
                 std::ostringstream streamFull;
+		int infinityType = mn.GetSinTypeInt();
+		int rewardAtHeigh = GetMasternodePayment(chainActive.Height(), infinityType);
+		int burnAmountByType = 0;
+		if (infinityType == 1) burnAmountByType = Params().GetConsensus().nMasternodeBurnSINNODE_1;
+		if (infinityType == 5) burnAmountByType = Params().GetConsensus().nMasternodeBurnSINNODE_5;
+		if (infinityType == 10) burnAmountByType = Params().GetConsensus().nMasternodeBurnSINNODE_10;
                 streamFull << std::setw(18) <<
                                mn.GetStatus() << " " <<
                                mn.nProtocolVersion << " " <<
@@ -543,13 +549,19 @@ UniValue masternodelist(const JSONRPCRequest& request)
                                (int64_t)(mn.lastPing.sigTime - mn.sigTime) << " " << std::setw(10) <<
                                mn.GetLastPaidTime() << " "  << std::setw(6) <<
                                mn.GetLastPaidBlock() << " " <<
-                               mn.addr.ToString() << " " << mn.GetSinTypeInt();
+                               mn.addr.ToString() << " " << infinityType << " " << rewardAtHeigh << " " <<burnAmountByType;
                 std::string strFull = streamFull.str();
                 if (strFilter !="" && strFull.find(strFilter) == std::string::npos &&
                     strOutpoint.find(strFilter) == std::string::npos) continue;
                 obj.push_back(Pair(strOutpoint, strFull));
             } else if (strMode == "info") {
                 std::ostringstream streamInfo;
+		int infinityType = mn.GetSinTypeInt();
+		int rewardAtHeigh = GetMasternodePayment(chainActive.Height(), infinityType);
+		int burnAmountByType = 0;
+		if (infinityType == 1) burnAmountByType = Params().GetConsensus().nMasternodeBurnSINNODE_1;
+		if (infinityType == 5) burnAmountByType = Params().GetConsensus().nMasternodeBurnSINNODE_5;
+		if (infinityType == 10) burnAmountByType = Params().GetConsensus().nMasternodeBurnSINNODE_10;
                 streamInfo << std::setw(18) <<
                                mn.GetStatus() << " " <<
                                mn.nProtocolVersion << " " <<
@@ -558,7 +570,7 @@ UniValue masternodelist(const JSONRPCRequest& request)
                                (int64_t)(mn.lastPing.sigTime - mn.sigTime) << " " <<
                                SafeIntVersionToString(mn.lastPing.nSentinelVersion) << " "  <<
                                (mn.lastPing.fSentinelIsCurrent ? "current" : "expired") << " " <<
-                               mn.addr.ToString() << " " << mn.GetSinTypeInt();
+                               mn.addr.ToString() << " " << infinityType << " " << rewardAtHeigh << " " <<burnAmountByType;
                 std::string strInfo = streamInfo.str();
                 if (strFilter !="" && strInfo.find(strFilter) == std::string::npos &&
                     strOutpoint.find(strFilter) == std::string::npos) continue;
