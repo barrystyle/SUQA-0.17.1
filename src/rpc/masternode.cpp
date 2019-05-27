@@ -536,7 +536,7 @@ UniValue masternodelist(const JSONRPCRequest& request)
             } else if (strMode == "full") {
                 std::ostringstream streamFull;
 		int infinityType = mn.GetSinTypeInt();
-		int rewardAtHeigh = GetMasternodePayment(chainActive.Height(), infinityType);
+		int rewardAtHeight = GetMasternodePayment(chainActive.Height(), infinityType) / COIN;
 		int burnAmountByType = 0;
 		if (infinityType == 1) burnAmountByType = Params().GetConsensus().nMasternodeBurnSINNODE_1;
 		if (infinityType == 5) burnAmountByType = Params().GetConsensus().nMasternodeBurnSINNODE_5;
@@ -549,7 +549,7 @@ UniValue masternodelist(const JSONRPCRequest& request)
                                (int64_t)(mn.lastPing.sigTime - mn.sigTime) << " " << std::setw(10) <<
                                mn.GetLastPaidTime() << " "  << std::setw(6) <<
                                mn.GetLastPaidBlock() << " " <<
-                               mn.addr.ToString() << " " << infinityType << " " << rewardAtHeigh << " " <<burnAmountByType;
+                               mn.addr.ToString() << " " << infinityType << " " << rewardAtHeight << " " <<burnAmountByType;
                 std::string strFull = streamFull.str();
                 if (strFilter !="" && strFull.find(strFilter) == std::string::npos &&
                     strOutpoint.find(strFilter) == std::string::npos) continue;
@@ -557,7 +557,7 @@ UniValue masternodelist(const JSONRPCRequest& request)
             } else if (strMode == "info") {
                 std::ostringstream streamInfo;
 		int infinityType = mn.GetSinTypeInt();
-		int rewardAtHeigh = GetMasternodePayment(chainActive.Height(), infinityType);
+		int rewardAtHeight = GetMasternodePayment(chainActive.Height(), infinityType) / COIN;
 		int burnAmountByType = 0;
 		if (infinityType == 1) burnAmountByType = Params().GetConsensus().nMasternodeBurnSINNODE_1;
 		if (infinityType == 5) burnAmountByType = Params().GetConsensus().nMasternodeBurnSINNODE_5;
@@ -570,7 +570,7 @@ UniValue masternodelist(const JSONRPCRequest& request)
                                (int64_t)(mn.lastPing.sigTime - mn.sigTime) << " " <<
                                SafeIntVersionToString(mn.lastPing.nSentinelVersion) << " "  <<
                                (mn.lastPing.fSentinelIsCurrent ? "current" : "expired") << " " <<
-                               mn.addr.ToString() << " " << infinityType << " " << rewardAtHeigh << " " <<burnAmountByType;
+                               mn.addr.ToString() << " " << infinityType << " " << rewardAtHeight << " " <<burnAmountByType;
                 std::string strInfo = streamInfo.str();
                 if (strFilter !="" && strInfo.find(strFilter) == std::string::npos &&
                     strOutpoint.find(strFilter) == std::string::npos) continue;

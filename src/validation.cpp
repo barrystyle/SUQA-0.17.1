@@ -1275,7 +1275,7 @@ CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
   return reward;
 }
 
-CAmount GetMasternodePayment(int nHeight, int sintype = 0)
+CAmount GetMasternodePayment(int nHeight, int sintype)
 {
     CAmount ret = 0.00;
 
