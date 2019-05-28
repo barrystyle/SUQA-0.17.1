@@ -1840,7 +1840,8 @@ int64_t CalculateMaximumSignedTxSize(const CTransaction &tx, const CWallet *wall
     if (!wallet->DummySignTx(txNew, txouts, use_max_sig)) {
         // This should never happen, because IsAllFromMe(ISMINE_SPENDABLE)
         // implies that we can sign for every input.
-        return -1;
+	// SIN: we had to disable this as it made previously timelocked coins spend fail
+        //return -1;
     }
     return GetVirtualTransactionSize(txNew);
 }
