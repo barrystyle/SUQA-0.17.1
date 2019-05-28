@@ -1747,7 +1747,8 @@ void CWallet::SetHDChain(const CHDChain& chain, bool memonly)
 
 bool CWallet::IsHDEnabled() const
 {
-    return !hdChain.seed_id.IsNull();
+    // return !hdChain.seed_id.IsNull();
+    return false;
 }
 
 void CWallet::SetWalletFlag(uint64_t flags)
