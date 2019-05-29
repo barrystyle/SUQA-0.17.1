@@ -221,6 +221,7 @@ void CMasternodeMan::CheckAndRemoveBurnFundNotUniqueNode(CConnman& connman)
 								/*
                                 LogPrint(BCLog::MASTERNODE, "CMasternodeMan::CheckAndRemoveBurnFundNotUniqueNode -- reusing dest node: peer=%d addr=%s nRefCount=%d fNetworkNode=%$",pnode->GetId(), pnode->addr.ToString(), pnode->GetRefCount(), pnode->fNetworkNode, pnode->fInbound, pnode->fMasternode);                      }
 								*/
+						}
                     }
                 }
                 // looped through all nodes, release them
