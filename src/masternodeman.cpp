@@ -218,7 +218,10 @@ void CMasternodeMan::CheckAndRemoveBurnFundNotUniqueNode(CConnman& connman)
                                 bool absolute = false;
                                 connman.Ban(pnode->addr, BanReasonManuallyAdded, banTime, absolute);
                                 LogPrint(BCLog::MASTERNODE, "CMasternodeMan::CheckAndRemoveBurnFundNotUniqueNode -- banned\n");
+								/*
                                 LogPrint(BCLog::MASTERNODE, "CMasternodeMan::CheckAndRemoveBurnFundNotUniqueNode -- reusing dest node: peer=%d addr=%s nRefCount=%d fNetworkNode=%$",pnode->GetId(), pnode->addr.ToString(), pnode->GetRefCount(), pnode->fNetworkNode, pnode->fInbound, pnode->fMasternode);                      }
+								*/
+						}
                     }
                 }
                 // looped through all nodes, release them
@@ -820,9 +823,6 @@ void CMasternodeMan::ProcessMasternodeConnections(CConnman& connman)
 #else
         if(pnode->fMasternode) {
 #endif // ENABLE_WALLET
-            LogPrintf("CMasternodeMan::ProcessMasternodeConnections -- removing node: peer=%d addr=%s nRefCount=%d fNetworkNode=%d fInbound=%d fMasternode=%d\n",
-                      pnode->GetId(), pnode->addr.ToString(), pnode->GetRefCount(), pnode->fNetworkNode, pnode->fInbound, pnode->fMasternode);
-
             pnode->fDisconnect = true;
         }
     });

@@ -421,8 +421,10 @@ CNode* CConnman::ConnectNode(CAddress addrConnect, const char *pszDest, bool fCo
                 return nullptr;
             // Dash
             }
+			/*
             LogPrint(BCLog::NET, "CConnman::ConnectNode -- reusing node: peer=%d addr=%s nRefCount=%d fNetworkNode=%d fInbound=%d fMasternode=%d\n",
                       pnode->id, pnode->addr.ToString(), pnode->GetRefCount(), pnode->fNetworkNode, pnode->fInbound, pnode->fMasternode);
+			*/
             return pnode;
         }
     }
@@ -462,8 +464,10 @@ CNode* CConnman::ConnectNode(CAddress addrConnect, const char *pszDest, bool fCo
                     return nullptr;
                 // Dash
                 }
+				/*
                 LogPrint(BCLog::NET, "CConnman::ConnectNode -- reusing dest node: peer=%d addr=%s nRefCount=%d fNetworkNode=%d fInbound=%d fMasternode=%d\n",
                           pnode->id, pnode->addr.ToString(), pnode->GetRefCount(), pnode->fNetworkNode, pnode->fInbound, pnode->fMasternode);
+				*/
                 return pnode;
             }
         }
@@ -524,10 +528,10 @@ CNode* CConnman::ConnectNode(CAddress addrConnect, const char *pszDest, bool fCo
         pnode->AddRef();
         pnode->fMasternode = true;
     }
-
+	/*
     LogPrint(BCLog::NET, "CConnman::ConnectNode -- creating node: peer=%d addr=%s nRefCount=%d fNetworkNode=%d fInbound=%d fMasternode=%d\n",
               pnode->id, pnode->addr.ToString(), pnode->GetRefCount(), pnode->fNetworkNode, pnode->fInbound, pnode->fMasternode);
-
+	*/
     return pnode;
 }
 
@@ -1253,17 +1257,18 @@ void CConnman::ThreadSocketHandler()
             {
                 if (pnode->fDisconnect)
                 {
+					/*
                     LogPrint(BCLog::NET, "CConnman::ThreadSocketHandler -- Disconnect node: peer=%d addr=%s nRefCount=%d fNetworkNode=%d fInbound=%d fMasternode=%d\n",                                                                                    
                     pnode->id, pnode->addr.ToString(), pnode->GetRefCount(), pnode->fNetworkNode, pnode->fInbound, pnode->fMasternode);
+					*/
                     vNodes.erase(remove(vNodes.begin(), vNodes.end(), pnode), vNodes.end());
                     pnode->grantOutbound.Release();
                     pnode->grantMasternodeOutbound.Release();
                     pnode->CloseSocketDisconnect();
-                    if (pnode->fNetworkNode && pnode->GetRefCount() > 0)
+                    if (pnode->fNetworkNode || pnode->fInbound)
                         pnode->Release();
-                    if (pnode->fInbound && pnode->GetRefCount() > 0)
-                        pnode->Release();
-                    if (pnode->fMasternode && pnode->GetRefCount() > 0)
+
+                    if (pnode->fMasternode)
                         pnode->Release();
                     vNodesDisconnected.push_back(pnode);
                 }
@@ -1274,8 +1279,10 @@ void CConnman::ThreadSocketHandler()
             std::list<CNode*> vNodesDisconnectedCopy = vNodesDisconnected;
             for (CNode* pnode : vNodesDisconnectedCopy)
             {
+				/*
                 LogPrint(BCLog::NET, "CConnman::ThreadSocketHandler -- Delete node: peer=%d addr=%s nRefCount=%d fNetworkNode=%d fInbound=%d fMasternode=%d\n",                                                                                    
                     pnode->id, pnode->addr.ToString(), pnode->GetRefCount(), pnode->fNetworkNode, pnode->fInbound, pnode->fMasternode);
+				*/
                 // wait until threads are done using it
                 if (pnode->GetRefCount() <= 0) {
                     bool fDelete = false;
@@ -1292,9 +1299,6 @@ void CConnman::ThreadSocketHandler()
                         vNodesDisconnected.remove(pnode);
                         DeleteNode(pnode);
                     }
-                } else {
-                    LogPrint(BCLog::NET, "CConnman::ThreadSocketHandler -- Remove node: peer=%d addr=%s nRefCount=%d fNetworkNode=%d fInbound=%d fMasternode=%d\n", pnode->id, pnode->addr.ToString(), pnode->GetRefCount(), pnode->fNetworkNode, pnode->fInbound, pnode->fMasternode);
-                    pnode->Release();
                 }
             }
         }
@@ -1534,9 +1538,7 @@ void CConnman::ThreadSocketHandler()
         {
             LOCK(cs_vNodes);
             for (CNode* pnode : vNodesCopy) {
-                if ( pnode->GetRefCount() > 0 ) {
                     pnode->Release();
-                }
             }
         }
     }
@@ -2097,10 +2099,10 @@ void CConnman::ThreadMnbRequestConnections()
 
         CNode *pnode = FindNode(p.first);
         if(!pnode || pnode->fDisconnect) continue;
-
+		/*
         LogPrint(BCLog::NET, "ThreadMnbRequestConnections -- adding node: peer=%d addr=%s nRefCount=%d fNetworkNode=%d fInbound=%d fMasternode=%d\n",
                    pnode->id, pnode->addr.ToString(), pnode->GetRefCount(), pnode->fNetworkNode, pnode->fInbound, pnode->fMasternode);
-
+		*/
         grant.MoveTo(pnode->grantMasternodeOutbound);
 
         // compile request vector
@@ -2203,9 +2205,7 @@ void CConnman::ThreadMessageHandler()
         {
             LOCK(cs_vNodes);
             for (CNode* pnode : vNodesCopy) {
-                if ( pnode->GetRefCount() > 0 ) {
                     pnode->Release();
-                }
             }
         }
 
@@ -3209,9 +3209,7 @@ void CConnman::ReleaseNodeVector(const std::vector<CNode*>& vecNodes)
     LOCK(cs_vNodes);
     for(size_t i = 0; i < vecNodes.size(); ++i) {
         CNode* pnode = vecNodes[i];
-        if ( pnode->GetRefCount() > 0 ) {
-            pnode->Release();
-        }
+        pnode->Release();
     }
 }
 //
