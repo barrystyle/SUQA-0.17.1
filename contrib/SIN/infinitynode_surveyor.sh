@@ -45,16 +45,17 @@ echo "$DATE_WITH_TIME : check status of sind: $CHECK_SIN" >> ~/.sin/sin_control.
 #node is active
 if [ "$CHECK_SIN" -eq "0" ]; then
 	echo "$DATE_WITH_TIME : sin deamon is active" >> ~/.sin/sin_control.log
-	SINSTATUS=`$sin_cli masternode status | grep "successfully" | wc -l`
+	SINSTATUS=`$sin_cli masternode list-conf | grep "ENABLED" | wc -l`
 
 	#infinitynode is ENABLED
 	if [ "$SINSTATUS" -eq "1" ]; then
 		echo "$DATE_WITH_TIME : infinitynode is active" >> ~/.sin/sin_control.log
 	#infinitynode is not ENABLED
+		#in this case, do nothing, status of node can be change from EXPIRED to ENABLED
 	else
 		echo "$DATE_WITH_TIME : infinitynode is not ENABLED" >> ~/.sin/sin_control.log
-		echo "$DATE_WITH_TIME : Restarting..." >> ~/.sin/sin_control.log
-		stop_start_node
+		echo "$DATE_WITH_TIME : but it is restarted. Node will be avaible with status ENABLED" >> ~/.sin/sin_control.log
+		#stop_start_node -- no need to restart
 	fi
 fi
 
