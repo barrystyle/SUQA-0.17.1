@@ -1005,7 +1005,8 @@ bool CMasternodePing::CheckAndUpdate(CMasternode* pmn, bool fFromNewBroadcast, i
             return false;
         }
 
-        if (pmn->IsNewStartRequired()) {
+        // allow pinging node after NSR to recover automatically if not completely expired
+        if (pmn->IsExpired()) {
             LogPrint(BCLog::MASTERNODE, "CMasternodePing::CheckAndUpdate -- masternode is completely expired, new start is required, masternode=%s\n", vin.prevout.ToStringShort());
             return false;
         }
@@ -1014,7 +1015,8 @@ bool CMasternodePing::CheckAndUpdate(CMasternode* pmn, bool fFromNewBroadcast, i
     {
         LOCK(cs_main);
         BlockMap::iterator mi = mapBlockIndex.find(blockHash);
-        if ((*mi).second && (*mi).second->nHeight < chainActive.Height() - 24) {
+        // fix hardcoded Dash value for ping age validation to reflect block spacing in chainparams
+        if ((*mi).second && (*mi).second->nHeight < chainActive.Height() - (MASTERNODE_NEW_START_REQUIRED_SECONDS / Params().GetConsensus().nPowTargetSpacing)) {
             LogPrintf("CMasternodePing::CheckAndUpdate -- Masternode ping is invalid, block hash is too old: masternode=%s  blockHash=%s\n", vin.prevout.ToStringShort(), blockHash.ToString());
             // nDos = 1;
             return false;
