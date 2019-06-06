@@ -14,6 +14,8 @@
 #
 # change path of "sin_deamon" and "sin_cli"
 #
+# TODO: upload status of node to server for survey
+#
 
 sin_deamon_name="sind"
 
@@ -27,14 +29,17 @@ DATE_WITH_TIME=`date "+%Y%m%d-%H:%M:%S"`
 function start_node() {
 	sleep 5
 	echo "$DATE_WITH_TIME : Start sin deamon $sin_deamon" >> ~/.sin/sin_control.log
+	echo "$DATE_WITH_TIME : SIN_START" >> ~/.sin/sin_control.log
 	$sin_deamon &
 }
 
 function stop_start_node() {
 	echo "$DATE_WITH_TIME : kill process by name $sin_deamon_name" >> ~/.sin/sin_control.log
+	echo "$DATE_WITH_TIME : SIN_STOP" >> ~/.sin/sin_control.log
 	pgrep -f $sin_deamon_name | awk '{print "kill -9 " $1}' | sh >> ~/.sin/sin_control.log
 	sleep 15
 	echo "$DATE_WITH_TIME : Restart sin deamon $sin_deamon" >> ~/.sin/sin_control.log
+	echo "$DATE_WITH_TIME : SIN_START" >> ~/.sin/sin_control.log
 	$sin_deamon &
 }
 
@@ -45,18 +50,11 @@ echo "$DATE_WITH_TIME : check status of sind: $CHECK_SIN" >> ~/.sin/sin_control.
 #node is active
 if [ "$CHECK_SIN" -eq "0" ]; then
 	echo "$DATE_WITH_TIME : sin deamon is active" >> ~/.sin/sin_control.log
-	SINSTATUS=`$sin_cli masternode list-conf | grep "ENABLED" | wc -l`
+	SINSTATUS=`$sin_cli masternode status | grep "successfully" | wc -l`
 
 	#infinitynode is ENABLED
 	if [ "$SINSTATUS" -eq "1" ]; then
-		echo "$DATE_WITH_TIME : infinitynode is active" >> ~/.sin/sin_control.log
-	#infinitynode is not ENABLED
-		#in this case, do nothing, status of node can be change from EXPIRED to ENABLED
-	else
-		echo "$DATE_WITH_TIME : infinitynode is not ENABLED" >> ~/.sin/sin_control.log
-		echo "$DATE_WITH_TIME : but it is restarted. Node will be avaible with status ENABLED" >> ~/.sin/sin_control.log
-		#stop_start_node -- no need to restart
-	fi
+		echo "$DATE_WITH_TIME : infinitynode is started." >> ~/.sin/sin_control.log
 fi
 
 #node is stopped by supplier - maintenance
