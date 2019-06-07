@@ -144,6 +144,9 @@ public:
     /// This is dummy overload to be used for dumping/loading mncache.dat
     void CheckAndRemove() {}
 
+    /// Quick check if masternode is legit
+    int IsPayeeAValidMasternode(CScript payee);
+
     /// Clear Masternode vector
     void Clear();
 

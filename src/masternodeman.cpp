@@ -161,6 +161,20 @@ void CMasternodeMan::Check()
     }
 }
 
+int CMasternodeMan::IsPayeeAValidMasternode(CScript payee)
+{
+    if(!masternodeSync.IsMasternodeListSynced()) return 1;
+
+    LOCK2(cs_main, cs);
+    for (auto& mnpair : mapMasternodes) {
+        CMasternodeBroadcast mnb = CMasternodeBroadcast(mnpair.second);
+        CScript currentMasternode = GetScriptForDestination(mnb.pubKeyCollateralAddress.GetID());
+        if(payee == currentMasternode)
+           return 2;
+    }
+    return 0;
+}
+
 void CMasternodeMan::CheckAndRemoveBurnFundNotUniqueNode(CConnman& connman)
 {
     if(!masternodeSync.IsMasternodeListSynced()) return;

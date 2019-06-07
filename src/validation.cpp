@@ -2226,6 +2226,23 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
     if (block.vtx[0]->vout[1].nValue < GetDevCoin(pindex->nHeight, blockReward))
         return state.DoS(100, error("ConnectBlock(): coinbase does not pay enough to the dev fund address."), REJECT_INVALID, "bad-cb-dev-fee");
 
+    // Basic testing to ensure pays go to correct sinnode tiers
+    int enforceHeight = 175500;
+    for (int payeepos = 2; payeepos < 5; payeepos++) {
+	int fValidTier = mnodeman.IsPayeeAValidMasternode(block.vtx[0]->vout[payeepos].scriptPubKey);
+        if (fValidTier == 0) {
+            LogPrintf("Found invalid masternode %s at block.vtx[0].vout[%d]\n", block.vtx[0]->vout[payeepos].scriptPubKey.ToString().c_str(), payeepos);
+           if (pindex->nHeight >= enforceHeight) {
+               LogPrintf("Rejecting block as a result.. (height %d)\n", pindex->nHeight);
+               return false;
+           }
+	} else if (fValidTier == 1) {
+	    LogPrintf("Skipping tier checks as masternodeList is not yet synced..\n");
+        } else {
+            LogPrintf("Found valid masternode %s at block.vtx[0].vout[%d]\n", block.vtx[0]->vout[payeepos].scriptPubKey.ToString().c_str(), payeepos);
+        }
+    }
+
     if (!control.Wait())
         return state.DoS(100, error("%s: CheckQueue failed", __func__), REJECT_INVALID, "block-validation-failed");
     int64_t nTime4 = GetTimeMicros(); nTimeVerify += nTime4 - nTime2;
